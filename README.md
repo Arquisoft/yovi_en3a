@@ -1,6 +1,6 @@
 # YOVI_en3a - Game Y at UniOvi
 
-[![Release — Test, Build, Publish, Deploy](https://github.com/arquisoft/yovi_en3a/actions/workflows/release-deploy.yml/badge.svg)](https://github.com/arquisoft/yovi_en3a/actions/workflows/release-deploy.yml)
+[![Release — Test, Build, Publish, Deploy](https://github.com/arquisoft/yovi_en3a/actions/workflows/release-deploy.yml/badge.svg)](https://github.com/arquisoft/yovi_en3a/actions/workflows/release-deploy.yml) 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_en3a&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_en3a)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Arquisoft_yovi_en3a&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Arquisoft_yovi_en3a)
 
