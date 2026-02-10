@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.23">
+<meta name="generator" content="Asciidoctor 2.0.26">
 <title>yovi_en3a</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -116,7 +116,6 @@ h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title str
 :not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
 pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
 pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
-pre>code{display:block}
 pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
 em em{font-style:normal}
 strong strong{font-weight:400}
@@ -219,6 +218,7 @@ table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
 .literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
 .literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
 .listingblock>.content{position:relative}
+.listingblock pre>code{display:block}
 .listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
 .listingblock:hover code[data-lang]::before{display:block}
 .listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
@@ -459,7 +459,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_technical_context">3.2. Technical Context</a></li>
 </ul>
 </li>
-<li><a href="#section-solution-strategy">4. Solution Strategy</a></li>
+<li><a href="#section-solution-strategy">4. Solution Strategy</a>
+<ul class="sectlevel2">
+<li><a href="#_technologies_used">4.1. Technologies used</a></li>
+<li><a href="#_top_level_decomposition_decisions">4.2. Top-Level decomposition decisions</a></li>
+<li><a href="#_how_to_achieve_key_quality_goals">4.3. How to achieve key quality goals</a></li>
+</ul>
+</li>
 <li><a href="#section-building-block-view">5. Building Block View</a>
 <ul class="sectlevel2">
 <li><a href="#_whitebox_overall_system">5.1. Whitebox Overall System</a></li>
@@ -841,6 +847,56 @@ together with a mapping table showing the relationships between channels and inp
 <div class="sect1">
 <h2 id="section-solution-strategy">4. Solution Strategy</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_technologies_used">4.1. Technologies used</h3>
+<div class="paragraph">
+<p>====FrontEnd
+* React + Typescript: Used for the principal face of the proyect, for the game interface and for the users registry.
+* Vite: Used for constructing the FrontEnd.
+====BackEnd
+* Node.js: Used for managing the users registration in the server.
+* Express: Used for develop the API rest that allows to communicate between FrontEnd and BackEnd.
+* Rust: Used for developing the bots and to be used as the game engine.
+* Cargo: Used for building and compiling rust proyect.
+* MongoDB: We are using MongoDB as the database for the users because it gives support for JSON, being it the main communication file in our application. Also because in case we need to keep the state of something in a JSON file at some point, it would be easier having a document based databes instead of having an SQL one.
+====Infraestructure
+* Docker: Used for having just one container that works the same way in different computers.
+* Github Actions: Used for automatizing tasks such as passing the test, compiling code before we push something into the repository
+* SonarCloud: Used for verifying the quality of the code.
+* Gitflow for branch strategy: We are using gitflow as branching strategy as we need keep a record of the changes, and because we are having different versions being coded at the same time so we need to keep them save.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_top_level_decomposition_decisions">4.2. Top-Level decomposition decisions</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Strategy pattern: Used for the bots, having the YBot trait as an interface used for the different bots implemented.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_how_to_achieve_key_quality_goals">4.3. How to achieve key quality goals</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Performance: The game and the bots are developed in Rust, making the time responses lower than any other programming language.</p>
+</li>
+<li>
+<p>Usability: The application must be user friendly, making the user feel comfortable while going through the application.</p>
+</li>
+<li>
+<p>Maintability: The application must persist over time.</p>
+</li>
+<li>
+<p>Security: The application must protect the users data by validating into the server all the movements by any user.</p>
+</li>
+<li>
+<p>Testability: The application must be tested, using github actions to perform that tests before each push.</p>
+</li>
+</ul>
+</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -883,6 +939,7 @@ Refer to details in the following sections.</p>
 </div>
 </div>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1804,7 +1861,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-05 12:46:07 +0100
+Last updated 2026-02-09 15:17:09 +0100
 </div>
 </div>
 </body>
