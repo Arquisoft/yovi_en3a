@@ -19,6 +19,26 @@ endif::arc42help[]
 
 === Requirements Overview
 
+The main goal of this project is the development of YOVI, an implementation of the "Game Y" board game
+for the game development company "Micrati".
+The system must be a robust and scalable solution that combines modern web development technologies 
+along with Rust's efficient computational logic, which will use YEN otation to communicate with the Web Applcation.
+The game will contain several innovative features such as the possibility to face several bots implementing
+different difficulties and game strategies, as well as multiplayer mode in which you can play real time against other player.
+
+Functional requirements:
+
+* The system will allow users to play against players or bots
+* The size of the board, as well as the strategies and difficulty of the bots to play against can be selected by the user
+* User must be able to register and login and both statistics and results of games will be also recorded
+* The application must be deployed and publicly accessible via the Web
+* The system will contain a Rust module for verifying win conditions and suggesting a "next move"
+
+
+
+
+
+
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -69,6 +89,17 @@ A table with quality goals and concrete scenarios, ordered by priorities
 ****
 endif::arc42help[]
 
+[options="header",cols="1,3"]
+|===
+|Quality Goal|Description
+| *Performance* |The system must ensure low-latency interactions by using Rust for heavy computations and YEN notation for high-speed communication between modules.
+| *Usability* | The application must provide an intuitive and easy to use interface for seamless board interaction and strategy selection. 
+| *Scalability* |The system should handle a growing number of players and concurrent bot requests without slowing down.
+| *Interoperability* | The application must allow external bots to interact with both the system and players.
+| *Maintainability* | The system is designed to be easy to fix and update due to its modular structure, allowing us to modify different subsystems separately.
+|===
+
+
 === Stakeholders
 
 ifdef::arc42help[]
@@ -96,6 +127,7 @@ endif::arc42help[]
 [options="header",cols="1,2,2"]
 |===
 |Role/Name|Contact|Expectations
-| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
-| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
+| *Micrati* | Project Owner | A scalable game suite that showcases high performance and supports future variants of Game Y.
+| *Users* | Users of the Game | A smooth and engaging game experience with a user-friendly interface.
+| *Evaluators* | Professors | Adherence to arc42 standards, correct use of YEN notation, and high quality in both Rust and TypeScript.
 |===
