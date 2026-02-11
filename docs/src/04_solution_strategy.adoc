@@ -33,6 +33,13 @@ ifndef::imagesdir[:imagesdir: ../images]
 * *Security*: The application must protect the users data by validating into the server all the movements by any user.
 * *Testability*: The application must be tested, using github actions to perform that tests before each push.
 
+=== Organizational decisions
+* The use of GitHub for communicating beween members of the team.
+* A weekly meeting to clarify doubts about the project and decide what will be done during the week.
+* A record of these meetings will be kept in the repository's wiki on GitHub.
+* Pull requests will be used to prevent problems with overwriting code.
+* Wiki in GitHub will be used for publishing information about the different modules so everyone in the team could see and understand the most critical parts of the proyect in case we need it.
+
 
 ifdef::arc42help[]
 [role="arc42help"]

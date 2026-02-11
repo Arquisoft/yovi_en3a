@@ -67,15 +67,22 @@ In the best case you will get away with examples or simple signatures.
 ****
 endif::arc42help[]
 
-_**<Overview Diagram>**_
+
+image::05_building_blocks-Level1-Overall-View.svg["Building Block Level 1"]
 
 Motivation::
 
-_<text explanation>_
+This is a high-level view of the project, with the three main components that make it up.
 
 
 Contained Building Blocks::
-_<Description of contained building block (black boxes)>_
+[cols="1,2" options="header"]
+|===
+| **Name** | **Responsibility**
+| WebApp | Web visual interface for the player to interact with the program
+| Users |   REST API to manage registration and storage of players
+| Gamey |  Main game logic and bots for the player to play against
+|===
 
 Important Interfaces::
 _<Description of important interfaces>_
@@ -102,7 +109,7 @@ Its headline is the name of the black box.
 ****
 endif::arc42help[]
 
-==== <Name black box 1>
+
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -120,37 +127,7 @@ according the the following black box template:
 ****
 endif::arc42help[]
 
-_<Purpose/Responsibility>_
-
-_<Interface(s)>_
-
-_<(Optional) Quality/Performance Characteristics>_
-
-_<(Optional) Directory/File Location>_
-
-_<(Optional) Fulfilled Requirements>_
-
-_<(optional) Open Issues/Problems/Risks>_
-
-
-
-
-==== <Name black box 2>
-
-_<black box template>_
-
-==== <Name black box n>
-
-_<black box template>_
-
-
-==== <Name interface 1>
-
-...
-
-==== <Name interface m>
-
-
+  
 
 === Level 2
 
@@ -165,7 +142,17 @@ Leave out normal, simple, boring or standardized parts of your system
 ****
 endif::arc42help[]
 
-==== White Box _<building block 1>_
+==== White Box Gamey
+
+image::05_building_blocks-Level2-gamey.svg["Building Block Level 2 - Gamey"]
+Contained Building Blocks::
+[cols="1,2" options="header"]
+|===
+| **Name** | **Responsibility**
+| Core | Core of the game, including the main game logic,coordinates,game_state , ... 
+| Bot |   Registry of bots that the player can play against, can be accessed by the core to get the next move of a bot and through the Bot Server API.  
+| CLI |  The gamme can also be played through a command line interface, this is omly used for testing and debugging purposes.
+|===
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -174,14 +161,19 @@ ifdef::arc42help[]
 ****
 endif::arc42help[]
 
-_<white box template>_
 
-==== White Box _<building block 2>_
+==== White Box WebApp
 
 
-_<white box template>_
-
-...
+image::05_building_blocks-Level2-WebApp.svg["Building Block Level 2 - WebApp"]
+Contained Building Blocks::
+[cols="1,2" options="header"]
+|===
+| **Name** | **Responsibility**
+| Login Page | Web page for user authentication and login, accesses the Users API to store users 
+| Game Selection |   After login, the user can customize his game settings, sucha as the bot he wants to play against, the board size, ...  
+| Game UI |  The user can see the board and click on cells to make a move.
+|===
 
 ==== White Box _<building block m>_
 
