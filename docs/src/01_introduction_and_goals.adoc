@@ -22,9 +22,8 @@ endif::arc42help[]
 The main goal of this project is the development of YOVI, an implementation of the "Game Y" board game
 for the game development company "Micrati".
 The system must be a robust and scalable solution that combines modern web development technologies 
-along with Rust's efficient computational logic, which will use YEN otation to communicate with the Web Applcation.
-The game will contain several innovative features such as the possibility to face several bots implementing
-different difficulties and game strategies, as well as multiplayer mode in which you can play real time against other player.
+along with Rust's efficient computational logic, which will use YEN notation to communicate with the Web Applcation.
+The game will contain several innovative features such as the possibility to face several bots implementing different difficulties and game strategies, as well as multiplayer mode in which you can play real time against other player.
 
 Functional requirements:
 
@@ -97,6 +96,8 @@ endif::arc42help[]
 | *Scalability* |The system should handle a growing number of players and concurrent bot requests without slowing down.
 | *Interoperability* | The application must allow external bots to interact with both the system and players.
 | *Maintainability* | The system is designed to be easy to fix and update due to its modular structure, allowing us to modify different subsystems separately.
+| *Security* | User data must be securely stored and will be protected against unauthorized access.
+| *Testability* | The system will have appropiate testing to ensure software correctness.
 |===
 
 
