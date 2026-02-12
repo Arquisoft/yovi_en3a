@@ -452,7 +452,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_stakeholders">1.3. Stakeholders</a></li>
 </ul>
 </li>
-<li><a href="#section-architecture-constraints">2. Architecture Constraints</a></li>
+<li><a href="#section-architectural-constraints">2. Architectural Constraints</a></li>
 <li><a href="#section-context-and-scope">3. Context and Scope</a>
 <ul class="sectlevel2">
 <li><a href="#_business_context">3.1. Business Context</a></li>
@@ -592,9 +592,8 @@ These include</p>
 <p>The main goal of this project is the development of YOVI, an implementation of the "Game Y" board game
 for the game development company "Micrati".
 The system must be a robust and scalable solution that combines modern web development technologies
-along with Rust&#8217;s efficient computational logic, which will use YEN otation to communicate with the Web Applcation.
-The game will contain several innovative features such as the possibility to face several bots implementing
-different difficulties and game strategies, as well as multiplayer mode in which you can play real time against other player.</p>
+along with Rust&#8217;s efficient computational logic, which will use YEN notation to communicate with the Web Applcation.
+The game will contain several innovative features such as the possibility to face several bots implementing different difficulties and game strategies, as well as multiplayer mode in which you can play real time against other player.</p>
 </div>
 <div class="paragraph">
 <p>Functional requirements:</p>
@@ -708,6 +707,14 @@ If you as an architect do not know how the quality of your work will be judged&#
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Maintainability</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The system is designed to be easy to fix and update due to its modular structure, allowing us to modify different subsystems separately.</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Security</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User data must be securely stored and will be protected against unauthorized access.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Testability</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The system will have appropiate testing to ensure software correctness.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -786,32 +793,52 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-architecture-constraints">2. Architecture Constraints</h2>
+<h2 id="section-architectural-constraints">2. Architectural Constraints</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
 <div class="paragraph">
-<div class="title">Contents</div>
-<p>Any requirement that constraints software architects in their freedom of design and implementation decisions or decision about the development process. These constraints sometimes go beyond individual systems and are valid for whole organizations and companies.</p>
+<p>This section describes the conditions and non-functional requirements that limit our design freedom. These constraints are primarily defined by the academic requirements of the ASW course and the pre-existing technical template provided for the project.</p>
 </div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Architects should know exactly where they are free in their design decisions and where they must adhere to constraints.
-Constraints must always be dealt with; they may be negotiable, though.</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>Simple tables of constraints with explanations.
-If needed you can subdivide them into
-technical constraints, organizational and political constraints and
-conventions (e.g. programming or versioning guidelines, documentation or naming conventions)</p>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-2/">Architecture Constraints</a> in the arc42 documentation.</p>
-</div>
-</div>
-</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Constraint</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C1: Polyglot Stack</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use of Node.js (Users), React (Webapp), and Rust (Gamey).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Team must manage multiple toolchains (<code>npm</code> and <code>cargo</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C2: Dockerization</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mandatory use of Docker and Docker Compose for deployment.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Developers must have Docker installed. Simplifies grading but adds overhead to local resource (RAM) usage.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C3: Arc42 Template</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Documentation must strictly follow the Arc42 structure.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Higher initial effort in documentation, but ensures all architectural aspects of the project are covered.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C4: SPA Architecture</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend must be a Single Page Application using Vite/React.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">State management and routing happen entirely in the browser; the backend is strictly a stateless REST API.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C5: Timeframe</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project must be completed within the academic semester.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Feature prioritization is critical (MVP approach); complex "extra" features might be risky.</p></td>
+</tr>
+</tbody>
+</table>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
@@ -1660,9 +1687,17 @@ building block instances depicted in this diagram.&gt;</em></p>
 <div class="paragraph">
 <p>It is possible to use a sequence diagram:</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="332" height="335">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+actor Alice
+actor Bob
+database Pod as "Bob's Pod"
+Alice -&gt; Bob: Authentication Request
+Bob --&gt; Alice: Authentication Response
+Alice  --&gt; Pod: Store route
+Alice -&gt; Bob: Another authentication Request
+Alice &lt;-- Bob: another authentication Response</pre>
 </div>
 </div>
 </div>
@@ -2195,7 +2230,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-11 18:39:13 +0100
+Last updated 2026-02-11 15:08:02 +0100
 </div>
 </div>
 </body>
