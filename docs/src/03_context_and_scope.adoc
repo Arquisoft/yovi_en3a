@@ -3,7 +3,6 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-context-and-scope]]
 == Context and Scope
 
-
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -32,6 +31,43 @@ endif::arc42help[]
 
 === Business Context
 
+[plantuml, "Business context",png]
+----
+skinparam linetype ortho
+
+actor User
+actor "External Bots" as Bots
+
+rectangle YOVI as YOVI
+
+User -[hidden]-> YOVI
+YOVI -[hidden]-> Bots
+
+User ---> YOVI : Login credentials \n Game decisions
+YOVI ---> User : Game state \n Statistics/History 
+
+Bots <---> YOVI : API requests \n Game data \n Movements
+----
+
+.YOVI
+[options="header"]
+|===
+| Communication Partner | Input | Output
+
+| User
+| - Login credentials +
+  - Game decisions + 
+  - Data requests
+| - Authentication result +
+  - Game state +
+  - Statistics / History
+
+| External Bots
+| - API requests
+| - Game data +
+  - Game actions
+|===
+
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -51,11 +87,86 @@ The title of the table is the name of your system, the three columns contain the
 ****
 endif::arc42help[]
 
-**<Diagram or Table>**
-
-**<optionally: Explanation of external domain interfaces>**
-
 === Technical Context
+
+[plantuml, "Technical context",png]
+----
+actor User
+actor ExternalBots as Bots
+database "MongoDB" as DB
+
+node "YOVI" <<docker>> {
+
+    rectangle "Web Frontend" as Frontend
+    
+    rectangle "API" as API
+    
+    rectangle "User Registration" as Registration
+    rectangle "User Service" as Service
+    
+    rectangle "GameY" as Game {
+        rectangle "Bot"
+    }
+}
+
+User --> Frontend : HTTPS
+Bots --> API : HTTPS
+
+Frontend --> API : HTTPS
+
+API --> Registration
+API --> Service
+API --> Game
+
+Service <--> DB : MongoDB
+----
+
+|===
+| Communication Partner | Input | Output
+
+| User
+| - Login credentials +
+  - Game moves / Strategy selection
+  - Data requests
+| - Authentication result +
+  - Game state +
+  - Statistics / History
+
+| Web Frontend
+| - Requests from the user (login, moves, strategy)
+| - Forwards requests to API
+
+| API
+| - Requests from Frontend +
+  - Requests from External Bots
+| - Forwards requests to User Registration, User Service, GameY +
+  - Responds back to Frontend and Bots
+
+| User Registration
+| - Registration/Login data from API
+| - User created / validated +
+  - Authentication result
+
+| User Service
+| - Requests from API (stats, history)
+| - Data from MongoDB
+
+| GameY
+| - Game moves from API +
+  - Bot decisions (internal)
+| - Game state updates +
+  - Bot actions +
+  - Responses to the API
+
+| Bot (internal)
+| - Game state
+| - Next action
+
+| MongoDB
+| - Queries from User Service
+| - Returns requested user data
+|===
+
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -72,9 +183,3 @@ together with a mapping table showing the relationships between channels and inp
 
 ****
 endif::arc42help[]
-
-**<Diagram or Table>**
-
-**<optionally: Explanation of technical interfaces>**
-
-**<Mapping Input/Output to Channels>**

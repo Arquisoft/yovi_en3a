@@ -3,6 +3,43 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-solution-strategy]]
 == Solution Strategy
 
+=== Technologies used
+
+==== FrontEnd
+
+* *React + Typescript*: Used for the principal face of the proyect, for the game interface and for the users registry.
+* *Vite*: Used for constructing the FrontEnd. 
+
+==== BackEnd
+* *Node.js*: Used for managing the users registration in the server.
+* *Express*: Used for develop the API rest that allows to communicate between FrontEnd and BackEnd.
+* *Rust*: Used for developing the bots and to be used as the game engine.
+* *Cargo*: Used for building and compiling rust proyect.
+* *MongoDB*: We are using MongoDB as the database for the users because it gives support for JSON, being it the main communication file in our application. Also because in case we need to keep the state of something in a JSON file at some point, it would be easier having a document based databes instead of having an SQL one.
+
+==== Infraestructure
+* *Docker*: Used for having just one container that works the same way in different computers.
+* *Github Actions*: Used for automatizing tasks such as passing the test, compiling code before we push something into the repository
+* *SonarCloud*: Used for verifying the quality of the code.
+* *Gitflow for branch strategy*: We are using gitflow as branching strategy as we need keep a record of the changes, and because we are having different versions being coded at the same time so we need to keep them save.
+
+=== Top-Level decomposition decisions
+* *Strategy pattern*: Used for the bots, having the YBot trait as an interface used for the different bots implemented.
+
+=== How to achieve key quality goals
+* *Performance*: The game and the bots are developed in Rust, making the time responses lower than any other programming language.
+* *Usability*: The application must be user friendly, making the user feel comfortable while going through the application.
+* *Maintability*: The application must persist over time.
+* *Security*: The application must protect the users data by validating into the server all the movements by any user.
+* *Testability*: The application must be tested, using github actions to perform that tests before each push.
+
+=== Organizational decisions
+* The use of GitHub for communicating beween members of the team.
+* A weekly meeting to clarify doubts about the project and decide what will be done during the week.
+* A record of these meetings will be kept in the repository's wiki on GitHub.
+* Pull requests will be used to prevent problems with overwriting code.
+* Wiki in GitHub will be used for publishing information about the different modules so everyone in the team could see and understand the most critical parts of the proyect in case we need it.
+
 
 ifdef::arc42help[]
 [role="arc42help"]

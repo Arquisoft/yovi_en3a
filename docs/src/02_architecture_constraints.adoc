@@ -1,29 +1,12 @@
-ifndef::imagesdir[:imagesdir: ../images]
-
-[[section-architecture-constraints]]
-== Architecture Constraints
-
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Any requirement that constraints software architects in their freedom of design and implementation decisions or decision about the development process. These constraints sometimes go beyond individual systems and are valid for whole organizations and companies.
-
-.Motivation
-Architects should know exactly where they are free in their design decisions and where they must adhere to constraints.
-Constraints must always be dealt with; they may be negotiable, though.
-
-.Form
-Simple tables of constraints with explanations.
-If needed you can subdivide them into
-technical constraints, organizational and political constraints and
-conventions (e.g. programming or versioning guidelines, documentation or naming conventions)
-
-
-.Further Information
-
-See https://docs.arc42.org/section-2/[Architecture Constraints] in the arc42 documentation.
-
-****
-endif::arc42help[]
+[[section-architectural-constraints]]
+== Architectural Constraints
+This section describes the conditions and non-functional requirements that limit our design freedom. These constraints are primarily defined by the academic requirements of the ASW course and the pre-existing technical template provided for the project.
+[cols="1,2,2", options="header"]
+|===
+| Constraint | Description | Consequence
+| *C1: Polyglot Stack* | Use of Node.js (Users), React (Webapp), and Rust (Gamey). | Team must manage multiple toolchains (`npm` and `cargo`).
+| *C2: Dockerization* | Mandatory use of Docker and Docker Compose for deployment. | Developers must have Docker installed. Simplifies grading but adds overhead to local resource (RAM) usage.
+| *C3: Arc42 Template* | Documentation must strictly follow the Arc42 structure. | Higher initial effort in documentation, but ensures all architectural aspects of the project are covered.
+| *C4: SPA Architecture* | Frontend must be a Single Page Application using Vite/React. | State management and routing happen entirely in the browser; the backend is strictly a stateless REST API.
+| *C5: Timeframe* | Project must be completed within the academic semester. | Feature prioritization is critical (MVP approach); complex "extra" features might be risky.
+|===
