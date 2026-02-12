@@ -881,9 +881,23 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 <div class="sect2">
 <h3 id="_business_context">3.1. Business Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Business%20context.png" alt="Business context" width="272" height="443">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+skinparam linetype ortho
+
+actor User
+actor "External Bots" as Bots
+
+rectangle YOVI as YOVI
+
+User -[hidden]-&gt; YOVI
+YOVI -[hidden]-&gt; Bots
+
+User ---&gt; YOVI : Login credentials \n Game decisions
+YOVI ---&gt; User : Game state \n Statistics/History
+
+Bots &lt;---&gt; YOVI : API requests \n Game data \n Movements</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -942,9 +956,37 @@ The title of the table is the name of your system, the three columns contain the
 </div>
 <div class="sect2">
 <h3 id="_technical_context">3.2. Technical Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Technical%20context.png" alt="Technical context" width="473" height="550">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+actor User
+actor ExternalBots as Bots
+database "MongoDB" as DB
+
+node "YOVI" &lt;&lt;docker&gt;&gt; {
+
+    rectangle "Web Frontend" as Frontend
+
+    rectangle "API" as API
+
+    rectangle "User Registration" as Registration
+    rectangle "User Service" as Service
+
+    rectangle "GameY" as Game {
+        rectangle "Bot"
+    }
+}
+
+User --&gt; Frontend : HTTPS
+Bots --&gt; API : HTTPS
+
+Frontend --&gt; API : HTTPS
+
+API --&gt; Registration
+API --&gt; Service
+API --&gt; Game
+
+Service &lt;--&gt; DB : MongoDB</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1625,9 +1667,17 @@ building block instances depicted in this diagram.&gt;</em></p>
 <div class="paragraph">
 <p>It is possible to use a sequence diagram:</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="332" height="335">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+actor Alice
+actor Bob
+database Pod as "Bob's Pod"
+Alice -&gt; Bob: Authentication Request
+Bob --&gt; Alice: Authentication Response
+Alice  --&gt; Pod: Store route
+Alice -&gt; Bob: Another authentication Request
+Alice &lt;-- Bob: another authentication Response</pre>
 </div>
 </div>
 </div>
@@ -2160,7 +2210,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-12 13:34:46 +0100
+Last updated 2026-02-11 15:08:02 +0100
 </div>
 </div>
 </body>
