@@ -31,7 +31,8 @@ endif::arc42help[]
 
 === Business Context
 
-@startuml
+[plantuml, "Business context",png]
+----
 skinparam linetype ortho
 
 actor User
@@ -46,7 +47,7 @@ User ---> YOVI : Login credentials \n Game decisions
 YOVI ---> User : Game state \n Statistics/History 
 
 Bots <---> YOVI : API requests \n Game data \n Movements
-@enduml
+----
 
 .YOVI
 [options="header"]
@@ -88,7 +89,8 @@ endif::arc42help[]
 
 === Technical Context
 
-@startuml
+[plantuml, "Technical context",png]
+----
 actor User
 actor ExternalBots as Bots
 database "MongoDB" as DB
@@ -117,7 +119,7 @@ API --> Service
 API --> Game
 
 Service <--> DB : MongoDB
-@enduml
+----
 
 |===
 | Communication Partner | Input | Output
