@@ -64,3 +64,129 @@ impl YBot for BeginnerBot {
         Some(coordinates)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{GameY, Movement, PlayerId, Coordinates};
+
+    #[test]
+    fn bot_wins_when_possible() {
+        let mut board = GameY::new(3);
+        let bot = BeginnerBot;
+        let player = PlayerId::new(0);
+        
+        board.add_move(Movement::Placement {
+            player,
+            coords: Coordinates::new(2, 0, 0)
+        }).unwrap();
+        board.add_move(Movement::Placement {
+            player,
+            coords: Coordinates::new(1,0,1)
+        }).unwrap();
+        
+        let chosen = bot.choose_move(&board);
+        assert_eq!(chosen, Some(Coordinates::new(0, 0, 2)));
+    }
+
+    #[test]
+    fn bot_blocks_opponent_win() {
+        let mut board = GameY::new(3);
+        let bot = BeginnerBot;
+        let opponent = PlayerId::new(0);
+        
+        board.add_move(Movement::Placement { 
+            player: opponent, 
+            coords: Coordinates::new(1, 1, 0) 
+        }).unwrap();
+        board.add_move(Movement::Placement { 
+            player: opponent, 
+            coords: Coordinates::new(1, 0, 1) 
+        }).unwrap();
+        
+        let chosen = bot.choose_move(&board);
+        assert_eq!(chosen, Some(Coordinates::new(0, 1, 1)));
+    }
+
+    #[test]
+    fn bot_prioritizes_own_win_over_blocking() {
+        let mut board = GameY::new(3);
+        let bot = BeginnerBot;
+        let bot_player = PlayerId::new(1);
+        let opponent = PlayerId::new(0);
+        
+        board.add_move(Movement::Placement { 
+            player: bot_player, 
+            coords: Coordinates::new(2, 0, 0) 
+        }).unwrap();
+        board.add_move(Movement::Placement { 
+            player: bot_player, 
+            coords: Coordinates::new(1, 1, 0) 
+        }).unwrap();
+        
+        board.add_move(Movement::Placement { 
+            player: opponent, 
+            coords: Coordinates::new(0, 0, 2) 
+        }).unwrap();
+        board.add_move(Movement::Placement { 
+            player: opponent, 
+            coords: Coordinates::new(0, 1, 1) 
+        }).unwrap();
+        
+        let chosen = bot.choose_move(&board);
+        assert_eq!(chosen, Some(Coordinates::new(0, 2, 0)));
+    }
+
+    #[test]
+    fn bot_chooses_move_on_empty_board() {
+        let board = GameY::new(3);
+        let bot = BeginnerBot;
+        
+        let chosen = bot.choose_move(&board);
+        assert!(chosen.is_some());
+        
+        if let Some(coords) = chosen {
+            let sum = coords.x() + coords.y() + coords.z();
+            assert_eq!(sum, 2);
+        }
+    }
+
+    #[test]
+    fn bot_detects_vertical_win() {
+        let mut board = GameY::new(3);
+        let bot = BeginnerBot;
+        let bot_player = PlayerId::new(1);
+        
+        board.add_move(Movement::Placement { 
+            player: bot_player, 
+            coords: Coordinates::new(0, 2, 0) 
+        }).unwrap();
+        board.add_move(Movement::Placement { 
+            player: bot_player, 
+            coords: Coordinates::new(0, 1, 1) 
+        }).unwrap();
+        
+        let chosen = bot.choose_move(&board);
+        assert_eq!(chosen, Some(Coordinates::new(0, 0, 2)));
+    }
+
+    #[test]
+    fn bot_detects_diagonal_win() {
+        let mut board = GameY::new(3);
+        let bot = BeginnerBot;
+        let bot_player = PlayerId::new(1);
+        
+        board.add_move(Movement::Placement { 
+            player: bot_player, 
+            coords: Coordinates::new(2, 0, 0) 
+        }).unwrap();
+        board.add_move(Movement::Placement { 
+            player: bot_player, 
+            coords: Coordinates::new(1, 1, 0) 
+        }).unwrap();
+        
+        let chosen = bot.choose_move(&board);
+        assert_eq!(chosen, Some(Coordinates::new(0, 2, 0)));
+    }
+}
