@@ -1,100 +1,75 @@
-ifndef::imagesdir[:imagesdir: ../images]
-
+:asciidoctor-diagram:
 [[section-deployment-view]]
-
-
 == Deployment View
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Content
-The deployment view describes:
+=== 7.1 Infrastructure Level 1
+This level describes the distribution of the system across the environments used during the development and production phases of the YOVI_en3a project.
 
- 1. technical infrastructure used to execute your system, with infrastructure elements like geographical locations, environments, computers, processors, channels and net topologies as well as other infrastructure elements and
+**Motivation**
+The project is designed to be highly portable. By using a Virtual Machine on Azure, we ensure that the application is accessible via a public IP/DNS for grading and testing, while the local environment is used for rapid development.
 
-2. mapping of (software) building blocks to that infrastructure elements.
+**Quality and/or Performance Features**
+* **Availability:** The Azure VM provides a stable 24/7 uptime.
+* **Security:** Management access is restricted via SSH (Port 22). Public access is strictly limited to Ports 80, 3000, and 4000 via Azure Network Security Groups.
+* **Portability:** The entire stack is containerized, allowing the team to switch from Azure to any other cloud provider with minimal configuration changes.
 
-Often systems are executed in different environments, e.g. development environment, test environment, production environment. In such cases you should document all relevant environments.
+**Mapping**
+[cols="1,2", options="header"]
+|===
+| Element | Software Artifacts (Building Blocks)
+| **Local Developer PC** | Source code, Node.js environment, Rust toolchain, and local Docker Desktop.
+| **Azure VM (Ubuntu)** | Production containers: `webapp`, `users`, `gamey`, and `database`.
+|===
 
-Especially document a deployment view if your software is executed as distributed system with more than one computer, processor, server or container or when you design and construct your own hardware processors and chips.
+---
 
-From a software perspective it is sufficient to capture only those elements of an infrastructure that are needed to show a deployment of your building blocks. Hardware architects can go beyond that and describe an infrastructure to any level of detail they need to capture.
+### 7.2 Infrastructure Level 2
+This level zooms into the internal structure of the production environment hosted on Azure.
 
-.Motivation
-Software does not run without hardware.
-This underlying infrastructure can and will influence a system and/or some
-cross-cutting concepts. Therefore, there is a need to know the infrastructure.
+[plantuml, target="deployment-lv1", format="png"]
+----
+@startuml
+!theme plain
 
-.Form
+node "Developer Machine" as dev
+cloud "GitHub (yovi_en3a)" as ghcr
+node "Azure VM" as azure
+actor "User" as user
 
-Maybe a highest level deployment diagram is already contained in section 3.2. as
-technical context with your own infrastructure as ONE black box. In this section one can
-zoom into this black box using additional deployment diagrams:
+dev -> ghcr : push image
+ghcr -> azure : pull image
+user -> azure : access webapp
+@enduml
+----
 
-* UML offers deployment diagrams to express that view. Use it, probably with nested diagrams,
-when your infrastructure is more complex.
-* When your (hardware) stakeholders prefer other kinds of diagrams rather than a deployment diagram, let them use any kind that is able to show nodes and channels of the infrastructure.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-7/[Deployment View] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
-=== Infrastructure Level 1
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Describe (usually in a combination of diagrams, tables, and text):
-
-* distribution of a system to multiple locations, environments, computers, processors, .., as well as physical connections between them
-* important justifications or motivations for this deployment structure
-* quality and/or performance features of this infrastructure
-* mapping of software artifacts to elements of this infrastructure
-
-For multiple environments or alternative deployments please copy and adapt this section of arc42 for all relevant environments.
-****
-endif::arc42help[]
-
-_**<Overview Diagram>**_
-
-Motivation::
-
-_<explanation in text form>_
-
-Quality and/or Performance Features::
-
-_<explanation in text form>_
-
-Mapping of Building Blocks to Infrastructure::
-_<description of the mapping>_
+#### 7.2.1 Azure Virtual Machine (Docker Host)
+The system is orchestrated using **Docker Compose** within a single Ubuntu-based Virtual Machine.
 
 
-=== Infrastructure Level 2
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you can include the internal structure of (some) infrastructure elements from level 1.
+**Motivation**
+Using a single VM with Docker Compose reduces architectural complexity and costs for the University project while maintaining complete isolation between the microservices.
 
-Please copy the structure from level 1 for each selected element.
-****
-endif::arc42help[]
+**Quality and/or Performance Features**
+* **Resource Efficiency:** The `gamey` engine uses a **multi-stage Docker build** (based on `debian:bookworm-slim`). This ensures the VM does not waste RAM or Disk space on the Rust compiler during execution.
+* **Persistence:** A Docker Volume is used for the MongoDB container, ensuring data remains intact even if the container is recreated.
+* **Isolation:** All containers communicate through a private bridge network (`monitor-net`).
 
-==== _<Infrastructure Element 1>_
+**Mapping**
+[cols="1,2,2", options="header"]
+|===
+| Infrastructure Element | Artifact | Execution Environment
+| **Container: webapp** | React/Vite SPA | Nginx / Static HTTP Server
+| **Container: users** | Node.js / Express API | Node.js 20+ Runtime
+| **Container: gamey** | Rust Server Binary | Debian Slim (No compiler)
+| **Container: database** | MongoDB Image | Mongo 6.0+ Engine
+| **Storage Volume** | User Database Files | Persistent Host File System
+|===
 
-_<diagram + explanation>_
+#### 7.2.2 Communication Channels
+The following channels facilitate data exchange between the infrastructure nodes:
 
-==== _<Infrastructure Element 2>_
-
-_<diagram + explanation>_
-
-...
-
-==== _<Infrastructure Element n>_
-
-_<diagram + explanation>_
+1.  **HTTP/S (Port 80):** Used by the end-user's browser to download the `webapp` assets.
+2.  **REST/JSON (Ports 3000 & 4000):** Publicly exposed channels for the frontend to communicate with the `users` and `gamey` APIs.
+3.  **Communication of the DB with users** to complete.
+4.  **SSH (Port 22):** Secure management channel for developers to perform `git pull` and `docker-compose up` operations.
