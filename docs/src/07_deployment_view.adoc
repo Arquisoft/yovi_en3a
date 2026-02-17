@@ -2,7 +2,7 @@
 [[section-deployment-view]]
 == Deployment View
 
-=== 7.1 Infrastructure Level 1
+=== Infrastructure Level 1
 This level describes the distribution of the system across the environments used during the development and production phases of the YOVI_en3a project.
 
 **Motivation**
@@ -18,12 +18,12 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 |===
 | Element | Software Artifacts (Building Blocks)
 | **Local Developer PC** | Source code, Node.js environment, Rust toolchain, and local Docker Desktop.
-| **Azure VM (Ubuntu)** | Production containers: `webapp`, `users`, `gamey`, and `database`.
+| **Azure VM (Ubuntu)** | Production containers: `webapp`, `users`, `gamey`, and `mongodb`.
 |===
 
 ---
 
-### 7.2 Infrastructure Level 2
+### Infrastructure Level 2
 This level zooms into the internal structure of the production environment hosted on Azure.
 
 [plantuml, target="deployment-lv1", format="png"]
@@ -42,7 +42,7 @@ user -> azure : access webapp
 @enduml
 ----
 
-#### 7.2.1 Azure Virtual Machine (Docker Host)
+#### Azure Virtual Machine (Docker Host)
 The system is orchestrated using **Docker Compose** within a single Ubuntu-based Virtual Machine.
 
 
@@ -62,11 +62,39 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 | **Container: webapp** | React/Vite SPA | Nginx / Static HTTP Server
 | **Container: users** | Node.js / Express API | Node.js 20+ Runtime
 | **Container: gamey** | Rust Server Binary | Debian Slim (No compiler)
-| **Container: database** | MongoDB Image | Mongo 6.0+ Engine
+| **Container: mongodb** | MongoDB Image | Mongo 6.0+ Engine
 | **Storage Volume** | User Database Files | Persistent Host File System
 |===
 
-#### 7.2.2 Communication Channels
+**Azure connections**
+[plantuml, target="deployment-lv2-azure", format="png"]
+----
+@startuml
+!theme plain
+skinparam shadowing false
+left to right direction
+
+skinparam nodesep 125
+skinparam ranksep 125
+
+node "Azure VM (Ubuntu) - Docker Host\n\n\n" as azure {
+
+    node "webapp\n(Port 80)" as webapp
+    node "users API\n(Port 3000)" as users
+    node "gamey API\n(Port 4000)" as gamey
+    database "MongoDB\n(Port 27017)" as mongo
+
+    webapp --> users : REST / JSON
+    webapp --> gamey : REST / JSON
+    users --> mongo : MongoDB Driver
+    gamey --> mongo : MongoDB Driver
+}
+
+@enduml
+----
+
+
+#### Communication Channels
 The following channels facilitate data exchange between the infrastructure nodes:
 
 1.  **HTTP/S (Port 80):** Used by the end-user's browser to download the `webapp` assets.
