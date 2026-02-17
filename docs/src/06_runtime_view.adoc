@@ -2,7 +2,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-runtime-view]]
 == Runtime View
-
+This section illustrates key runtime operations and interactions among the system’s components.
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -39,29 +39,26 @@ See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== <Runtime Scenario 1>
+=== User registration
 
+This scenario shows how a user registers in the system, including how the frontend and backend communicate.
 
-* _<insert runtime diagram or textual description of the scenario>_
-* _<insert description of the notable aspects of the interactions between the
-building block instances depicted in this diagram.>_
-
-It is possible to use a sequence diagram:
-
-[plantuml,"Sequence diagram",png]
+[plantuml,"Sequence diagram - Login ",png]
 ----
-actor Alice
-actor Bob
-database Pod as "Bob's Pod"
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
-Alice  --> Pod: Store route
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Users Service" as Service
+
+User -> Webapp : Fill form
+Webapp -> Service : POST /createuser\n{ username }
+
+alt Success
+    Service --> Webapp : { message }
+    Webapp -> User : Show welcome message
+else Error
+    Service --> Webapp : { error }
+    Webapp -> User : Show error message
+end
 ----
-
-=== <Runtime Scenario 2>
-
-=== ...
-
-=== <Runtime Scenario n>
