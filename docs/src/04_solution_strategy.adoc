@@ -40,6 +40,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 * Pull requests will be used to prevent problems with overwriting code.
 * Wiki in GitHub will be used for publishing information about the different modules so everyone in the team could see and understand the most critical parts of the proyect in case we need it.
 
+=== Arquitecture Pattern Used
+For developing out system, we will use a microservices arquitecture, that is based on having different independent services that communicate each other via APIs. 
+For now, we will have at least 3 microservices: GameY that is the engine of the game, Users for managing the users verification and validation and
+WebApp for being the front layer of the system.
 
 ifdef::arc42help[]
 [role="arc42help"]
