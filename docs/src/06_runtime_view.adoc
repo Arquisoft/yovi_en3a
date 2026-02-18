@@ -62,3 +62,51 @@ else Error
     Webapp -> User : Show error message
 end
 ----
+
+=== Game loop
+
+This scenario shows how a user plays a game, including interactions with the web app, game core, and bot service.
+
+[plantuml,"Sequence diagram - Game Loop ",png]
+----
+
+actor "Player" as User
+participant "WebApp" as Web
+participant "Game Core" as GameCore
+participant "Bot Service" as Bot
+
+User -> Web : Start Game
+
+
+Web --> User : Game started
+
+
+loop until game over
+  
+    User -> Web : make move
+    Web -> GameCore : process player move
+    GameCore -> GameCore : updated state
+
+    GameCore -> GameCore : check if game over
+        GameCore --> Web : update state
+        Web --> User : show state
+    
+
+   
+    GameCore -> Bot : send current board state
+    Bot --> GameCore : bot's next move
+    GameCore -> GameCore : update state
+
+    GameCore -> GameCore : check if game over
+    
+
+    GameCore --> Web : updated state
+    deactivate GameCore
+
+    Web --> User : show state
+end
+
+ 
+Web --> User : Game Over
+
+----
