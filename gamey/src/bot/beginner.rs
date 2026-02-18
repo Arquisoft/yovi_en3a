@@ -1,4 +1,4 @@
-use crate::{Coordinates, GameStatus, GameY, Movement, PlayerId, YBot, coord};
+use crate::{Coordinates, GameStatus, GameY, Movement, PlayerId, YBot};
 use rand::prelude::IndexedRandom;
 pub struct BeginnerBot;
 
@@ -42,7 +42,73 @@ impl BeginnerBot {
     }
 
     fn evaluate_move(&self, board: &GameY, coords: Coordinates) -> i32 {
-        return 1; // Placeholder: In the v1 version of the bot this will be implemented.
+        let mut score = 0;
+        score += self.evaluate_center_proximity(board, coords);
+        score += self.evaluate_connection_points(board, coords);
+        score += self.evaluate_position_type(board, coords);
+        //score += self.evaluate_side_progression(board, coords);
+        return score;
+    }
+
+    /*
+        Evaluates how close the coordinates are to the center of the board.
+     */
+    fn evaluate_center_proximity(&self, board: &GameY, coords: Coordinates) -> i32 {
+        let board_size = board.board_size();
+        let n = (board_size - 1) as f32;
+        let ideal_center = n / 3.0;
+        
+        let dx = coords.x() as f32 - ideal_center;
+        let dy = coords.y() as f32 - ideal_center;
+        let dz = coords.z() as f32 - ideal_center;
+        
+        let distance = (dx * dx + dy * dy + dz * dz).sqrt();
+        
+        let max_distance = n * 2.0 / 3.0_f32.sqrt();
+        let normalized = (distance / max_distance).min(1.0);
+        
+        (50.0 * (1.0 - normalized)) as i32
+    }
+
+    /*
+        Evaluates if the coordinates are connecting some points
+     */
+    fn evaluate_connection_points(&self, board: &GameY, coords: Coordinates) -> i32 {
+        let temp_board = board.clone();
+        let neighbors = temp_board.get_neighbors(&coords);
+        let mut score = 0;
+        for neighbor in neighbors {
+            if temp_board.get_cell_owner(&neighbor) == Some(PlayerId::new(1)) {
+                score += 10;
+            }
+        }
+        score
+    }
+
+    /*
+        Evaluates if the coordinates are near a border or a corner.
+     */
+    fn evaluate_position_type(&self, board: &GameY, coords: Coordinates) -> i32 {
+        let board_size = board.board_size();
+        let max_idx = board_size - 1;
+        
+        let is_corner = (coords.x() == 0 || coords.x() == max_idx) && 
+                       (coords.y() == 0 || coords.y() == max_idx);
+        
+        let is_edge = coords.x() == 0 || coords.x() == max_idx || 
+                     coords.y() == 0 || coords.y() == max_idx;
+        
+        if is_corner {
+            return 15;
+        } else if is_edge {
+            return 10;
+        }
+        
+        0
+    }
+
+    fn evaluate_side_progression(&self, board: &GameY, coords: Coordinates) -> i32 {
+        return 0; // Placeholder para futuras mejoras, por ahora no implementa esta heurística.
     }
 }
 
@@ -57,11 +123,7 @@ impl YBot for BeginnerBot {
         }else if let Some(coordinates) = self.check_win(board, PlayerId::new(0)) {
             return Some(coordinates);
         }
-        //return choose_evaluated_move(board); // Placeholder for v1, for now it will just choose a random move.
-        let available_cells = board.available_cells();
-        let cell = available_cells.choose(&mut rand::rng())?;
-        let coordinates: Coordinates = Coordinates::from_index(*cell, board.board_size());
-        Some(coordinates)
+        return self.choose_evaluated_move(board);
     }
 }
 
