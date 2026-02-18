@@ -107,8 +107,11 @@ impl BeginnerBot {
         0
     }
 
+    /*
+        Evaluates if the coordinates are progressing towards a side not conquered by the bot.
+     */
     fn evaluate_side_progression(&self, board: &GameY, coords: Coordinates) -> i32 {
-        return 0; // Placeholder para futuras mejoras, por ahora no implementa esta heurística.
+        return 0; // Placeholder for future approaches.
     }
 }
 
