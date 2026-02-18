@@ -45,13 +45,13 @@ user -> azure : access webapp
 #### Azure Virtual Machine (Docker Host)
 The system is orchestrated using **Docker Compose** within a single Ubuntu-based Virtual Machine.
 
-
-
 **Motivation**
 Using a single VM with Docker Compose reduces architectural complexity and costs for the University project while maintaining complete isolation between the microservices.
 
 **Quality and/or Performance Features**
+
 * **Resource Efficiency:** The `gamey` engine uses a **multi-stage Docker build** (based on `debian:bookworm-slim`). This ensures the VM does not waste RAM or Disk space on the Rust compiler during execution.
+* **Orchestration & Decoupling:** The game-manager acts as a central orchestrator, ensuring that only one service depends on the gamey engine. This isolates the complex Rust logic, simplifying maintenance and decoupling game state from raw calculations.
 * **Persistence:** A Docker Volume is used for the MongoDB container, ensuring data remains intact even if the container is recreated.
 * **Isolation:** All containers communicate through a private bridge network (`monitor-net`).
 
@@ -60,7 +60,9 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 |===
 | Infrastructure Element | Artifact | Execution Environment
 | **Container: webapp** | React/Vite SPA | Nginx / Static HTTP Server
+| **Container: gatewayservice** | Express Proxy / Helmet | Node.js 20+ (Entry Point)
 | **Container: users** | Node.js / Express API | Node.js 20+ Runtime
+| **Container: game-manager** | Node.js / Orchestrator | Node.js 20+ Runtime
 | **Container: gamey** | Rust Server Binary | Debian Slim (No compiler)
 | **Container: mongodb** | MongoDB Image | Mongo 6.0+ Engine
 | **Storage Volume** | User Database Files | Persistent Host File System
@@ -70,34 +72,68 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 [plantuml, target="deployment-lv2-azure", format="png"]
 ----
 @startuml
-!theme plain
+' --- CONFIGURACIÓN ESTILO AZURE LIMPIO ---
+skinparam backgroundColor white
+skinparam roundcorner 0
 skinparam shadowing false
-left to right direction
+skinparam componentStyle uml2
+skinparam DefaultFontName "Arial"
+skinparam nodesep 60
+skinparam ranksep 50
 
-skinparam nodesep 125
-skinparam ranksep 125
-
-node "Azure VM (Ubuntu) - Docker Host\n\n\n" as azure {
-
-    node "webapp\n(Port 80)" as webapp
-    node "users API\n(Port 3000)" as users
-    node "gamey API\n(Port 4000)" as gamey
-    database "MongoDB\n(Port 27017)" as mongo
-
-    webapp --> users : REST / JSON
-    webapp --> gamey : REST / JSON
-    users --> mongo : MongoDB Driver
-    gamey --> mongo : MongoDB Driver
+skinparam node {
+    BackgroundColor white
+    BorderColor black
 }
+
+title 7.2.2. Communication Channels (Final Architecture)
+
+' Estiramos el contenedor usando un alias y espaciado
+node "Azure VM (Ubuntu) - Docker Host" as Host {
+
+    ' Fila 1: Entrada y Gestión
+    node "webapp\n(Port 80)" as webapp
+    node "gatewayservice\n(Port 8000)" as gateway
+    
+    ' Fila 2: Lógica
+    node "users API\n(Port 3000)" as users
+    node "game-manager\n(Port 5000)" as manager
+    
+    ' Fila 3: Motor y Datos
+    node "gamey API\n(Port 4000)" as gamey
+    database "MongoDB\n(Port 27017)" as mongodb
+}
+
+' --- FLUJO DE COMUNICACIÓN ---
+
+' Flujo principal de entrada
+webapp -right-> gateway : REST / JSON
+
+' Distribución desde el Gateway
+gateway -down-> users : REST / JSON
+gateway -down-> manager : REST / JSON
+
+' Comunicación directa con motor
+gateway -[bold]-> gamey : REST / JSON (Bot)
+
+' Orquestación interna
+manager -right-> gamey : REST / JSON (YEN)
+manager -left-> users : REST / JSON (Stats)
+
+' Persistencia
+users -down-> mongodb : MongoDB Driver
+manager -down-> mongodb : MongoDB Driver
 
 @enduml
 ----
 
 
+
 #### Communication Channels
 The following channels facilitate data exchange between the infrastructure nodes:
 
-1.  **HTTP/S (Port 80):** Used by the end-user's browser to download the `webapp` assets.
-2.  **REST/JSON (Ports 3000 & 4000):** Publicly exposed channels for the frontend to communicate with the `users` and `gamey` APIs.
-3.  **Communication of the DB with users** to complete.
-4.  **SSH (Port 22):** Secure management channel for developers to perform `git pull` and `docker-compose up` operations.
+1. **HTTP (Port 80):** Used by the end-user’s browser to download the `webapp` assets.
+2. **REST/JSON (Port 8000):** The **single entry point** for all API communication. The `gatewayservice` receives requests from the frontend and routes them to `users`, `game-manager`, or `gamey` based on the URL path.
+3. **Internal Microservice Communication:** Services communicate within the `monitor-net` Docker network. The `game-manager` requests move validations from `gamey` via internal REST calls.
+4. **Database Access (Port 27017):** Internal connection using the MongoDB Wire Protocol. Used by `users` for profile management and `game-manager` for persistent board state storage.
+5. **SSH (Port 22):** Secure management channel for developers to perform `git pull` and `docker-compose up` operations.
