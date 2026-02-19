@@ -46,8 +46,12 @@ impl BeginnerBot {
         score += self.evaluate_center_proximity(board, coords);
         score += self.evaluate_connection_points(board, coords);
         score += self.evaluate_position_type(board, coords);
-        //score += self.evaluate_side_progression(board, coords);
-        return score;
+        if rand::random::<f32>() < 0.7 {
+            score += self.evaluate_side_progression(board, coords);
+        }else {
+            score += rand::random::<i32>() % 20;
+        }
+        score
     }
 
     /*
@@ -109,9 +113,50 @@ impl BeginnerBot {
 
     /*
         Evaluates if the coordinates are progressing towards a side not conquered by the bot.
+        It uses the maximun index to calculate the progression in each direction and gives more
+        score if the move is balanced across all directions.
      */
     fn evaluate_side_progression(&self, board: &GameY, coords: Coordinates) -> i32 {
-        return 0; // Placeholder for future approaches.
+        let board_size = board.board_size();
+        let max_idx = (board_size - 1) as f32;
+        let mut score = 0;
+
+        let (has_a, has_b, has_c) = board.get_player_touched_sides(PlayerId::new(1));
+
+        // We get how close to the borders we are
+        let progress_a = coords.x() as f32 / max_idx;
+        let progress_b = coords.y() as f32 / max_idx;
+        let progress_c = coords.z() as f32 / max_idx;
+
+        // If we have already touched a side, we give less score to progressing towards it, otherwise we give more score
+        let weight_a: f32 = if has_a { 5.0 } else { 40.0 };
+        let weight_b: f32 = if has_b { 5.0 } else { 40.0 };
+        let weight_c: f32 = if has_c { 5.0 } else { 40.0 };
+
+        score += (progress_a * weight_a) as i32;
+        score += (progress_b * weight_b) as i32;
+        score += (progress_c * weight_c) as i32;
+        
+        // We obtain the progression to the sides we haven't touched yet
+        let missing_progresses: Vec<f32> = [
+            (!has_a).then_some(progress_a),
+            (!has_b).then_some(progress_b),
+            (!has_c).then_some(progress_c),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+
+        // We give some extra score if the move is balanced across the missing sides, otherwise we penalize it
+        if missing_progresses.len() > 1 {
+            let min = missing_progresses.iter().cloned().fold(f32::MAX, f32::min);
+            let max = missing_progresses.iter().cloned().fold(f32::MIN, f32::max);
+            let imbalance = max - min;
+            score -= (imbalance * 15.0) as i32;
+        }
+        
+
+        score
     }
 }
 
@@ -122,11 +167,21 @@ impl YBot for BeginnerBot {
 
     fn choose_move(&self, board: &GameY) -> Option<Coordinates> {
         if let Some(coordinates) = self.check_win(board, PlayerId::new(1)) {
-            return Some(coordinates);
-        }else if let Some(coordinates) = self.check_win(board, PlayerId::new(0)) {
-            return Some(coordinates);
+        return Some(coordinates);
         }
-        return self.choose_evaluated_move(board);
+        if rand::random::<f32>() < 0.7 {
+            if let Some(coordinates) = self.check_win(board, PlayerId::new(0)) {
+                return Some(coordinates);
+            }
+        }
+        if rand::random::<f32>() < 0.8{
+            self.choose_evaluated_move(board)
+        } else{
+            let available_cells = board.available_cells();
+            let cell = available_cells.choose(&mut rand::rng())?;
+            let coordinates = Coordinates::from_index(*cell, board.board_size());
+            Some(coordinates)
+        }
     }
 }
 
@@ -134,7 +189,7 @@ impl YBot for BeginnerBot {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Coordinates, GameY, Movement, PlayerId, bot};
+    use crate::{Coordinates, GameY, Movement, PlayerId};
 
     #[test]
     fn bot_wins_when_possible() {
