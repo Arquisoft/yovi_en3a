@@ -68,7 +68,25 @@ In the best case you will get away with examples or simple signatures.
 endif::arc42help[]
 
 
-image::05_building_blocks-Level1-Overall-View.svg["Building Block Level 1"]
+
+[plantuml,"Sequence diagram - Login ",png]
+----
+
+actor "User" as user
+
+rectangle "YOVI" {
+
+  node WebApp as Web
+  node [User Service] as UserSvc
+  [Gamey] as GameEngine
+
+}
+
+user --> Web :  Browser
+Web --> UserSvc : Login, Create User 
+Web --> GameEngine : Play Game
+----
+
 
 Motivation::
 
@@ -144,7 +162,48 @@ endif::arc42help[]
 
 ==== White Box Gamey
 
-image::05_building_blocks-Level2-gamey.svg["Building Block Level 2 - Gamey"]
+
+
+[plantuml,"Sequence diagram - Login ",png]
+----
+actor "Player " as player
+actor "Developer" as dev
+
+node WebApp as Web
+
+
+rectangle "GameY" as gamey{
+
+ component "CLI" as cli
+ component "Bot" as bot
+
+
+package "Core" as core{
+  component [Game Logic] as game_logic
+  component [Coordinates] as coords
+  component [Actions] as acts
+  component [Game State] as state
+ 
+}
+
+component "Bot Server" as api
+
+
+
+}
+
+
+bot --> core 
+player-->Web
+Web --> core
+dev --> cli
+cli --> core
+bot --> api
+
+----
+
+
+
 Contained Building Blocks::
 [cols="1,2" options="header"]
 |===
@@ -165,7 +224,37 @@ endif::arc42help[]
 ==== White Box WebApp
 
 
-image::05_building_blocks-Level2-WebApp.svg["Building Block Level 2 - WebApp"]
+
+
+[plantuml,"Sequence diagram - Login ",png]
+----
+
+actor "Player " as player
+
+
+rectangle "WebApp                                   " {
+
+  [Login Page] as Login
+  [Game UI] as GameUI
+  [Game Selection] as gameSelect
+
+}
+
+
+node "User Service" as UserSvc
+node "Gamey" as Gamey
+
+
+player--> Login
+Login--->UserSvc
+GameUI--->Gamey
+gameSelect-->GameUI
+Login-->gameSelect
+
+----
+
+
+
 Contained Building Blocks::
 [cols="1,2" options="header"]
 |===
