@@ -476,10 +476,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#section-runtime-view">6. Runtime View</a>
 <ul class="sectlevel2">
-<li><a href="#_runtime_scenario_1">6.1. &lt;Runtime Scenario 1&gt;</a></li>
-<li><a href="#_runtime_scenario_2">6.2. &lt;Runtime Scenario 2&gt;</a></li>
-<li><a href="#">6.3. &#8230;&#8203;</a></li>
-<li><a href="#_runtime_scenario_n">6.4. &lt;Runtime Scenario n&gt;</a></li>
+<li><a href="#_user_registration">6.1. User registration</a></li>
 </ul>
 </li>
 <li><a href="#section-deployment-view">7. Deployment View</a>
@@ -883,7 +880,7 @@ These stakeholders determine the extent and the level of detail of your work and
 <h3 id="_business_context">3.1. Business Context</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Business%20context.png" alt="Business context" width="272" height="443">
+<img src="./images/Business%20context.png" alt="Business context" width="246" height="441">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -944,7 +941,7 @@ The title of the table is the name of your system, the three columns contain the
 <h3 id="_technical_context">3.2. Technical Context</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Technical%20context.png" alt="Technical context" width="473" height="550">
+<img src="./images/Technical%20context.png" alt="Technical context" width="576" height="685">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1547,6 +1544,9 @@ part of arc42 for additional levels.</p>
 <div class="sect1">
 <h2 id="section-runtime-view">6. Runtime View</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This section illustrates key runtime operations and interactions among the system’s components.</p>
+</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -1610,37 +1610,15 @@ You will mainly capture scenarios in your documentation to communicate your arch
 </div>
 </div>
 <div class="sect2">
-<h3 id="_runtime_scenario_1">6.1. &lt;Runtime Scenario 1&gt;</h3>
-<div class="ulist">
-<ul>
-<li>
-<p><em>&lt;insert runtime diagram or textual description of the scenario&gt;</em></p>
-</li>
-<li>
-<p><em>&lt;insert description of the notable aspects of the interactions between the
-building block instances depicted in this diagram.&gt;</em></p>
-</li>
-</ul>
-</div>
+<h3 id="_user_registration">6.1. User registration</h3>
 <div class="paragraph">
-<p>It is possible to use a sequence diagram:</p>
+<p>This scenario shows how a user registers in the system, including how the frontend and backend communicate.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Sequence%20diagram.png" alt="Sequence diagram" width="332" height="335">
+<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login " width="414" height="344">
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_runtime_scenario_2">6.2. &lt;Runtime Scenario 2&gt;</h3>
-
-</div>
-<div class="sect2">
-<h3 id="">6.3. &#8230;&#8203;</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_runtime_scenario_n">6.4. &lt;Runtime Scenario n&gt;</h3>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
@@ -1648,139 +1626,172 @@ building block instances depicted in this diagram.&gt;</em></p>
 <div class="sect1">
 <h2 id="section-deployment-view">7. Deployment View</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
+<div class="sect2">
+<h3 id="_infrastructure_level_1">7.1. Infrastructure Level 1</h3>
 <div class="paragraph">
-<div class="title">Content</div>
-<p>The deployment view describes:</p>
+<p>This level describes the distribution of the system across the environments used during the development and production phases of the YOVI_en3a project.</p>
+</div>
+<div class="paragraph">
+<p><strong>Motivation</strong>
+The project is designed to be highly portable. By using a Virtual Machine on Azure, we ensure that the application is accessible via a public IP/DNS for grading and testing, while the local environment is used for rapid development.</p>
+</div>
+<div class="paragraph">
+<p><strong>Quality and/or Performance Features</strong>
+* <strong>Availability:</strong> The Azure VM provides a stable 24/7 uptime.
+* <strong>Security:</strong> Management access is restricted via SSH (Port 22). Public access is strictly limited to Ports 80, 3000, and 4000 via Azure Network Security Groups.
+* <strong>Portability:</strong> The entire stack is containerized, allowing the team to switch from Azure to any other cloud provider with minimal configuration changes.</p>
+</div>
+<div class="paragraph">
+<p><strong>Mapping</strong></p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Element</th>
+<th class="tableblock halign-left valign-top">Software Artifacts (Building Blocks)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Local Developer PC</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Source code, Node.js environment, Rust toolchain, and local Docker Desktop.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Azure VM (Ubuntu)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Production containers: <code>webapp</code>, <code>users</code>, <code>gamey</code>, and <code>mongodb</code>.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_infrastructure_level_2">7.2. Infrastructure Level 2</h3>
+<div class="paragraph">
+<p>This level zooms into the internal structure of the production environment hosted on Azure.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/deployment-lv1.png" alt="deployment lv1" width="796" height="146">
+</div>
+</div>
+<div class="sect3">
+<h4 id="_azure_virtual_machine_docker_host">7.2.1. Azure Virtual Machine (Docker Host)</h4>
+<div class="paragraph">
+<p>The system is orchestrated using <strong>Docker Compose</strong> within a single Ubuntu-based Virtual Machine.</p>
+</div>
+<div class="paragraph">
+<p><strong>Motivation</strong>
+Using a single VM with Docker Compose reduces architectural complexity and costs for the University project while maintaining complete isolation between the microservices.</p>
+</div>
+<div class="paragraph">
+<p><strong>Quality and/or Performance Features</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Resource Efficiency:</strong> The <code>gamey</code> engine uses a <strong>multi-stage Docker build</strong> (based on <code>debian:bookworm-slim</code>). This ensures the VM does not waste RAM or Disk space on the Rust compiler during execution.</p>
+</li>
+<li>
+<p><strong>Orchestration &amp; Decoupling:</strong> The game-manager acts as a central orchestrator, ensuring that only one service depends on the gamey engine. This isolates the complex Rust logic, simplifying maintenance and decoupling game state from raw calculations.</p>
+</li>
+<li>
+<p><strong>Persistence:</strong> A Docker Volume is used for the MongoDB container, ensuring data remains intact even if the container is recreated.</p>
+</li>
+<li>
+<p><strong>Isolation:</strong> All containers communicate through a private bridge network (<code>monitor-net</code>).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Mapping</strong></p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Infrastructure Element</th>
+<th class="tableblock halign-left valign-top">Artifact</th>
+<th class="tableblock halign-left valign-top">Execution Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: webapp</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">React/Vite SPA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx / Static HTTP Server</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: gatewayservice</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Express Proxy / Helmet</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 20+ (Entry Point)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: users</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js / Express API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 20+ Runtime</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: game-manager</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js / Orchestrator</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 20+ Runtime</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: gamey</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rust Server Binary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Debian Slim (No compiler)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: mongodb</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MongoDB Image</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mongo 6.0+ Engine</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Storage Volume</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User Database Files</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persistent Host File System</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>Azure connections</strong></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="783" height="432">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_communication_channels">7.2.2. Communication Channels</h4>
+<div class="paragraph">
+<p>The following channels facilitate data exchange between the infrastructure nodes:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>technical infrastructure used to execute your system, with infrastructure elements like geographical locations, environments, computers, processors, channels and net topologies as well as other infrastructure elements and</p>
+<p><strong>HTTP (Port 80):</strong> Used by the end-user’s browser to download the <code>webapp</code> assets.</p>
 </li>
 <li>
-<p>mapping of (software) building blocks to that infrastructure elements.</p>
+<p><strong>REST/JSON (Port 8000):</strong> The <strong>single entry point</strong> for all API communication. The <code>gatewayservice</code> receives requests from the frontend and routes them to <code>users</code>, <code>game-manager</code>, or <code>gamey</code> based on the URL path.</p>
+</li>
+<li>
+<p><strong>Internal Microservice Communication:</strong> Services communicate within the <code>monitor-net</code> Docker network. The <code>game-manager</code> requests move validations from <code>gamey</code> via internal REST calls.</p>
+</li>
+<li>
+<p><strong>Database Access (Port 27017):</strong> Internal connection using the MongoDB Wire Protocol. Used by <code>users</code> for profile management and <code>game-manager</code> for persistent board state storage.</p>
+</li>
+<li>
+<p><strong>SSH (Port 22):</strong> Secure management channel for developers to perform <code>git pull</code> and <code>docker-compose up</code> operations.</p>
 </li>
 </ol>
-</div>
-<div class="paragraph">
-<p>Often systems are executed in different environments, e.g. development environment, test environment, production environment. In such cases you should document all relevant environments.</p>
-</div>
-<div class="paragraph">
-<p>Especially document a deployment view if your software is executed as distributed system with more than one computer, processor, server or container or when you design and construct your own hardware processors and chips.</p>
-</div>
-<div class="paragraph">
-<p>From a software perspective it is sufficient to capture only those elements of an infrastructure that are needed to show a deployment of your building blocks. Hardware architects can go beyond that and describe an infrastructure to any level of detail they need to capture.</p>
-</div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Software does not run without hardware.
-This underlying infrastructure can and will influence a system and/or some
-cross-cutting concepts. Therefore, there is a need to know the infrastructure.</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>Maybe a highest level deployment diagram is already contained in section 3.2. as
-technical context with your own infrastructure as ONE black box. In this section one can
-zoom into this black box using additional deployment diagrams:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>UML offers deployment diagrams to express that view. Use it, probably with nested diagrams,
-when your infrastructure is more complex.</p>
-</li>
-<li>
-<p>When your (hardware) stakeholders prefer other kinds of diagrams rather than a deployment diagram, let them use any kind that is able to show nodes and channels of the infrastructure.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-7/">Deployment View</a> in the arc42 documentation.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_infrastructure_level_1">7.1. Infrastructure Level 1</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Describe (usually in a combination of diagrams, tables, and text):</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>distribution of a system to multiple locations, environments, computers, processors, .., as well as physical connections between them</p>
-</li>
-<li>
-<p>important justifications or motivations for this deployment structure</p>
-</li>
-<li>
-<p>quality and/or performance features of this infrastructure</p>
-</li>
-<li>
-<p>mapping of software artifacts to elements of this infrastructure</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>For multiple environments or alternative deployments please copy and adapt this section of arc42 for all relevant environments.</p>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p><em><strong>&lt;Overview Diagram&gt;</strong></em></p>
-</div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Motivation</dt>
-<dd>
-<p><em>&lt;explanation in text form&gt;</em></p>
-</dd>
-<dt class="hdlist1">Quality and/or Performance Features</dt>
-<dd>
-<p><em>&lt;explanation in text form&gt;</em></p>
-</dd>
-<dt class="hdlist1">Mapping of Building Blocks to Infrastructure</dt>
-<dd>
-<p><em>&lt;description of the mapping&gt;</em></p>
-</dd>
-</dl>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_infrastructure_level_2">7.2. Infrastructure Level 2</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Here you can include the internal structure of (some) infrastructure elements from level 1.</p>
-</div>
-<div class="paragraph">
-<p>Please copy the structure from level 1 for each selected element.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_infrastructure_element_1">7.2.1. <em>&lt;Infrastructure Element 1&gt;</em></h4>
-<div class="paragraph">
-<p><em>&lt;diagram + explanation&gt;</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_infrastructure_element_2">7.2.2. <em>&lt;Infrastructure Element 2&gt;</em></h4>
-<div class="paragraph">
-<p><em>&lt;diagram + explanation&gt;</em></p>
-</div>
-<div class="paragraph">
-<p>&#8230;&#8203;</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_infrastructure_element_n">7.2.3. <em>&lt;Infrastructure Element n&gt;</em></h4>
-<div class="paragraph">
-<p><em>&lt;diagram + explanation&gt;</em></p>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -2160,7 +2171,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-12 13:34:46 +0100
+Last updated 2026-02-06 19:04:45 +0100
 </div>
 </div>
 </body>
