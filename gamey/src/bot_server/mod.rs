@@ -28,27 +28,35 @@ use std::sync::Arc;
 pub use choose::MoveResponse;
 pub use error::ErrorResponse;
 pub use version::*;
+use tower_http::cors::{CorsLayer, Any};
+use axum::http::{HeaderValue, Method};
 
-use crate::{GameYError, RandomBot, YBotRegistry, state::AppState};
+use crate::{GameYError, RandomBot, BeginnerBot,  YBotRegistry, state::AppState};
 
 /// Creates the Axum router with the given state.
 ///
 /// This is useful for testing the API without binding to a network port.
 pub fn create_router(state: AppState) -> axum::Router {
+    let cors = CorsLayer::new()
+        .allow_origin("http://4.233.138.159".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST])
+        .allow_headers(Any);
+
     axum::Router::new()
         .route("/status", axum::routing::get(status))
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
         )
+        .layer(cors)
         .with_state(state)
 }
-
 /// Creates the default application state with the standard bot registry.
 ///
 /// The default state includes the `RandomBot` which selects moves randomly.
 pub fn create_default_state() -> AppState {
-    let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+    let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot))
+        .with_bot(Arc::new(BeginnerBot));
     AppState::new(bots)
 }
 
