@@ -97,10 +97,12 @@ impl BeginnerBot {
         let max_idx = board_size - 1;
         
         let is_corner = (coords.x() == 0 || coords.x() == max_idx) && 
-                       (coords.y() == 0 || coords.y() == max_idx);
+                       (coords.y() == 0 || coords.y() == max_idx) &&
+                       (coords.z() == 0 || coords.z() == max_idx);
         
         let is_edge = coords.x() == 0 || coords.x() == max_idx || 
-                     coords.y() == 0 || coords.y() == max_idx;
+                     coords.y() == 0 || coords.y() == max_idx ||
+                       coords.z() == 0 || coords.z() == max_idx;
         
         if is_corner {
             return 15;
@@ -155,7 +157,6 @@ impl BeginnerBot {
             score -= (imbalance * 15.0) as i32;
         }
         
-
         score
     }
 }
@@ -167,14 +168,12 @@ impl YBot for BeginnerBot {
 
     fn choose_move(&self, board: &GameY) -> Option<Coordinates> {
         if let Some(coordinates) = self.check_win(board, PlayerId::new(1)) {
-        return Some(coordinates);
+            return Some(coordinates);
         }
-        if rand::random::<f32>() < 0.7 {
-            if let Some(coordinates) = self.check_win(board, PlayerId::new(0)) {
-                return Some(coordinates);
-            }
+        if let Some(coordinates) = self.check_win(board, PlayerId::new(0)) {
+            return Some(coordinates);
         }
-        if rand::random::<f32>() < 0.8{
+        if rand::random::<f32>() < 0.7{
             self.choose_evaluated_move(board)
         } else{
             let available_cells = board.available_cells();
