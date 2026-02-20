@@ -71,7 +71,7 @@ impl BeginnerBot {
         let max_distance = n * 2.0 / 3.0_f32.sqrt();
         let normalized = (distance / max_distance).min(1.0);
         
-        (50.0 * (1.0 - normalized)) as i32
+        (20.0 * (1.0 - normalized)) as i32
     }
 
     /*
@@ -83,7 +83,7 @@ impl BeginnerBot {
         let mut score = 0;
         for neighbor in neighbors {
             if temp_board.get_cell_owner(&neighbor) == Some(PlayerId::new(1)) {
-                score += 10;
+                score += 25;
             }
         }
         score
@@ -105,9 +105,9 @@ impl BeginnerBot {
                        coords.z() == 0 || coords.z() == max_idx;
         
         if is_corner {
-            return 15;
+            return -10;
         } else if is_edge {
-            return 10;
+            return -5;
         }
         
         0
@@ -131,9 +131,9 @@ impl BeginnerBot {
         let progress_c = coords.z() as f32 / max_idx;
 
         // If we have already touched a side, we give less score to progressing towards it, otherwise we give more score
-        let weight_a: f32 = if has_a { 5.0 } else { 40.0 };
-        let weight_b: f32 = if has_b { 5.0 } else { 40.0 };
-        let weight_c: f32 = if has_c { 5.0 } else { 40.0 };
+        let weight_a: f32 = if has_a { 2.0 } else { 40.0 };
+        let weight_b: f32 = if has_b { 2.0 } else { 40.0 };
+        let weight_c: f32 = if has_c { 2.0 } else { 40.0 };
 
         score += (progress_a * weight_a) as i32;
         score += (progress_b * weight_b) as i32;
@@ -154,7 +154,7 @@ impl BeginnerBot {
             let min = missing_progresses.iter().cloned().fold(f32::MAX, f32::min);
             let max = missing_progresses.iter().cloned().fold(f32::MIN, f32::max);
             let imbalance = max - min;
-            score -= (imbalance * 15.0) as i32;
+            score -= (imbalance * 20.0) as i32;
         }
         
         score
