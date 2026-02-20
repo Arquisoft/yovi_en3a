@@ -15,7 +15,7 @@ services:
     container_name: users
     image: ghcr.io/arquisoft/yovi_en3a-users:latest
     depends_on:
-      - "mongodb"
+      - mongodb
     networks:
       - monitor-net
 

@@ -37,7 +37,11 @@ app.get('/health', (req,res) => {
     res.json({status: 'ok', service: 'gatewayservice'})
 })
 
-const PORT = process.env.PORT || 8000
-app.listen(PORT, () => {
-    console.log(`Gateway service running on: ${PORT}`)
-})
+if (require.main === module) {
+  const PORT = process.env.PORT || 8000;
+  app.listen(PORT, () => {
+    console.log(`Gateway service running on: ${PORT}`);
+  });
+}
+
+module.exports = app;
