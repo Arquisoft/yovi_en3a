@@ -46,11 +46,8 @@ impl BeginnerBot {
         score += self.evaluate_center_proximity(board, coords);
         score += self.evaluate_connection_points(board, coords);
         score += self.evaluate_position_type(board, coords);
-        if rand::random::<f32>() < 0.7 {
-            score += self.evaluate_side_progression(board, coords);
-        }else {
-            score += rand::random::<i32>() % 20;
-        }
+        score += self.evaluate_side_progression(board, coords);
+        
         score
     }
 
