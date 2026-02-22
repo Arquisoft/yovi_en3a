@@ -31,7 +31,7 @@ pub use version::*;
 use tower_http::cors::{CorsLayer, Any};
 use axum::http::{HeaderValue, Method};
 
-use crate::{GameYError, RandomBot, BeginnerBot,  YBotRegistry, state::AppState};
+use crate::{GameYError, RandomBot, BeginnerBot, MediumBot, YBotRegistry, state::AppState};
 
 /// Creates the Axum router with the given state.
 ///
@@ -56,7 +56,8 @@ pub fn create_router(state: AppState) -> axum::Router {
 /// The default state includes the `RandomBot` which selects moves randomly.
 pub fn create_default_state() -> AppState {
     let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot))
-        .with_bot(Arc::new(BeginnerBot));
+        .with_bot(Arc::new(BeginnerBot))
+        .with_bot(Arc::new(MediumBot));
     AppState::new(bots)
 }
 
