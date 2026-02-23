@@ -72,55 +72,71 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 [plantuml, target="deployment-lv2-azure", format="png"]
 ----
 @startuml
-' --- CONFIGURACIÓN ESTILO AZURE LIMPIO ---
+' =========================
+' Configuración de estilo
+' =========================
 skinparam backgroundColor white
-skinparam roundcorner 0
+skinparam roundcorner 5
 skinparam shadowing false
 skinparam componentStyle uml2
 skinparam DefaultFontName "Arial"
-skinparam nodesep 60
-skinparam ranksep 50
+skinparam nodesep 50
+skinparam ranksep 40
 
+' =========================
+' Estilo de contenedores
+' =========================
 skinparam node {
-    BackgroundColor white
+    BackgroundColor #fdfdfd
     BorderColor black
+    FontColor black
+    FontSize 12
+    StereotypeAlignment center
 }
 
-title 7.2.2. Communication Channels (Final Architecture)
+' =========================
+' Estilo de actores (cabeza pintada)
+' =========================
+skinparam actor {
+    BackgroundColor #3399FF  ' Azul oscuro
+    BorderColor #1F4E79
+    FontColor black
+    FontStyle bold
+    FontSize 12
+}
+skinparam actorStyle classic  ' Para que la cabeza sea visible y uniforme
 
-' Estiramos el contenedor usando un alias y espaciado
-node "Azure VM (Ubuntu) - Docker Host" as Host {
+' =========================
+' Actores externos
+' =========================
+actor "User" as user
+actor "External Bot" as bot
 
-    ' Fila 1: Entrada y Gestión
-    node "webapp\n(Port 80)" as webapp
-    node "gatewayservice\n(Port 8000)" as gateway
+' =========================
+' Contenedor Azure VM con fondo azul claro
+' =========================
+node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
+
+    node "«container»\n<size:14><b>webapp</b></size>\nPort 80" as webapp
+    node "«container»\n<size:14><b>gatewayservice</b></size>\nPort 8000" as gateway
+    node "«container»\n<size:14><b>users API</b></size>\nPort 3000" as users
+    node "«container»\n<size:14><b>game-manager</b></size>\nPort 5000" as manager
+    node "«container»\n<size:14><b>gamey API</b></size>\nPort 4000" as gamey
     
-    ' Fila 2: Lógica
-    node "users API\n(Port 3000)" as users
-    node "game-manager\n(Port 5000)" as manager
-    
-    ' Fila 3: Motor y Datos
-    node "gamey API\n(Port 4000)" as gamey
-    database "MongoDB\n(Port 27017)" as mongodb
+    database "«container»\n<size:14><b>MongoDB</b></size>\nPort 27017" as mongodb
 }
 
-' --- FLUJO DE COMUNICACIÓN ---
-
-' Flujo principal de entrada
+' =========================
+' Flujos
+' =========================
+user -right-> webapp : HTTP / REST
+bot -right-> gateway : REST / JSON (Bot)
 webapp -right-> gateway : REST / JSON
-
-' Distribución desde el Gateway
 gateway -down-> users : REST / JSON
 gateway -down-> manager : REST / JSON
-
-' Comunicación directa con motor
 gateway -[bold]-> gamey : REST / JSON (Bot)
-
-' Orquestación interna
 manager -right-> gamey : REST / JSON (YEN)
 manager -left-> users : REST / JSON (Stats)
-
-' Persistencia
 users -down-> mongodb : MongoDB Driver
 manager -down-> mongodb : MongoDB Driver
 
