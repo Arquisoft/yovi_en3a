@@ -93,9 +93,8 @@ endif::arc42help[]
 ----
 actor User
 actor ExternalBots as Bots
-database "MongoDB" as DB
 
-node "YOVI" <<docker>> {
+node "YOVI" {
 
     rectangle "Web Frontend" as Frontend
     
@@ -107,6 +106,8 @@ node "YOVI" <<docker>> {
     rectangle "GameY" as Game {
         rectangle "Bot"
     }
+
+    database "MongoDB" as DB
 }
 
 User --> Frontend : HTTPS
