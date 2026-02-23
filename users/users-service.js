@@ -5,6 +5,8 @@ const swaggerUi = require('swagger-ui-express');
 const fs = require('node:fs');
 const YAML = require('js-yaml');
 const promBundle = require('express-prom-bundle');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
@@ -24,6 +26,9 @@ const connectToMongoDB = async () => {
 }
 
 connectToMongoDB()
+
+// No hay .env de momento, es por probar la encriptación
+const JWT_SECRET = process.env.JWT_SECRET || '8889c0d6ea431e5baa4872574239fad4fef44c8a98f8771c182ad8626233dcac6af7f9da4843432c2a268d3e60696267f47a57343a51f627323835ea637b4972';
 
 try {
   const swaggerDocument = YAML.load(fs.readFileSync('./openapi.yaml', 'utf8'));
@@ -55,6 +60,64 @@ app.post('/createuser', async (req, res) => {
   }
 });
 
+app.post('/register', async (req, res) => {
+  const { username, email, password, age, country } = req.body;
+
+  try {
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email and password are mandatory fields' });
+    }
+
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(409).json({ error: 'That username or email are already in use' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({ username, email, password: hashedPassword, age, country });
+    await newUser.save();
+
+    const newStats = new Stats({ userId: newUser._id });
+    await newStats.save();
+
+    res.status(201).json({ message: 'User created', userId: newUser._id });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are mandatory fields' });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ error: 'Wrong credentials' });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ error: 'Wrong credentials' });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, username: user.username },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({ message: 'Login successfully', token });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 if (require.main === module) {
   app.listen(port, () => {
