@@ -9,6 +9,22 @@ const promBundle = require('express-prom-bundle');
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
 
+const mongoose = require("mongoose")
+const User = require("./models/user")
+const Stats = require("./models/stats");
+
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/userdb"
+const connectToMongoDB = async () => {
+  try {
+    await mongoose.connect(MONGODB_URI)
+    console.log('Connected to MongoDB')
+  } catch (err) {
+    console.error('Error connecting to MongoDB:', err.message)
+  }
+}
+
+connectToMongoDB()
+
 try {
   const swaggerDocument = YAML.load(fs.readFileSync('./openapi.yaml', 'utf8'));
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
