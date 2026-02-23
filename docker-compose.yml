@@ -13,6 +13,8 @@ services:
   users:
     build: ./users
     container_name: users
+    ports:
+      - "3000:3000"
     image: ghcr.io/arquisoft/yovi_en3a-users:latest
     environment:
       - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/usersdb?authSource=admin
