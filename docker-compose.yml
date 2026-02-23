@@ -14,6 +14,8 @@ services:
     build: ./users
     container_name: users
     image: ghcr.io/arquisoft/yovi_en3a-users:latest
+    environment:
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/usersdb?authSource=admin
     depends_on:
       - mongodb
     networks:
