@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 
-interface RegisterFormProps {
+interface LoginFormProps {
   onBack: () => void;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onBack }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onBack }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -22,21 +23,27 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onBack }) => {
       return;
     }
 
+    if (!password.trim()) {
+      setError('Please enter a password.');
+      return;
+    }
+
     setLoading(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-      const res = await fetch(`${API_URL}/createuser`, {
+      const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username })
+        body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
       if (res.ok) {
         setResponseMessage(data.message);
         setUsername('');
+        setPassword('');
       } else {
         setError(data.error || 'Server error');
       }
@@ -48,10 +55,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onBack }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="register-form">
-      <h2>Register</h2>
+    <form onSubmit={handleSubmit} className="login-form">
+      <h2>Login</h2>
       <div className="form-group">
-        <label htmlFor="username">Whats your name?</label>
+        <label htmlFor="username">Username:</label>
         <input
           type="text"
           id="username"
@@ -70,18 +77,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onBack }) => {
           className="form-input"
         />
       </div>
-      <div className="form-group">
-        <label htmlFor="passwordConfirm">Confirm Password:</label>
-        <input
-          type="password"
-          id="passwordConfirm"
-          value={passwordConfirm}
-          onChange={(e) => setPasswordConfirm(e.target.value)}
-          className="form-input"
-        />
-      </div>
       <button type="submit" className="submit-button" disabled={loading}>
-        {loading ? 'Entering...' : 'Lets go!'}
+        {loading ? 'Logging in...' : 'Login'}
       </button>
 
       {responseMessage && (
@@ -103,4 +100,4 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onBack }) => {
   );
 };
 
-export default RegisterForm;
+export default LoginForm;
