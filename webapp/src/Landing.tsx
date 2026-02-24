@@ -8,7 +8,7 @@ interface AuthLandingProps {
 const Landing: React.FC<AuthLandingProps> = ({ onSelectLogin, onSelectRegister }) => {
   return (
     <div className="auth-landing">
-      <h2>Welcome to Yovi</h2>
+      
       <p>Choose what you'd like to do:</p>
       
       <div className="auth-buttons">

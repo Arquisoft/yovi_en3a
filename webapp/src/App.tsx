@@ -23,7 +23,7 @@ function App() {
 
   return (
     <div className="App">
-      <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
+      <h2>Welcome to Yovi</h2>
       <p>{"Server status: " + status}</p>
 
       {currentScreen === 'landing' && (
@@ -34,11 +34,11 @@ function App() {
       )}
 
       {currentScreen === 'login' && (
-        <LoginForm onBack={handleBackToLanding} />
+        <LoginForm onSwitchToRegister={() => setCurrentScreen('register')} />
       )}
 
       {currentScreen === 'register' && (
-        <RegisterForm onBack={handleBackToLanding} />
+        <RegisterForm onSwitchToLogin={() => setCurrentScreen('login')} />
       )}
     </div>
   );

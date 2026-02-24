@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 interface LoginFormProps {
-  onBack: () => void;
+  onSwitchToRegister: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onBack }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
@@ -95,9 +95,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onBack }) => {
         </div>
       )}
 
-      <button type="button" className="back-button" onClick={onBack} style={{ marginTop: 12 }}>
-        Back
-      </button>
+      <div className="auth-switch" style={{ marginTop: 20, textAlign: 'center' }}>
+        <p>
+          Don't have an account?{' '}
+          <button
+            type="button"
+            onClick={onSwitchToRegister}
+            className="link-button"
+           
+          >
+            Register here
+          </button>
+        </p>
+      </div>
     </form>
   );
 };
