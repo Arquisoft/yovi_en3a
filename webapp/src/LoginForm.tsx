@@ -11,7 +11,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onBack }) => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  
+  const loginUser = async (usernameToLogin: string, passwordToLogin: string): Promise<void> => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+      const res = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: usernameToLogin, password: passwordToLogin })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setResponseMessage(data.message);
+        setUsername('');
+        setPassword('');
+      } else {
+        setError(data.error || 'Server error');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -29,29 +53,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onBack }) => {
     }
 
     setLoading(true);
-    try {
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-      const res = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setResponseMessage(data.message);
-        setUsername('');
-        setPassword('');
-      } else {
-        setError(data.error || 'Server error');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Network error');
-    } finally {
-      setLoading(false);
-    }
+    await loginUser(username, password);
   };
 
   return (

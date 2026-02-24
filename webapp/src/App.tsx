@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css'
 import RegisterForm from './RegisterForm';
 import LoginForm from './LoginForm';
-import Landing from './AuthLanding';
+import Landing from './Landing';
 
 type AuthScreen = 'landing' | 'login' | 'register';
 
