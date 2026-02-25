@@ -23,6 +23,19 @@ services:
     networks:
       - monitor-net
 
+  game-manager:
+    build: ./gamemanager
+    container_name: gamemanager
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/userdb?authSource=admin
+      - GAMEY_SERVICE_URL=http://gamey:4000
+    depends_on:
+      - mongodb
+    networks:
+      - monitor-net
+
   gamey:
     build: ./gamey
     container_name: gamey
