@@ -17,10 +17,6 @@ function App() {
       .catch(err => setStatus(`Error: ${err.message}`));
   }, []);
 
-  const handleBackToLanding = () => {
-    setCurrentScreen('landing');
-  };
-
   return (
     <div className="App">
       <h2>Welcome to Yovi</h2>

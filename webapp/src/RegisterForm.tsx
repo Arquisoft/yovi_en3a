@@ -23,20 +23,38 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     countryToRegister: string
   ): Promise<void> => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-      const res = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          username: usernameToRegister,
-          email: emailToRegister,
-          password: passwordToRegister,
-          age: ageToRegister ? parseInt(ageToRegister) : undefined,
-          country: countryToRegister
-        })
-      });
+      // Determine API URLs based on environment
+      const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+      const gatewayUrl = isLocalhost 
+        ? (import.meta.env.VITE_API_URL ?? 'http://localhost:8000')
+        : 'http://gatewayservice:8000';
+      const directUrl = isLocalhost ? 'http://localhost:3000' : 'http://users:3000';
+      
+      const registerData = { 
+        username: usernameToRegister,
+        email: emailToRegister,
+        password: passwordToRegister,
+        age: ageToRegister ? parseInt(ageToRegister) : undefined,
+        country: countryToRegister
+      };
+
+      let res;
+
+      // Try gateway first
+      try {
+        res = await fetch(`${gatewayUrl}/api/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(registerData)
+        });
+      } catch (err) {
+        // Gateway failed, try direct access
+        res = await fetch(`${directUrl}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(registerData)
+        });
+      }
 
       const data = await res.json();
       if (res.ok) {
@@ -59,6 +77,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     } finally {
       setLoading(false);
     }
+   
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -89,6 +108,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     setLoading(true);
     await registerUser(username, email, password, age, country);
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="register-form">
