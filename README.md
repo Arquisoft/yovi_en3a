@@ -6,6 +6,26 @@
 
 This project is a template with some basic functionality for the ASW labs.
 
+# About
+
+This repository contains the project for the [software architecture curse](https://arquisoft.github.io/) in Uniovi, developing Game y.
+
+The development of the game follows [these](https://docs.google.com/document/d/1VKKkNxAdRo5Eo8VpZHr3fQ3owIvBvZ_6fKDch0N8m3U/edit?tab=t.0#heading=h.knuq2aw7zapd) requirements.
+
+The project is deployed [here](http://4.233.138.159/), the documentation can be found [here](https://arquisoft.github.io/yovi_en3a/). 
+
+Go to the [wiki](https://github.com/Arquisoft/yovi_en3a/wiki) for more information about the development.
+
+# Developers
+
+| Contributor               | Git Account        | Contact Email               |
+|---------------------------|--------------------|-----------------------------|
+| Daniel Onís Fabián        | [Daniel Onís](https://github.com/danielof26)        | UO293946@uniovi.es          |
+| Sergio Seijo Martínez     | [Sergio Seijo](https://github.com/SSergio0-UO)       | UO300084@uniovi.es          |
+| Martín Almoina Iglesias   | [Martín Almoina](https://github.com/Martin-Almoina)     | UO300717@uniovi.es          |
+| Gonzalo García Castro     | [Gonzalo García](https://github.com/UO294665)     | UO294665@uniovi.es          |
+| Daniel Álvarez Menéndez   | [Daniel Álvarez](https://github.com/Daniel299778)     | UO299778@uniovi.es          |
+
 ## Project Structure
 
 The project is divided into three main components, each in its own directory:

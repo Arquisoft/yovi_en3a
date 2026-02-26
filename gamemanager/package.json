@@ -1,23 +1,19 @@
 {
-  "name": "users",
+  "name": "game-manager",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Game manager service",
+  "main": "game-manager.js",
   "scripts": {
-    "start": "node users-service.js",
+    "start": "node game-manager.js",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^3.0.3",
+    "axios": "^1.6.0",
     "express": "^5.2.1",
-    "express-prom-bundle": "^8.0.0",
-    "js-yaml": "^4.1.0",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.2.1",
-    "swagger-ui-express": "^5.0.1"
+    "mongoose": "^9.2.1"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.15",

@@ -29,7 +29,7 @@ pub struct GameY {
     // Union-Find data structure to track connected components for each player
     sets: Vec<PlayerSet>,
 
-    available_cells: Vec<u32>,
+    available_cells: Vec<u32>, 
 }
 
 /// Represents the state of a single cell on the board.
@@ -446,6 +446,35 @@ impl GameY {
     pub fn get_cell_owner(&self, coords: &Coordinates) -> Option<PlayerId> {
         self.board_map.get(coords).map(|(_, player)| *player)
     }
+
+    /*
+        Returns a tuple indicating which sides of the board the specified player's pieces are touching.
+         - The first element is true if the player has pieces touching side A.
+         - The second element is true if the player has pieces touching side B.
+         - The third element is true if the player has pieces touching side C.
+
+         This method iterates through all pieces on the board that belong to the specified player,
+         finds their corresponding sets in the Union-Find structure, and aggregates the sides they touch.
+     */
+    pub fn get_player_touched_sides(&self, player: PlayerId) -> (bool, bool, bool) {
+        let mut a = false;
+        let mut b = false;
+        let mut c = false;
+
+        for (set_idx, p) in self.board_map.values() {
+            if *p == player {
+                let mut root = *set_idx;
+                while self.sets[root].parent != root {
+                    root = self.sets[root].parent;
+                }
+                a |= self.sets[root].touches_side_a;
+                b |= self.sets[root].touches_side_b;
+                c |= self.sets[root].touches_side_c;
+            }
+        }
+
+        (a, b, c)
+}
 }
 
 fn indent(str: &mut String, level: u32) {

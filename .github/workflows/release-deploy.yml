@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [webapp, users]
+        service: [webapp, users, gatewayservice]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -119,7 +119,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: webapp
-          buildargs: VITE_API_URL=http://${{ secrets.DEPLOY_HOST }}:3000
+          buildargs: VITE_API_URL=http://${{ secrets.DEPLOY_HOST }}:8000
 
   docker-push-gamey:
     name: Publish gamey image
@@ -140,11 +140,51 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: gamey
+  
+  docker-push-gatewayservice:
+    name: Publish gatewayservice image
+    runs-on: ubuntu-latest
+    needs: e2e
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Publish to Registry (gatewayservice)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ${{ github.repository_owner }}/${{ github.event.repository.name }}-gatewayservice
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          workdir: gatewayservice
+
+  docker-push-game-manager:
+    name: Publish game-manager image
+    runs-on: ubuntu-latest
+    needs: e2e
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish to Registry (game-manager)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ${{ github.repository_owner }}/${{ github.event.repository.name }}-game-manager
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          workdir: gamemanager
 
   deploy:
     name: Deploy over SSH
     runs-on: ubuntu-latest
-    needs: [docker-push-users, docker-push-webapp, docker-push-gamey]
+    needs: [docker-push-users, docker-push-webapp, docker-push-gamey, docker-push-gatewayservice, docker-push-game-manager]
     steps:
       - name: Deploy over SSH
         uses: fifsky/ssh-action@master

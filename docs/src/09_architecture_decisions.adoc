@@ -3,6 +3,8 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-design-decisions]]
 == Architecture Decisions
 
+The detailed Architectural Decisions are documented in the project Wiki: https://github.com/Arquisoft/yovi_en3a/wiki/Architectural-Decisions[Architectural Decisions]
+
 
 ifdef::arc42help[]
 [role="arc42help"]
