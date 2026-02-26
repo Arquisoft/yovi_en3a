@@ -1,0 +1,110 @@
+openapi: 3.0.0
+info:
+  title: Gateway Service API
+  version: 1.0.0
+  description: API gateway that routes requests to the corresponding microservices
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the gateway service
+      responses:
+        '200':
+          description: Gateway is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  service:
+                    type: string
+                    example: "gatewayservice"
+
+  /api/users/{path}:
+    x-summary: Users service proxy
+    get:
+      summary: Proxy GET request to users service
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Response from users service
+        '500':
+          description: Internal gateway error
+    post:
+      summary: Proxy POST request to users service
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Response from users service
+        '500':
+          description: Internal gateway error
+
+  /api/game-manager/{path}:
+    get:
+      summary: Proxy GET request to game-manager service
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Response from game-manager service
+        '500':
+          description: Internal gateway error
+    post:
+      summary: Proxy POST request to game-manager service
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Response from game-manager service
+        '500':
+          description: Internal gateway error
+
+  /api/gamey/{path}:
+    get:
+      summary: Proxy GET request to gamey service
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Response from gamey service
+        '500':
+          description: Internal gateway error
+    post:
+      summary: Proxy POST request to gamey service
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Response from gamey service
+        '500':
+          description: Internal gateway error

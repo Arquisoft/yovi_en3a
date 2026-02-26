@@ -4,6 +4,17 @@ const axios = require("axios")
 const app = express();
 app.use(express.json())
 
+const swaggerUi = require('swagger-ui-express')
+const fs = require('node:fs')
+const YAML = require('js-yaml')
+
+try {
+  const swaggerDocument = YAML.load(fs.readFileSync('./openapi.yaml', 'utf8'))
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+} catch (e) {
+  console.log(e)
+}
+
 // Running in docker || Running in localhost
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || "http://localhost:3000";
 const GAME_MANAGER_URL= process.env.GAME_MANAGER_URL || "http://localhost:5000";
