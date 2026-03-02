@@ -41,6 +41,12 @@ h1 {
   line-height: 1.1;
 }
 
+h2 {
+  font-size: 2.5em;
+  
+}
+
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -59,7 +65,7 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-
+/**/
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

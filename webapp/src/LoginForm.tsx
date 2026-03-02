@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -76,30 +80,33 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 
   return (
     <form onSubmit={handleSubmit} className="login-form">
+      
       <h2>Login</h2>
-      <div className="form-group">
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <button type="submit" className="submit-button" disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
-      </button>
+      <div className="space-y-2">
+  <Label htmlFor="username">Username</Label>
+  <Input
+    id="username"
+    type="text"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+  />
+</div>
+
+<div className="space-y-2 mt-4">
+  <Label htmlFor="password">Password</Label>
+  <Input
+    id="password"
+    type="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+  />
+</div>
+
+
+      <Button type="submit" className="w-full" disabled={loading}>
+         {loading ? "Logging in..." : "Login"}
+      </Button>
+
 
       {responseMessage && (
         <div className="success-message" style={{ marginTop: 12, color: 'green' }}>

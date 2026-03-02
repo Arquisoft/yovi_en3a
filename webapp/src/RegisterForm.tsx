@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { Button } from './components/ui/button';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -113,70 +116,68 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   return (
     <form onSubmit={handleSubmit} className="register-form">
       <h2>Register</h2>
-      <div className="form-group">
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="passwordConfirm">Confirm Password:</label>
-        <input
-          type="password"
-          id="passwordConfirm"
-          value={passwordConfirm}
-          onChange={(e) => setPasswordConfirm(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="age">Age (optional):</label>
-        <input
-          type="number"
-          id="age"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          className="form-input"
-          min="0"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="country">Country (optional):</label>
-        <input
-          type="text"
-          id="country"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="form-input"
-        />
-      </div>
-      <button type="submit" className="submit-button" disabled={loading}>
-        {loading ? 'Creating account...' : 'Register'}
-      </button>
+      <div className="space-y-2">
+  <Label htmlFor="username">Username</Label>
+    <Input
+    id="username"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+     />
+</div>
+     <div className="space-y-2">
+  <Label htmlFor="email">Email</Label>
+  <Input
+    id="email"
+    type="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+  />
+</div>
+      <div className="space-y-2">
+  <Label htmlFor="password">Password</Label>
+  <Input
+    id="password"
+    type="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+  />
+</div>
+      
+<div className="space-y-2">
+  <Label htmlFor="passwordConfirm">Confirm Password</Label>
+  <Input
+    id="passwordConfirm"
+    type="password"
+    value={passwordConfirm}
+    onChange={(e) => setPasswordConfirm(e.target.value)}
+  />
+</div>
+
+    
+<div className="space-y-2">
+  <Label htmlFor="age">Age (optional)</Label>
+  <Input
+    id="age"
+    type="number"
+    value={age}
+    min="0"
+    onChange={(e) => setAge(e.target.value)}
+  />
+</div>
+
+     
+<div className="space-y-2">
+  <Label htmlFor="country">Country (optional)</Label>
+  <Input
+    id="country"
+    value={country}
+    onChange={(e) => setCountry(e.target.value)}
+  />
+</div>
+
+      <Button type="submit" className="w-full" disabled={loading}>
+       {loading ? "Creating account..." : "Register"}
+      </Button> 
 
       {responseMessage && (
         <div className="success-message" style={{ marginTop: 12, color: 'green' }}>
