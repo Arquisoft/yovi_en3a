@@ -16,7 +16,15 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    
+ // 👇 Add these two lines
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+
+  
   },
   "include": ["src", "vite.config.ts"]
 }

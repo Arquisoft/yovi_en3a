@@ -1,30 +1,21 @@
 import React, { useState } from 'react';
-import { Button } from './components/ui/button';
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface RegisterFormProps {
-  onSwitchToLogin: () => void;
+
+interface LoginFormProps {
+  onSwitchToRegister: () => void;
 }
 
-const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [age, setAge] = useState('');
-  const [country, setCountry] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const registerUser = async (
-    usernameToRegister: string,
-    emailToRegister: string,
-    passwordToRegister: string,
-    ageToRegister: string,
-    countryToRegister: string
-  ): Promise<void> => {
+  const loginUser = async (usernameToLogin: string, passwordToLogin: string): Promise<void> => {
     try {
       // Determine API URLs based on environment
       const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
@@ -33,29 +24,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
         : 'http://gatewayservice:8000';
       const directUrl = isLocalhost ? 'http://localhost:3000' : 'http://users:3000';
       
-      const registerData = { 
-        username: usernameToRegister,
-        email: emailToRegister,
-        password: passwordToRegister,
-        age: ageToRegister ? parseInt(ageToRegister) : undefined,
-        country: countryToRegister
-      };
+      const loginData = { username: usernameToLogin, password: passwordToLogin };
 
       let res;
 
       // Try gateway first
       try {
-        res = await fetch(`${gatewayUrl}/api/users/register`, {
+        res = await fetch(`${gatewayUrl}/api/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(registerData)
+          body: JSON.stringify(loginData)
         });
       } catch (err) {
         // Gateway failed, try direct access
-        res = await fetch(`${directUrl}/register`, {
+        res = await fetch(`${directUrl}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(registerData)
+          body: JSON.stringify(loginData)
         });
       }
 
@@ -63,16 +48,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
       if (res.ok) {
         setResponseMessage(data.message);
         setUsername('');
-        setEmail('');
         setPassword('');
-        setPasswordConfirm('');
-        setAge('');
-        setCountry('');
-      } 
-      else if (res.status >= 400 && res.status < 500) {
-        setError(data.error || 'Invalid input. Please check your data and try again.');
-      }
-      else {
+      } else {
         setError(data.error || 'Server error');
       }
     } catch (err: any) {
@@ -80,7 +57,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     } finally {
       setLoading(false);
     }
-   
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -93,47 +69,30 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
       return;
     }
 
-    if (!email.trim()) {
-      setError('Please enter an email.');
-      return;
-    }
-
     if (!password.trim()) {
       setError('Please enter a password.');
       return;
     }
 
-    if (password !== passwordConfirm) {
-      setError('Passwords do not match.');
-      return;
-    }
-
     setLoading(true);
-    await registerUser(username, email, password, age, country);
+    await loginUser(username, password);
   };
 
-
   return (
-    <form onSubmit={handleSubmit} className="register-form">
-      <h2>Register</h2>
+    <form onSubmit={handleSubmit} className="login-form">
+      
+      <h2>Login</h2>
       <div className="space-y-2">
   <Label htmlFor="username">Username</Label>
-    <Input
+  <Input
     id="username"
+    type="text"
     value={username}
     onChange={(e) => setUsername(e.target.value)}
-     />
-</div>
-     <div className="space-y-2">
-  <Label htmlFor="email">Email</Label>
-  <Input
-    id="email"
-    type="email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
   />
 </div>
-      <div className="space-y-2">
+
+<div className="space-y-2 mt-4">
   <Label htmlFor="password">Password</Label>
   <Input
     id="password"
@@ -142,42 +101,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     onChange={(e) => setPassword(e.target.value)}
   />
 </div>
-      
-<div className="space-y-2">
-  <Label htmlFor="passwordConfirm">Confirm Password</Label>
-  <Input
-    id="passwordConfirm"
-    type="password"
-    value={passwordConfirm}
-    onChange={(e) => setPasswordConfirm(e.target.value)}
-  />
-</div>
 
-    
-<div className="space-y-2">
-  <Label htmlFor="age">Age (optional)</Label>
-  <Input
-    id="age"
-    type="number"
-    value={age}
-    min="0"
-    onChange={(e) => setAge(e.target.value)}
-  />
-</div>
-
-     
-<div className="space-y-2">
-  <Label htmlFor="country">Country (optional)</Label>
-  <Input
-    id="country"
-    value={country}
-    onChange={(e) => setCountry(e.target.value)}
-  />
-</div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-       {loading ? "Creating account..." : "Register"}
-      </Button> 
+         {loading ? "Logging in..." : "Login"}
+      </Button>
+
 
       {responseMessage && (
         <div className="success-message" style={{ marginTop: 12, color: 'green' }}>
@@ -193,13 +122,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
 
       <div className="auth-switch" style={{ marginTop: 20, textAlign: 'center' }}>
         <p>
-          Already have an account?{' '}
+          Don't have an account?{' '}
           <button
             type="button"
-            onClick={onSwitchToLogin}
+            onClick={onSwitchToRegister}
             className="link-button"
+           
           >
-            Login here
+            Register here
           </button>
         </p>
       </div>
@@ -207,4 +137,4 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   );
 };
 
-export default RegisterForm;
+export default LoginForm;

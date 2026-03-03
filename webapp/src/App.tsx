@@ -1,23 +1,41 @@
 import { useEffect, useState } from 'react';
 import './App.css'
 import RegisterForm from './RegisterForm';
-import reactLogo from './assets/react.svg'
+import LoginForm from './LoginForm';
+import Landing from './Landing';
+
+type AuthScreen = 'landing' | 'login' | 'register';
 
 function App() {
+  const [currentScreen, setCurrentScreen] = useState<AuthScreen>('landing');
+  const [status, setStatus] = useState<string>('Cargando...');
+
+  useEffect(() => {
+    fetch('http://4.233.138.159:4000/status')
+      .then(res => res.text())
+      .then(data => setStatus(data))
+      .catch(err => setStatus(`Error: ${err.message}`));
+  }, []);
 
   return (
     <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
+      <h2>Welcome to Yovi</h2>
+      <p>{"Server status: " + status}</p>
 
-      <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
-      <RegisterForm />
+      {currentScreen === 'landing' && (
+        <Landing 
+          onSelectLogin={() => setCurrentScreen('login')}
+          onSelectRegister={() => setCurrentScreen('register')}
+        />
+      )}
+
+      {currentScreen === 'login' && (
+        <LoginForm onSwitchToRegister={() => setCurrentScreen('register')} />
+      )}
+
+      {currentScreen === 'register' && (
+        <RegisterForm onSwitchToLogin={() => setCurrentScreen('login')} />
+      )}
     </div>
   );
 }
