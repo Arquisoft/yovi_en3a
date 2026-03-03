@@ -42,7 +42,7 @@
 }
 
 /* Register Form Styles */
-.register-form {
+.register-form,.login-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -92,4 +92,14 @@
 
 .submit-button:hover {
   background-color: #0056b3;
+}
+
+.link-button{
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font: inherit;
 }
