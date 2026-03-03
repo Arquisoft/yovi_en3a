@@ -11,7 +11,7 @@ describe('RegisterForm', () => {
   })
 
   test('shows validation error when username is empty', async () => {
-    render(<RegisterForm onSwitchToLogin={() => {}} />)
+    render(<RegisterForm />)
     const user = userEvent.setup()
 
     await waitFor(async () => {
@@ -29,7 +29,7 @@ describe('RegisterForm', () => {
       json: async () => ({ message: 'Hello Pablo! Welcome to the course!' }),
     } as Response)
 
-    render(<RegisterForm onSwitchToLogin={() => {}} />)
+    render(<RegisterForm />)
 
     // Wrap interaction + assertion inside waitFor
     await waitFor(async () => {

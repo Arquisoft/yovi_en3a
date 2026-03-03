@@ -10,8 +10,7 @@ RUN npm ci --silent
 COPY . .
 
 # Accept build-time API url (defaults to localhost:3000)
-# Changed to 8000 (gateway)
-ARG VITE_API_URL="http://localhost:8000"   
+ARG VITE_API_URL="http://localhost:3000"
 RUN export VITE_API_URL=${VITE_API_URL} && npm run build
 
 # Production image
