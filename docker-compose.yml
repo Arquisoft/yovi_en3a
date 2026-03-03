@@ -13,11 +13,21 @@ services:
   users:
     build: ./users
     container_name: users
-    ports:
-      - "3000:3000"
     image: ghcr.io/arquisoft/yovi_en3a-users:latest
     environment:
       - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/usersdb?authSource=admin
+    depends_on:
+      - mongodb
+    networks:
+      - monitor-net
+
+  game-manager:
+    build: ./gamemanager
+    container_name: gamemanager
+    image: ghcr.io/arquisoft/yovi_en3a-game-manager:latest
+    environment:
+      - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/gamesdb?authSource=admin
+      - GAMEY_SERVICE_URL=http://gamey:4000
     depends_on:
       - mongodb
     networks:
@@ -43,6 +53,7 @@ services:
     depends_on:
       - users
       - gamey
+      - game-manager
     networks:
       - monitor-net
 

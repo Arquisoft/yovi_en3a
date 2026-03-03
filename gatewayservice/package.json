@@ -5,7 +5,8 @@
   "main": "gateway-service.js",
   "scripts": {
     "start": "node gateway-service.js",
-    "test": "vitest"
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +14,12 @@
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.13.5",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "js-yaml": "^4.1.1",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "supertest": "^7.2.2",
     "vitest": "^4.0.18"
   }

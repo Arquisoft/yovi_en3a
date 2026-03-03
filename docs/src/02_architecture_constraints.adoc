@@ -1,12 +1,37 @@
-[[section-architectural-constraints]]
-== Architectural Constraints
-This section describes the conditions and non-functional requirements that limit our design freedom. These constraints are primarily defined by the academic requirements of the ASW course and the pre-existing technical template provided for the project.
-[cols="1,2,2", options="header"]
+[[section-architecture-constraints]]
+== Architecture Constraints
+
+The following constraints are the "boundary conditions" that limit the freedom of design decisions for the gamey project. They are derived from the lab assignment requirements.
+
+=== Technical Constraints
+
+[cols="1,2" options="header"]
 |===
-| Constraint | Description | Consequence
-| *C1: Polyglot Stack* | Use of Node.js (Users), React (Webapp), and Rust (Gamey). | Team must manage multiple toolchains (`npm` and `cargo`).
-| *C2: Dockerization* | Mandatory use of Docker and Docker Compose for deployment. | Developers must have Docker installed. Simplifies grading but adds overhead to local resource (RAM) usage.
-| *C3: Arc42 Template* | Documentation must strictly follow the Arc42 structure. | Higher initial effort in documentation, but ensures all architectural aspects of the project are covered.
-| *C4: SPA Architecture* | Frontend must be a Single Page Application using Vite/React. | State management and routing happen entirely in the browser; the backend is strictly a stateless REST API.
-| *C5: Timeframe* | Project must be completed within the academic semester. | Feature prioritization is critical (MVP approach); complex "extra" features might be risky.
+| Constraint | Description
+| **Frontend Implementation** | The Web application and user interface must be implemented using **TypeScript**.
+| **Logic Module** | The move suggestion and win verification engine must be implemented in **Rust**.
+| **Data Exchange Format** | All game state communication must utilize **JSON** following the **YEN notation**.
+| **Deployment & CI/CD** | The application must be **publicly accessible** via the Web.
+|===
+
+
+
+=== Organizational Constraints
+
+[cols="1,2" options="header"]
+|===
+| Constraint | Description
+| **Documentation Standard** | Documentation must follow the **arc42 template** and include **Architectural Decision Records (ADRs)**.
+| **Testing Requirements** | Mandatory coverage for **Unit**, **Integration**, **End-to-End (e2e)**, and **Load testing**.
+| **Project Management** | A github repository tracking **Issue Tracking**, **Meeting Minutes**, and **Code Reviews** must be used.
+|===
+
+=== Conventions
+
+[cols="1,2" options="header"]
+|===
+| Constraint | Description
+| **YEN Notation** | Mandatory string format for representing board layouts (e.g., `"layout": "B/.B/RB./B..R"`).
+| **AI Strategy Pattern** | The computer opponent must implement **multiple selectable strategies** and support varying difficulty levels.
+| **Bot Compatibility** | The application must provide a documented **External API** with a `play` method for bot interaction.
 |===
