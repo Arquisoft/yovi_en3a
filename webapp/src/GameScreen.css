@@ -4,12 +4,13 @@
   gap: 1rem;
   justify-content: center;
   align-items: flex-start;
-  min-width: 600px;
+  min-width: 700px;
 }
 
 .game-board-section {
   flex-shrink: 0;
-  min-width: 400px;
+  min-width: 600px;
+  min-height: auto;
 }
 
 .side-panel {
@@ -37,5 +38,12 @@
 /* background for the board  */
 .board-skin {
   background: whitesmoke;
-    
+}
+
+.board-grid {
+  position: relative;
+}
+
+.hex-cell-wrapper {
+  position: absolute;
 }

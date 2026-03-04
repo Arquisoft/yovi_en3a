@@ -9,7 +9,7 @@ interface GameScreenProps {
     onExit?: () => void;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {    
+export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {   
     /// Temporary exit
     const navigate = useNavigate();
     const handleExit = () => {
@@ -31,6 +31,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
              <div className="game-container">
                 <main className="game-board-section">
                 <div className="game-board-placeholder">Game Board</div>
+
+
                  <GameBoard />
                 </main>
                 <SidePanel />
