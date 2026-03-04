@@ -4,10 +4,12 @@
   gap: 1rem;
   justify-content: center;
   align-items: flex-start;
+  min-width: 600px;
 }
 
 .game-board-section {
   flex-shrink: 0;
+  min-width: 400px;
 }
 
 .side-panel {

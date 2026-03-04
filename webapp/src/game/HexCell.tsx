@@ -19,6 +19,7 @@ export default function HexCell({
 }: HexCellProps) 
 {
   const [selected, setSelected] = useState(initialSelected);
+  const [cellOwner, setCellOwner] = useState(owner);
   const width = size;
   const height = size;
   const CellName = name;
@@ -43,23 +44,21 @@ const colors = {
     },
   };
 
-  const chosen = colors[owner];  
+  const chosen = colors[cellOwner];  
     function selectByPlayer() {
     //call API
     //return true if player can select, false if not
     return true;
     }   
   const handleClick = async () => {
-    if (selected || owner !== "none" ) return;
-//    const newSelected = !selected;
-//    setSelected(newSelected);
+    if (selected || cellOwner !== "none" ) return;
 
     if (selectByPlayer()){
         setSelected(true);
-        owner = "p1";
+        setCellOwner("p1");
     }else{
         setSelected(false);
-        owner = "none";
+        setCellOwner("none");
     }
   };
 
