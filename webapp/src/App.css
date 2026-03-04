@@ -1,6 +1,17 @@
+/* Para que no se vea como un movil
 #root {
   max-width: 1280px;
   margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+*/
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   padding: 2rem;
   text-align: center;
 }
@@ -11,9 +22,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -22,6 +35,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -42,7 +56,8 @@
 }
 
 /* Register Form Styles */
-.register-form,.login-form {
+.register-form,
+.login-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -94,7 +109,7 @@
   background-color: #0056b3;
 }
 
-.link-button{
+.link-button {
   background: none;
   border: none;
   color: #007bff;
