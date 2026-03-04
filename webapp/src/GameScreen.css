@@ -1,0 +1,39 @@
+
+.game-container {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.game-board-section {
+  flex-shrink: 0;
+}
+
+.side-panel {
+  width: 25vw;
+  flex-shrink: 0;
+}
+
+.hex-row {
+  display: flex;
+  gap: 4px;
+  margin-left: calc(var(--hex-offset, 0px));
+}
+.hex {
+  clip-path: polygon(
+    50% 0%,
+    100% 25%,
+    100% 75%,
+    50% 100%,
+    0% 75%,
+    0% 25%
+  );
+}
+
+
+/* background for the board  */
+.board-skin {
+  background: whitesmoke;
+    
+}
