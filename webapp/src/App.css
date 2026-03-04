@@ -11,7 +11,6 @@
   width: 100%;
   min-height: 100vh;
   margin: 0;
-  padding: 0;
   padding: 2rem;
   text-align: center;
 }
@@ -68,6 +67,53 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: #fff;
+}
+
+/* Aplicamos el estilo a ambos formularios a la vez  TODO LO DEMAS DE login-form, register-form que esta debajo de esta regla lo hizo sergio para solucionar la visualizacion de los dos formularios*/
+.login-form,
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 450px;
+  /* Un poco más ancho para el registro */
+  margin: 40px auto;
+  padding: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+
+  /* Color de texto negro para TODO */
+  color: #000000 !important;
+}
+
+/* Forzamos que los labels de Shadcn sean negros */
+.login-form label,
+.register-form label {
+  color: #000000 !important;
+  font-weight: 600;
+  display: block;
+  text-align: left;
+  /* Alineado a la izquierda para que sea legible */
+}
+
+/* Forzamos que los títulos sean negros */
+.login-form h2,
+.register-form h2 {
+  color: #000000 !important;
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+/* Estilo para los inputs */
+.login-form input,
+.register-form input {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1;
 }
 
 .form-group {

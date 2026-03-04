@@ -8,9 +8,9 @@ import MenuView from './MenuView';
 type AuthScreen = 'landing' | 'login' | 'register' | 'menu';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<AuthScreen>('landing');
+  //const [currentScreen, setCurrentScreen] = useState<AuthScreen>('landing');
   // Para probar el menu sin el login, deberia de estar comentado y la linea superior descomentada
-  //const [currentScreen, setCurrentScreen] = useState<AuthScreen>('menu');
+  const [currentScreen, setCurrentScreen] = useState<AuthScreen>('menu');
   const [status, setStatus] = useState<string>('Cargando...');
 
   useEffect(() => {
