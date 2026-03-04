@@ -1,5 +1,5 @@
-import React from "react";
-import HexCell from "./HexCell";
+import React, { useRef, forwardRef, useImperativeHandle } from "react";
+import HexCell, { type HexCellRef } from "./HexCell";
 
 interface Coordinates {
   x: number;
@@ -12,7 +12,14 @@ interface GameBoardProps {
   cellSize?: number;
 }
 
-export default function GameBoard({ boardSize = 9, cellSize = 60 }: GameBoardProps) {
+export interface GameBoardRef {
+  selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => boolean;
+}
+
+const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
+  { boardSize = 7, cellSize = 60 }: GameBoardProps,
+  ref
+) => {
   const hexSize = cellSize / 2;
   const hexWidth = cellSize * 0.75;
   const hexHeight = cellSize * 0.866;
@@ -36,6 +43,7 @@ export default function GameBoard({ boardSize = 9, cellSize = 60 }: GameBoardPro
   };
 
   const coordinates = generateCoordinates();
+  const cellRefs = useRef<Map<string, HexCellRef>>(new Map());
 
   /**
    * Calculate pixel position for a hex cell based on row and column.
@@ -56,6 +64,27 @@ export default function GameBoard({ boardSize = 9, cellSize = 60 }: GameBoardPro
   const gridWidth = lastRowPos.left + cellSize;
   const gridHeight = (boardSize - 1) * hexHeight + cellSize;
 
+  // Expose method to select cell by coordinates
+  useImperativeHandle(ref, () => ({
+    selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => {
+      const key = `${x}-${y}-${z}`;
+      const cellRef = cellRefs.current.get(key);
+      if (cellRef) {
+        return player === "p1" ? cellRef.selectByPlayer() : cellRef.selectByPlayer2();
+      }
+      return false;
+    },
+  }));
+
+  // Handler for when a cell requests to select another cell
+  const handleRequestSelectCell = (coordinates: Coordinates, player: "p1" | "p2") => {
+    const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
+    const cellRef = cellRefs.current.get(key);
+    if (cellRef) {
+      player === "p1" ? cellRef.selectByPlayer() : cellRef.selectByPlayer2();
+    }
+  };
+
   return (
     <div className="board-skin flex justify-center items-start p-5">
       <div
@@ -66,8 +95,8 @@ export default function GameBoard({ boardSize = 9, cellSize = 60 }: GameBoardPro
         }}
       >
         {coordinates.map((coord) => {
-          const row = boardSize - 1 - coord.x; // row index
-          const col = coord.y; // column in that row
+          const row = boardSize - 1 - coord.x; 
+          const col = coord.y; 
           const pos = getHexPosition(row, col);
 
           return (
@@ -80,11 +109,18 @@ export default function GameBoard({ boardSize = 9, cellSize = 60 }: GameBoardPro
               }}
             >
               <HexCell
+                ref={(el) => {
+                  if (el) {
+                    cellRefs.current.set(`${coord.x}-${coord.y}-${coord.z}`, el);
+                  }
+                }}
                 size={cellSize}
                 name={`(${coord.x},${coord.y},${coord.z})`}
                 owner="none"
                 initialSelected={false}
                 disabled={false}
+                coordinates={coord}
+                onRequestSelectCell={handleRequestSelectCell}
               />
             </div>
           );
@@ -92,4 +128,8 @@ export default function GameBoard({ boardSize = 9, cellSize = 60 }: GameBoardPro
       </div>
     </div>
   );
-}
+});
+
+GameBoard.displayName = "GameBoard";
+
+export default GameBoard;

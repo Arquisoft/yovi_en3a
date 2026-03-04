@@ -1,5 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef, useImperativeHandle } from "react";
 import clsx from "clsx";
+
+interface Coordinates {
+  x: number;
+  y: number;
+  z: number;
+}
 
 interface HexCellProps {
   size?: number;
@@ -7,17 +13,26 @@ interface HexCellProps {
   owner?: "none" | "p1" | "p2";
   initialSelected?: boolean;
   disabled?: boolean;
+  coordinates?: Coordinates;
+  onRequestSelectCell?: (coordinates: Coordinates, player: "p1" | "p2") => void;
 }
 
-export default function HexCell({
+export interface HexCellRef {
+  selectByPlayer: () => boolean;
+  selectByPlayer2: () => boolean;
+  deselect: () => boolean;
+  requestSelectForPlayer2: (targetCoordinates: Coordinates) => void;
+}
+
+const HexCell = forwardRef<HexCellRef, HexCellProps>(({
   name = "cell",
   size = 60,
   owner = "none",
   initialSelected = false,
   disabled = false,
-
-}: HexCellProps) 
-{
+  coordinates,
+  onRequestSelectCell,
+}: HexCellProps, ref) => {
   const [selected, setSelected] = useState(initialSelected);
   const [cellOwner, setCellOwner] = useState(owner);
   const width = size;
@@ -45,22 +60,63 @@ const colors = {
   };
 
   const chosen = colors[cellOwner];  
+
+
+
+    function gameyCall() {
+    //Call API here
+    return Math.random() < 0.5; // Simulate 50% success rate
+    }
+
     function selectByPlayer() {
-    //call API
-    //return true if player can select, false if not
+    setSelected(true);
+        setCellOwner("p1");
     return true;
     }   
-  const handleClick = async () => {
-    if (selected || cellOwner !== "none" ) return;
-
-    if (selectByPlayer()){
+  
+    function selectByPlayer2() {
         setSelected(true);
-        setCellOwner("p1");
-    }else{
+        setCellOwner("p2");
+    return true;
+    }
+
+     function deselect() {
         setSelected(false);
         setCellOwner("none");
+    return true;
+    }
+
+    //Call after bot response
+
+    function requestSelectForPlayer2(targetCoordinates: Coordinates) {
+      if (onRequestSelectCell) {
+        onRequestSelectCell(targetCoordinates, "p2");
+      }
+    }
+
+    useImperativeHandle(ref, () => ({
+      selectByPlayer,
+      selectByPlayer2,
+      deselect,
+      requestSelectForPlayer2,
+    }));
+
+  
+    const handleClick = async () => {
+    if (selected || cellOwner !== "none" ) return;
+
+
+    if (gameyCall()){
+
+        selectByPlayer();
+    }else{
+        //deselect();
+        selectByPlayer2();
     }
   };
+
+
+
 
   return (
     <div
@@ -78,4 +134,8 @@ const colors = {
       }}
     >{CellName}</div>
   );
-}
+});
+
+HexCell.displayName = "HexCell";
+
+export default HexCell;

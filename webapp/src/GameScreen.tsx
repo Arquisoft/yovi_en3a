@@ -39,7 +39,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             </div>
 
 
-
             <Button variant="destructive" onClick={handleExit}>
                 ← Exit Game
             </Button>
