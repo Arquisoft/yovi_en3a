@@ -47,6 +47,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSucces
 
       const data = await res.json();
       if (res.ok) {
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
+
         setResponseMessage(data.message);
         setUsername('');
         setPassword('');

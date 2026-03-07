@@ -165,7 +165,7 @@ app.post('/login',
         { expiresIn: '24h' }
       );
 
-      res.json({ message: 'Login successfully', token });
+      res.json({ message: 'Login successfully', token, userId: user._id });
 
     } catch (err) {
       res.status(500).json({ error: err.message });
