@@ -1,4 +1,4 @@
-const gameFactory = require("/gameFactory")
+const { GameFactory } = require("./gameFactory")
 const mongoose = require("mongoose")
 
 const gameSchema = new mongoose.Schema({
@@ -41,7 +41,7 @@ const gameSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: gameFactory.getValidGames(),
+        enum: GameFactory.getValidGames(),
         required: true,
     },
 })
