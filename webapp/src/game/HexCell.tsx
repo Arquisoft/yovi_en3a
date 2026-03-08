@@ -65,7 +65,7 @@ const colors = {
 
     function gameyCall() {
     //Call API here
-    return Math.random() < 0.5; // Simulate 50% success rate
+    return true; // Simulate 50% success rate
     }
 
     function selectByPlayer() {
@@ -113,6 +113,8 @@ const colors = {
         //deselect();
         selectByPlayer2();
     }
+    var targetCoordinates: Coordinates = { x: 0, y: 6, z: 0 };
+    requestSelectForPlayer2(targetCoordinates);
   };
 
 

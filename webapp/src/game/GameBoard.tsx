@@ -21,8 +21,11 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
   ref
 ) => {
   const hexSize = cellSize / 2;
-  const hexWidth = cellSize * 0.75;
-  const hexHeight = cellSize * 0.866;
+//  const hexWidth = cellSize * 0.75;
+  const hexWidth = cellSize *1.05;
+
+//  const hexHeight = cellSize * 0.866;
+  const hexHeight = cellSize * 0.85;
 
   /**
    * Generate all valid coordinates for the board.
@@ -45,15 +48,12 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
   const coordinates = generateCoordinates();
   const cellRefs = useRef<Map<string, HexCellRef>>(new Map());
 
-  /**
-   * Calculate pixel position for a hex cell based on row and column.
-   * Uses offset coordinates typical for hex grids:
-   * - Horizontal offset: column * 1.5 * hexSize
-   * - Vertical offset: row * 0.866 * hexSize (hex height is 0.866 * width)
-   * - Indentation: each row is indented half a cell width
-   */
+
   const getHexPosition = (row: number, col: number) => {
-    const left = col * hexWidth + (row * hexWidth) / 2;
+    const totalRowWidth = row * hexWidth + cellSize;        // width of current row
+    const boardWidth = (boardSize - 1) * hexWidth + cellSize; // width of bottom row
+    const offset = (boardWidth - totalRowWidth) / 2;        // center offset
+    const left = col * hexWidth + offset;
     const top = row * hexHeight;
     return { left, top };
   };
