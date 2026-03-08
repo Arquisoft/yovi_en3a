@@ -51,3 +51,31 @@
 .hex-cell-wrapper {
   position: absolute;
 }
+
+
+/* Styles for the side panel */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.moves-scroll {
+  flex: 1;
+  min-height: 0;        /* the critical line — prevents infinite growth */
+  max-height: 400px;    /* fallback cap */
+  overflow: hidden;     /* lets ScrollArea take over */
+}
+
+.p1-badge {
+  background-color: #3b82f6;
+  color: #eff6ff;
+  border: none;
+}
+
+.p2-badge {
+  background-color: #ef4444;
+  color: #fff1f2;
+  border: none;
+}
+

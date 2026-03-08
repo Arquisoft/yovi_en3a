@@ -15,6 +15,8 @@ interface HexCellProps {
   disabled?: boolean;
   coordinates?: Coordinates;
   onRequestSelectCell?: (coordinates: Coordinates, player: "p1" | "p2") => void;
+  onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
+
 }
 
 export interface HexCellRef {
@@ -32,6 +34,7 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(({
   disabled = false,
   coordinates,
   onRequestSelectCell,
+  onCellPlayed,
 }: HexCellProps, ref) => {
   const [selected, setSelected] = useState(initialSelected);
   const [cellOwner, setCellOwner] = useState(owner);
@@ -113,8 +116,12 @@ const colors = {
         //deselect();
         selectByPlayer2();
     }
+
+    onCellPlayed?.("p1", "Player 1", name);
+   
     var targetCoordinates: Coordinates = { x: 0, y: 6, z: 0 };
     requestSelectForPlayer2(targetCoordinates);
+    onCellPlayed?.("p2", "Bot", `(${targetCoordinates.x},${targetCoordinates.y},${targetCoordinates.z})`);
   };
 
 

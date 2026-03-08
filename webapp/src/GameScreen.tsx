@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './GameScreen.css';
 import { Button } from './components/ui/button';
-import SidePanel from './game/SidePanel';
+import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard from './game/GameBoard';
 
 interface GameScreenProps {
@@ -10,8 +10,12 @@ interface GameScreenProps {
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {   
+    const sidePanelRef = useRef<SidePanelRef>(null);
+    
+    
     /// Temporary exit
     const navigate = useNavigate();
+
     const handleExit = () => {
         if (onExit) {
             onExit();
@@ -30,12 +34,18 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
              <div className="game-container">
                 <main className="game-board-section">
-                <div className="game-board-placeholder">Game Board</div>
 
 
-                 <GameBoard />
+                 <GameBoard
+                    onCellPlayed={(player, playerName, coordinate) => {
+                    sidePanelRef.current?.addMove(player, playerName, coordinate);
+                    if (player === "p1") {
+                    sidePanelRef.current?.incrementTurn();
+    }
+  }}
+/>
                 </main>
-                <SidePanel />
+               <SidePanel ref={sidePanelRef} />
             </div>
 
 
