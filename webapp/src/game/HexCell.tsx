@@ -68,7 +68,7 @@ const colors = {
 
     function gameyCall() {
     //Call API here
-    return true; // Simulate 50% success rate
+    return true; 
     }
 
     function selectByPlayer() {
@@ -77,7 +77,7 @@ const colors = {
     return true;
     }   
   
-    function selectByPlayer2() {
+    function selectByPlayer2() { // For bot moves
         setSelected(true);
         setCellOwner("p2");
     return true;
@@ -90,7 +90,6 @@ const colors = {
     }
 
     //Call after bot response
-
     function requestSelectForPlayer2(targetCoordinates: Coordinates) {
       if (onRequestSelectCell) {
         onRequestSelectCell(targetCoordinates, "p2");
@@ -113,15 +112,18 @@ const colors = {
 
         selectByPlayer();
     }else{
-        //deselect();
-        selectByPlayer2();
+        deselect(); // Revert to unselected if API call fails
+        
+        return;
     }
 
+    //Add to move history
     onCellPlayed?.("p1", "Player 1", name);
    
-    var targetCoordinates: Coordinates = { x: 0, y: 6, z: 0 };
-    requestSelectForPlayer2(targetCoordinates);
-    onCellPlayed?.("p2", "Bot", `(${targetCoordinates.x},${targetCoordinates.y},${targetCoordinates.z})`);
+    var botTargetCoordinates: Coordinates = { x: 0, y: 6, z: 0 }; // Example target for bot move - replace with actual logic
+    requestSelectForPlayer2(botTargetCoordinates);
+    // add bot move to move history
+    onCellPlayed?.("p2", "Bot", `(${botTargetCoordinates.x},${botTargetCoordinates.y},${botTargetCoordinates.z})`);
   };
 
 
