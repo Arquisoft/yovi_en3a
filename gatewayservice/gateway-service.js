@@ -10,8 +10,7 @@ const YAML = require('js-yaml')
 
 //Authentication for users in games
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || '8889c0d6ea431e5baa4872574239fad4fef44c8a98f8771c182ad8626233dcac6af7f9da4843432c2a268d3e60696267f47a57343a51f627323835ea637b4972';
-
+const JWT_SECRET = process.env.JWT_SECRET
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader?.split(' ')[1];
