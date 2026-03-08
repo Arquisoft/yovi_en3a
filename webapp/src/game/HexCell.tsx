@@ -48,14 +48,14 @@ const colors = {
       fg: "#f8fafc",
     },
     p1: {
-      bg: "#10b981",        // emerald-500
-      sel: "#34d399",       // emerald-400
-      fg: "#ecfdf5",
-    },
-    p2: {
-      bg: "#3b82f6",        // blue-500
+       bg: "#3b82f6",        // blue-500
       sel: "#60a5fa",
       fg: "#eff6ff",
+    },
+    p2: {
+      bg: "#ef4444",   // red-500
+      sel: "#f87171",  // red-400 
+      fg: "#fff1f2",   // red-50 (light tint for foreground text, mirrors blue-50)
     },
   };
 

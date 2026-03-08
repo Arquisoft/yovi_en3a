@@ -25,7 +25,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
   const hexWidth = cellSize *1.05;
 
 //  const hexHeight = cellSize * 0.866;
-  const hexHeight = cellSize * 0.85;
+  const hexHeight = cellSize * 0.8;
 
   /**
    * Generate all valid coordinates for the board.
