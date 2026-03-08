@@ -3,6 +3,124 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-concepts]]
 == Cross-cutting Concepts
 
+=== Domain Concepts
+
+==== User Management
+Users are identified by a unique username and email. Each user has an associated
+statistics document (userstats) that tracks game performance. The relationship
+between users and their stats is maintained via MongoDB ObjectId references.
+
+==== Game Representation (YEN Notation)
+All game states are represented using **YEN notation**, a custom format that encodes
+the board layout, current turn, players and board size. This notation is used
+across the microservices as the common language for
+game state communication.
+
+==== Game Flow
+A game is played between a player and a bot: 
+
+* The **player** can be either a human(turn 0) or an external bot communicating through the gateway API. 
+* The **internal bot** (turn 1) is managed by `gamey`. 
+
+The `game-manager` orchestrates the flow: 
+
+. Receives the player move 
+. Applies the move
+. Requests the bot move from gamey 
+. Returns the updated state of the board
+
+---
+
+=== Security Concepts
+
+==== Authentication with JWT
+All authenticated endpoints use **JSON Web Tokens** (JWT). Tokens are generated
+at login with a **24-hour expiration** and must be included in subsequent requests.
+The JWT secret is stored as an environment variable and injected via `docker-compose`.
+
+==== Password Encryption
+All user passwords are hashed using **bcrypt** with a salt factor of 10 before
+being stored in `MongoDB``. Plain text passwords are never persisted.
+
+==== MongoDB Authentication
+`MongoDB` requires **username** and **password** authentication via SCRAM-SHA-256.
+Credentials are stored in a `.env` file on the server and injected as environment
+variables. The **authSource=admin** parameter is required for all connections.
+
+==== Internal Network Isolation
+All microservices communicate through an internal Docker network (monitor-net).
+Only the `gateway` (port 8000) and `webapp` (port 80) are exposed externally.
+Direct access to `users`, `game-manager`, `gamey` and `MongoDB` is restricted to
+internal container communication.
+
+---
+
+=== Architecture and Design Patterns
+
+==== Gateway Pattern
+All external requests enter the system through a single **gateway service** running
+on port 8000. The **gateway proxies** requests to the appropriate microservice based
+on the URL prefix (/api/users, /api/game-manager, /api/gamey).
+
+==== Proxy Request Pattern
+The `gateway` uses a generic **proxyRequest** function that forwards any HTTP method,
+body, headers and query parameters to the target service. This allows adding
+new microservices without changing the proxy logic.
+
+==== Database per Microservice
+Only the microservices that require persistence have their own `MongoDB` database:
+
+* `users` connects to `usersdb`
+* `game-manager` connects to `gamesdb`
+
+Both communication are made with a shared `MongoDB` container. 
+This ensures data isolation while reducing infrastructure overhead.
+
+---
+
+=== Development Concepts
+
+==== Environment Variables
+All sensitive configuration (MongoDB credentials, JWT secret, service URLs) is
+managed through environment variables. Local development uses a `.env` file,
+while production injects them via `docker-compose`` on the server.
+
+==== API Documentation
+Each microservice exposes a **Swagger UI** at /api-docs using swagger-ui-express
+and `openapi.yaml`.
+
+==== Monitoring
+Prometheus scrapes metrics from all Node.js microservices using express-prom-bundle.
+Grafana visualizes these metrics on port 9091. Both are deployed as Docker containers
+within the same internal network.
+
+==== Testing Strategy
+**Node.js** microservices (users, gateway) use **Vitest** and **Supertest** for unit and
+integration testing. Each **Node.js** service has a `test:coverage` script that generates
+coverage reports. The `gamey` service uses **cargo test** for unit testing and
+**cargo llvm-cov** for coverage reporting. The **CI/CD pipeline** runs all tests on
+every push and pull request before building and deploying.
+
+---
+
+=== Operational Concepts
+
+==== Containerization
+All microservices run as Docker containers managed by a single `docker-compose.yml`.
+Each service has its own `Dockerfile` based on lightweight base images (node:22-alpine,
+nginx:stable-alpine, debian:bookworm-slim for Rust).
+
+==== CI/CD Pipeline
+Two **GitHub Actions** workflows manage the pipeline:
+
+* **build.yml:** runs on every push and pull request, executes tests and SonarQube analysis.
+* **release-deploy.yml**: triggered on release, builds and publishes Docker images to
+GitHub Container Registry (ghcr.io), then deploys to the Azure VM via SSH.
+
+==== Memory Management
+The **Azure VM** has limited RAM (848MB). **Swap** (2GB) is configured with swappiness=10
+to prioritize RAM usage and avoid performance degradation.
+
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -56,19 +174,3 @@ image::08-concepts-EN.drawio.png["Possible topics for crosscutting concepts"]
 See https://docs.arc42.org/section-8/[Concepts] in the arc42 documentation.
 ****
 endif::arc42help[]
-
-=== _<Concept 1>_
-
-_<explanation>_
-
-
-
-=== _<Concept 2>_
-
-_<explanation>_
-
-...
-
-=== _<Concept n>_
-
-_<explanation>_

@@ -1,5 +1,5 @@
 FROM node:22-alpine
-WORKDIR app/
+WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci --silent

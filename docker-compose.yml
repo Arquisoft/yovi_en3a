@@ -18,6 +18,8 @@ services:
       - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/usersdb?authSource=admin
     depends_on:
       - mongodb
+    ports:
+      - "3000:3000"
     networks:
       - monitor-net
 

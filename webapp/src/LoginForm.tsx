@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
+  onLoginSuccess: () => void; // Optional callback for successful login
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
@@ -19,11 +20,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
     try {
       // Determine API URLs based on environment
       const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-      const gatewayUrl = isLocalhost 
+      const gatewayUrl = isLocalhost
         ? (import.meta.env.VITE_API_URL ?? 'http://localhost:8000')
         : 'http://gatewayservice:8000';
       const directUrl = isLocalhost ? 'http://localhost:3000' : 'http://users:3000';
-      
+
       const loginData = { username: usernameToLogin, password: passwordToLogin };
 
       let res;
@@ -46,9 +47,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 
       const data = await res.json();
       if (res.ok) {
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
+
         setResponseMessage(data.message);
         setUsername('');
         setPassword('');
+
+        // Esperamos un segundo para que el usuario vea el mensaje de éxito y luego saltamos
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 1000);
       } else {
         setError(data.error || 'Server error');
       }
@@ -80,31 +90,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
 
   return (
     <form onSubmit={handleSubmit} className="login-form">
-      
+
       <h2>Login</h2>
       <div className="space-y-2">
-  <Label htmlFor="username">Username</Label>
-  <Input
-    id="username"
-    type="text"
-    value={username}
-    onChange={(e) => setUsername(e.target.value)}
-  />
-</div>
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+      </div>
 
-<div className="space-y-2 mt-4">
-  <Label htmlFor="password">Password</Label>
-  <Input
-    id="password"
-    type="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-  />
-</div>
+      <div className="space-y-2 mt-4">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
 
 
       <Button type="submit" className="w-full" disabled={loading}>
-         {loading ? "Logging in..." : "Login"}
+        {loading ? "Logging in..." : "Login"}
       </Button>
 
 
@@ -127,7 +137,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             type="button"
             onClick={onSwitchToRegister}
             className="link-button"
-           
+
           >
             Register here
           </button>
