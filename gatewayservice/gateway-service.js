@@ -57,6 +57,13 @@ let proxyRequest = async(targetUrl, req, res) => {
     }
 }
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 //It enters from /api/xyz and it redirects to xyz
 app.use('/api/users', (req,res) => proxyRequest(USERS_SERVICE_URL, req, res))
 app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MANAGER_URL, req, res));

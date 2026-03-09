@@ -1,41 +1,98 @@
-import { Button } from "./components/ui/button";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface MenuViewProps {
-    onLogout: () => void; // Añadimos esta prop para avisar a App.tsx
+    onLogout: () => void;
 }
 
 const MenuView: React.FC<MenuViewProps> = ({ onLogout }) => {
+    const [hovered, setHovered] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+    const gatewayUrl = isLocalhost
+        ? (import.meta.env.VITE_API_URL ?? 'http://localhost:8000')
+        : 'http://gatewayservice:8000';
+
+    const handlePlayVsBot = async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${gatewayUrl}/api/game-manager/create/standard`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ botId: 'random_bot', boardSize: 7 })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+
+            navigate(`/game/${data.gameId}`); // pasamos el gameId por la URL
+        } catch (err) {
+            console.error("Error creating game:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const options = [
-        "Play vs Bot",
-        "Multiplayer",
-        "History and stats",
-        "How to play"
+        { label: "Play vs Bot", icon: "🤖", onClick: handlePlayVsBot },
+        { label: "Multiplayer", icon: "⚔️", path: "/multiplayer" },
+        { label: "History & Stats", icon: "📊", path: "/history" },
+        { label: "How to Play", icon: "📖", path: "/how-to-play" },
     ];
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
-            <h1 className="text-4xl font-extrabold mb-10 text-slate-800">Game Y</h1>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
+            <div className="w-full max-w-sm">
+                <div className="text-center mb-8">
+                    <h1 className="text-5xl font-bold text-white mb-1">Game Y</h1>
+                    <p className="text-gray-400 text-sm">Choose an option to continue</p>
+                </div>
 
-            <div className="flex flex-col gap-4 w-full max-w-md">
-                {/* Botones normales */}
-                {options.map((item) => (
-                    <Button
-                        key={item}
-                        variant="outline"
-                        className="h-16 text-xl font-semibold shadow-sm text-slate-900 bg-white w-full"
+                <div className="flex flex-col gap-3">
+                    {options.map((item) => (
+                        <button
+                            key={item.label}
+                            onMouseEnter={() => setHovered(item.label)}
+                            onMouseLeave={() => setHovered(null)}
+                            onClick={() => item.onClick ? item.onClick() : navigate(item.path!)}
+                            disabled={loading && item.label === "Play vs Bot"}
+                            className="flex items-center gap-3 w-full px-5 py-4 rounded-lg text-left transition-all duration-150"
+                            style={{
+                                background: hovered === item.label ? "#1e293b" : "#111827",
+                                border: `1px solid ${hovered === item.label ? "#6366f1" : "#1f2937"}`,
+                                color: hovered === item.label ? "#fff" : "#9ca3af",
+                                opacity: loading && item.label === "Play vs Bot" ? 0.6 : 1,
+                            }}
+                        >
+                            <span className="text-xl">{item.icon}</span>
+                            <span className="font-medium text-base">
+                                {loading && item.label === "Play vs Bot" ? "Creating game..." : item.label}
+                            </span>
+                        </button>
+                    ))}
+
+                    <div className="border-t border-gray-800 my-1" />
+
+                    <button
+                        onMouseEnter={() => setHovered("logout")}
+                        onMouseLeave={() => setHovered(null)}
+                        onClick={onLogout}
+                        className="w-full py-3 rounded-lg font-medium text-sm transition-all duration-150"
+                        style={{
+                            background: "transparent",
+                            border: `1px solid ${hovered === "logout" ? "#ef4444" : "#374151"}`,
+                            color: hovered === "logout" ? "#ef4444" : "#6b7280",
+                        }}
                     >
-                        {item}
-                    </Button>
-                ))}
-
-                {/* Botón de Log Out Rojo */}
-                <Button
-                    variant="destructive"
-                    onClick={onLogout}
-                    className="h-16 text-xl font-semibold shadow-md w-full mt-4 bg-red-600 hover:bg-red-700 text-white"
-                >
-                    Log Out
-                </Button>
+                        Log Out
+                    </button>
+                </div>
             </div>
         </div>
     );

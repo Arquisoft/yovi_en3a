@@ -4,12 +4,14 @@ import './GameScreen.css';
 import { Button } from './components/ui/button';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard from './game/GameBoard';
+import { useParams } from "react-router-dom";
 
 interface GameScreenProps {
     onExit?: () => void;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {   
+export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => { 
+    const { gameId } = useParams();  
     const sidePanelRef = useRef<SidePanelRef>(null);
     
     
@@ -37,6 +39,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
 
                  <GameBoard
+                    gameId={gameId}
                     onCellPlayed={(player, playerName, coordinate) => {
                     sidePanelRef.current?.addMove(player, playerName, coordinate);
                     if (player === "p1") {

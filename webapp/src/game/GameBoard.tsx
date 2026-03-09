@@ -10,8 +10,8 @@ interface Coordinates {
 interface GameBoardProps {
   boardSize?: number;
   cellSize?: number;
-    onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
-
+  gameId?: string;
+  onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
 }
 
 export interface GameBoardRef {
@@ -19,7 +19,7 @@ export interface GameBoardRef {
 }
 
 const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
-  { boardSize = 7, cellSize = 60, onCellPlayed }: GameBoardProps,
+  { boardSize = 7, cellSize = 60,gameId, onCellPlayed }: GameBoardProps,
   ref
 ) => {
   const hexSize = cellSize / 2;
@@ -124,6 +124,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
                 coordinates={coord}
                 onRequestSelectCell={handleRequestSelectCell}
                 onCellPlayed={onCellPlayed}
+                gameId={gameId}
 
               />
             </div>

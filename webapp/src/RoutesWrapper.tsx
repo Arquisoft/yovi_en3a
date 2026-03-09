@@ -10,7 +10,7 @@ export default function RoutesWrapper() {
         <Route path="/" element={<App />} />
 
         {/* New route for development */}
-        <Route path="/game" element={<GameScreen />} />
+        <Route path="/game/:gameId" element={<GameScreen />} />
       </Routes>
     </BrowserRouter>
   );
