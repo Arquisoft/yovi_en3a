@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [webapp, users, gatewayservice]
+        service: [webapp, users, gatewayservice, gamemanager]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

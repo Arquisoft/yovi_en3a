@@ -29,7 +29,7 @@ const connectToMongoDB = async () => {
 connectToMongoDB()
 
 // No hay .env de momento, es por probar la encriptación
-const JWT_SECRET = process.env.JWT_SECRET || '8889c0d6ea431e5baa4872574239fad4fef44c8a98f8771c182ad8626233dcac6af7f9da4843432c2a268d3e60696267f47a57343a51f627323835ea637b4972';
+const JWT_SECRET = process.env.JWT_SECRET
 
 try {
   const swaggerDocument = YAML.load(fs.readFileSync('./openapi.yaml', 'utf8'));

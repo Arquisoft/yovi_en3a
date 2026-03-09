@@ -5,6 +5,8 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const Game = require('./models/game');
 
+const { GameFactory } = require('./models/gameFactory');
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 const GAMEY_SERVICE_URL = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
 
@@ -104,7 +106,7 @@ app.post('/create/:gameName', async (req, res) => {
             boardSize,
             yen,
             status: 'ongoing',
-            gameName,
+            type: gameName,
         });
 
         await newGame.save();
