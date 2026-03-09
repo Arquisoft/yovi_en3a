@@ -25,3 +25,59 @@ See https://docs.arc42.org/section-11/[Risks and Technical Debt] in the arc42 do
 
 ****
 endif::arc42help[]
+
+=== Technical Risks
+
+[cols="1,2,2" options="header"]
+|===
+| Risk | Description | Possible Mitigation
+
+| *Single Point of Failure at Gateway*
+| All external traffic is routed through a single gateway service on port 8000. If the service crashes or overloads, the entire application becomes unreachable, despite the availability of the microservices.
+| Implement health checks and automatic container restart policies in docker-compose.
+
+| *JWT Secret Exposure Risk*
+| The JWT secret used to sign authentication tokens is stored in a .env file on the Azure server and injected via docker-compose. If the server is compromised or the file is accidentally committed to the repository, all user sessions could be forged.
+| Use a secrets manager (GitHub Secrets or Azure Key Vault) for production credentials. Rotate the JWT secret periodically.
+
+| *MongoDB Single Container*
+| Both usersdb and gamesdb share a single MongoDB container. A failure in this container would cause data loss for both users and game records, with no replication or backup strategy.
+| Implement automated database backups.
+
+| *Rust / Node.js Communications via HTTP*
+| The game Rust service communicates with Node.js microservices through HTTP calls. Network latency and serialization overhead between these services could degrade perceived game performance, especially for bot move requests.
+| 
+
+| *Lack of External Bot Limitations*
+| The public play API endpoint exposed for external bots has no rate limiting or authentication. A malicious attack could flood the game with requests, consuming all available Rust processing capacity.
+| Add rate limiting middleware to the gateway for the /api/gamey route. Require an API key for external bot access.
+
+|===
+
+=== Technical Debts
+
+[cols="1,2,2" options="header"]
+|===
+| Debt | Description | Possible Solution
+
+| *No Persistent Game State Recovery*
+| If the game-manager container crashes mid-game, the current game state is lost. Games are not saved to the gamesdb during play, only at completion.
+| Persist game state to gamesdb after each move. On reconnection, allow the player to resume an interrupted game by querying the last saved state.
+
+| *Hardcoded Service URLs in Gateway*
+| The gateway resolves microservice addresses using hardcoded service names from docker-compose (for example http://users:3001).
+| Extract service URLs into environment variables. This would allow reconfiguration without code changes.
+
+| *Missing API Versioning*
+| All REST endpoints in the gateway and microservices are exposed without versioning (/api/users/login instead of /api/v1/users/login). Any breaking API change will require coordinated updates across all consumers simultaneously.
+| Introduce API versioning.
+
+| *No Structured Logging*
+| Microservices output logs to stdout using console.log without formatting.
+| Adopt a structured logging library that outputs JSON logs.
+
+| *Swagger Documentation Incomplete*
+| Each microservice is configured to expose a Swagger UI via openapi.yaml, but the actual files may not fully document all endpoints, request schemas, and error responses.
+| Ensure all request/response schemas, authentication requirements and error codes are documented.
+
+|===
