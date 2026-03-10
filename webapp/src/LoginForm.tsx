@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { gatewayUrl } from './lib/config';
 
 
 interface LoginFormProps {
@@ -18,12 +19,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSucces
 
   const loginUser = async (usernameToLogin: string, passwordToLogin: string): Promise<void> => {
     try {
-      // Determine API URLs based on environment
-      const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-      const gatewayUrl = isLocalhost
-        ? (import.meta.env.VITE_API_URL ?? 'http://localhost:8000')
-        : 'http://gatewayservice:8000';
-      const directUrl = isLocalhost ? 'http://localhost:3000' : 'http://users:3000';
 
       const loginData = { username: usernameToLogin, password: passwordToLogin };
 
@@ -38,7 +33,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSucces
         });
       } catch (err) {
         // Gateway failed, try direct access
-        res = await fetch(`${directUrl}/login`, {
+        res = await fetch(`${gatewayUrl}/api/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(loginData)

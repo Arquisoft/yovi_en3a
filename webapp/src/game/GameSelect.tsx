@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { gatewayUrl } from '../lib/config';
 
 interface GameSelectProps {
     onBack: () => void;
@@ -19,11 +20,6 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
     const [hovered, setHovered] = useState<string | null>(null);
     const [loading, setLoading] = useState<string | null>(null);
     const navigate = useNavigate();
-
-    const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
-    const gatewayUrl = isLocalhost
-        ? (import.meta.env.VITE_API_URL ?? "http://localhost:8000")
-        : "http://gatewayservice:8000";
 
     const handleSelect = async (gameId: string) => {
         setLoading(gameId);
