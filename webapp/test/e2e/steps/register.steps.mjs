@@ -5,7 +5,7 @@ Given('the register page is open', async function () {
     const page = this.page
     if (!page) throw new Error('Page not initialized')
     await page.goto('http://localhost:5173')
-    await page.click('button:has-text("Register")')
+    await page.click('button:has-text("Sign Up")')
 })
 
 When('I fill in the registration form with valid data', async function () {
