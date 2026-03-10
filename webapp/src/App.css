@@ -1,12 +1,4 @@
-/* Para que no se vea como un movil
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-*/
-
+/* ── Root ───────────────────────────────────────────────────────────── */
 #root {
   width: 100%;
   min-height: 100vh;
@@ -15,61 +7,7 @@
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-/* Register Form Styles */
-.register-form,
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-width: 300px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-}
-
-/* Aplicamos el estilo a ambos formularios a la vez  TODO LO DEMAS DE login-form, register-form que esta debajo de esta regla lo hizo sergio para solucionar la visualizacion de los dos formularios*/
+/* ── Forms ──────────────────────────────────────────────────────────── */
 .login-form,
 .register-form {
   display: flex;
@@ -77,29 +15,23 @@
   gap: 15px;
   width: 100%;
   max-width: 450px;
-  /* Un poco más ancho para el registro */
   margin: 40px auto;
   padding: 30px;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   background-color: #ffffff;
-
-  /* Color de texto negro para TODO */
   color: #000000 !important;
 }
 
-/* Forzamos que los labels de Shadcn sean negros */
 .login-form label,
 .register-form label {
   color: #000000 !important;
   font-weight: 600;
   display: block;
   text-align: left;
-  /* Alineado a la izquierda para que sea legible */
 }
 
-/* Forzamos que los títulos sean negros */
 .login-form h2,
 .register-form h2 {
   color: #000000 !important;
@@ -108,7 +40,6 @@
   margin-bottom: 10px;
 }
 
-/* Estilo para los inputs */
 .login-form input,
 .register-form input {
   color: #000000 !important;
@@ -116,45 +47,7 @@
   border: 1px solid #cbd5e1;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #333;
-}
-
-.form-input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-input:focus {
-  border-color: #007bff;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.submit-button {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  background-color: #03080e;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.submit-button:hover {
-  background-color: #0056b3;
-}
-
+/* ── Misc ───────────────────────────────────────────────────────────── */
 .link-button {
   background: none;
   border: none;

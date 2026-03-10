@@ -40,7 +40,7 @@ const MenuView: React.FC<MenuViewProps> = ({ onLogout }) => {
     };
 
     const options = [
-        { label: "Play vs Bot", icon: "🤖", onClick: handlePlayVsBot },
+        { label: "Play vs Bot", icon: "🤖", onClick: () => navigate("/select-game") },
         { label: "Multiplayer", icon: "⚔️", path: "/multiplayer" },
         { label: "History & Stats", icon: "📊", path: "/history" },
         { label: "How to Play", icon: "📖", path: "/how-to-play" },

@@ -17,6 +17,7 @@ interface HexCellProps {
   coordinates?: Coordinates;
   onRequestSelectCell?: (coordinates: Coordinates, player: "p1" | "p2") => void;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
+  onGameOver?: (winner: "p1" | "p2") => void;
 
 }
 
@@ -37,6 +38,7 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(({
   gameId,
   onRequestSelectCell,
   onCellPlayed,
+  onGameOver,
 }: HexCellProps, ref) => {
   const [selected, setSelected] = useState(initialSelected);
   const [cellOwner, setCellOwner] = useState(owner);
@@ -112,6 +114,15 @@ const colors = {
           : 'http://gatewayservice:8000';
 
         const token = localStorage.getItem('token');
+
+        // Guardamos el layout antes del movimiento para comparar después
+        const stateRes = await fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const stateData = await stateRes.json();
+        const layoutBefore: string = stateData.yen.layout;
+
+        // Enviamos el movimiento del jugador
         const res = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move`, {
           method: 'POST',
           headers: {
@@ -124,21 +135,24 @@ const colors = {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        // Parsear layout para encontrar dónde jugó el bot (símbolo 'R')
-        const layout: string = data.yen.layout;
-        const rows = layout.split('/');
-        
-        rows.forEach((row, rowIndex) => {
+        if (data.status === 'won' || data.status === 'lost') {
+          onGameOver?.(data.status === 'won' ? 'p1' : 'p2');
+          return;
+        }
+
+        const layoutAfter: string = data.yen.layout;
+        const rowsBefore = layoutBefore.split('/');
+        const rowsAfter = layoutAfter.split('/');
+
+        // Comparar layouts para encontrar la celda nueva del bot (símbolo 'R')
+        rowsAfter.forEach((row, rowIndex) => {
           for (let colIndex = 0; colIndex < row.length; colIndex++) {
-            if (row[colIndex] === 'R') {
+            if (row[colIndex] === 'R' && rowsBefore[rowIndex]?.[colIndex] !== 'R') {
               const x = data.yen.size - 1 - rowIndex;
               const y = colIndex;
               const z = rowIndex - colIndex;
-              // Solo pintar si no es la celda que acaba de jugar el jugador
-              if (x !== coordinates.x || y !== coordinates.y) {
-                requestSelectForPlayer2({ x, y, z });
-                onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
-              }
+              requestSelectForPlayer2({ x, y, z });
+              onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
             }
           }
         });

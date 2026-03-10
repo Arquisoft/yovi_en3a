@@ -12,6 +12,7 @@ interface GameBoardProps {
   cellSize?: number;
   gameId?: string;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
+  onGameOver?: (winner: "p1" | "p2") => void;
 }
 
 export interface GameBoardRef {
@@ -19,7 +20,7 @@ export interface GameBoardRef {
 }
 
 const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
-  { boardSize = 7, cellSize = 60,gameId, onCellPlayed }: GameBoardProps,
+  { boardSize = 7, cellSize = 60,gameId, onCellPlayed, onGameOver }: GameBoardProps,
   ref
 ) => {
   const hexSize = cellSize / 2;
@@ -125,7 +126,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
                 onRequestSelectCell={handleRequestSelectCell}
                 onCellPlayed={onCellPlayed}
                 gameId={gameId}
-
+                onGameOver={onGameOver}
               />
             </div>
           );
