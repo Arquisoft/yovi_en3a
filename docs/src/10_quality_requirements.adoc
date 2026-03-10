@@ -3,7 +3,6 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-quality-scenarios]]
 == Quality Requirements
 
-
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -29,6 +28,37 @@ endif::arc42help[]
 
 === Quality Tree
 
+
+[plantuml, quality-tree, png]
+....
+@startmindmap
+* Quality
+** Performance
+*** Low-latency bot computation (Q1)
+*** Fast API response time (Q2)
+** Usability
+*** Intuitive board interaction (Q3)
+*** Seamless authentication flow (Q4)
+** Scalability
+*** Concurrent bot requests (Q5)
+*** Growing number of players (Q6)
+** Interoperability
+*** External bot API (Q7)
+*** YEN notation as common language (Q8)
+** Maintainability
+*** Modular microservice structure (Q9)
+*** Independent deployability (Q10)
+** Security
+*** JWT authentication (Q11)
+*** Secure password storage (Q12)
+** Testability
+*** Unit and integration tests (Q13)
+*** CI/CD pipeline (Q14)
+@endmindmap
+....
+
+---
+
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -51,6 +81,160 @@ In any case the tree should include links to the scenarios of the following sect
 endif::arc42help[]
 
 === Quality Scenarios
+
+
+==== Performance
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q1**
+| **Scenario** | A player requests a bot move during a game. The bot (gamey, written in Rust) computes and returns the move coordinates within 1000ms under normal load.
+| **Stimulus** | **POST** `/api/game-manager/game/:id/move` request
+| **Response** | Bot move computed and game state updated in under 1000ms
+| **Priority** | High
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q2**
+| **Scenario** | A user sends a login request to the gateway. The gateway proxies the request to the users service and returns a JWT token within 1000ms.
+| **Stimulus** | **POST** `/api/users/login` request
+| **Response** | JWT token returned in under 1000ms
+| **Priority** | High
+|===
+
+---
+
+==== Usability
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q3**
+| **Scenario** | A new user accesses the webapp for the first time. Without any instructions they are able to register, login and start a game within 5 minutes.
+| **Stimulus** | User navigates to the webapp landing page
+| **Response** | User completes registration, login and game creation without taking a long time thinking how to achieve it
+| **Priority** | High
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q4**
+| **Scenario** | A user attempts to register with an invalid email. The system displays a clear and descriptive error message without reloading the page.
+| **Stimulus** | **POST** `/api/users/register` with invalid email
+| **Response** | Error message displayed inline within 1000ms
+| **Priority** | Medium
+|===
+
+---
+
+==== Scalability
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q5**
+| **Scenario** | 50 concurrent players request bot moves simultaneously. The system processes all requests without errors and response time does not exceed 2 seconds.
+| **Stimulus** | 50 simultaneous **POST** `/api/game-manager/game/:id/move` requests
+| **Response** | All requests processed successfully within 2 seconds
+| **Priority** | Medium
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q6**
+| **Scenario** | The number of registered users doubles. The system continues to operate normally without requiring architectural changes.
+| **Stimulus** | User database grows significantly
+| **Response** | No degradation in performance or availability
+| **Priority** | Low
+|===
+
+---
+
+==== Interoperability
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q7**
+| **Scenario** | An external bot sends a **POST** request to `/api/gamey/play` with a valid YEN game state. The gateway proxies the request to gamey and returns the bot move coordinates.
+| **Stimulus** | **POST** `/api/gamey/play` with valid YEN body
+| **Response** | Bot move coordinates returned in JSON format
+| **Priority** | High
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q8**
+| **Scenario** | A new microservice needs to communicate game state with game-manager. The developer uses YEN notation as the common format and integration is completed without modifying existing services.
+| **Stimulus** | New service integrated into the system
+| **Response** | Service communicates successfully using YEN notation
+| **Priority** | Medium
+|===
+
+---
+
+==== Maintainability
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q9**
+| **Scenario** | A developer needs to update the game logic in game-manager. The change is made, tested and deployed without modifying users, gamey or the gateway.
+| **Stimulus** | Change request for game-manager logic
+| **Response** | Change deployed independently without affecting other services
+| **Priority** | High
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q10**
+| **Scenario** | A new microservice needs to be added to the system. The developer adds it to docker-compose.yml and the gateway without modifying existing services.
+| **Stimulus** | New microservice added to the system
+| **Response** | New service deployed and accessible through the gateway within one day
+| **Priority** | Medium
+|===
+
+---
+
+==== Security
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q11**
+| **Scenario** | A user attempts to access** ** `/api/game-manager` endpoints without a valid JWT token. The gateway rejects the request with a 401 Unauthorized response before it reaches game-manager.
+| **Stimulus** | Request to** ** `/api/game-manager` without Authorization header
+| **Response** | 401 Unauthorized returned by the gateway
+| **Priority** | High
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q12**
+| **Scenario** | An attacker gains read access to the MongoDB database. User passwords are not recoverable because they are stored as bcrypt hashes with a salt factor of 10.
+| **Stimulus** | Unauthorized database access
+| **Response** | Passwords remain unrecoverable due to bcrypt hashing
+| **Priority** | High
+|===
+
+---
+
+==== Testability
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q13**
+| **Scenario** | A developer modifies an endpoint in game-manager. The existing integration test suite detects any regression and reports it within 1 minute of running npm test.
+| **Stimulus** | Code change in game-manager
+| **Response** | Test suite runs and reports pass or failure within 1 minute
+| **Priority** | High
+|===
+
+[cols="1,4",options="header"]
+|===
+| **ID** | **Q14**
+| **Scenario** | A pull request is opened against the develop branch. The CI/CD pipeline automatically runs all tests and coverages for all services and blocks the merge if any test fails.
+| **Stimulus** | Pull request opened on GitHub
+| **Response** | GitHub Actions runs all tests and SonarQube checks coverage reporting results within 5 minutes
+| **Priority** | High
+|===
+
 
 ifdef::arc42help[]
 [role="arc42help"]
