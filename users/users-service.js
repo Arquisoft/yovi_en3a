@@ -26,8 +26,6 @@ const connectToMongoDB = async () => {
   }
 }
 
-connectToMongoDB()
-
 // No hay .env de momento, es por probar la encriptación
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -175,6 +173,7 @@ app.post('/login',
 
 
 if (require.main === module) {
+  connectToMongoDB()
   app.listen(port, () => {
     console.log(`User Service listening at http://localhost:${port}`)
   })
