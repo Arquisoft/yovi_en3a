@@ -11,8 +11,9 @@ Given('the register page is open', async function () {
 When('I fill in the registration form with valid data', async function () {
     const page = this.page
     if (!page) throw new Error('Page not initialized')
-    await page.fill('#username', 'AliceTest')
-    await page.fill('#email', 'alice@test.com')
+    const unique = Date.now()
+    await page.fill('#username', `Alice${unique}`)
+    await page.fill('#email', `alice${unique}@test.com`)
     await page.fill('#password', 'Alice1234')
     await page.fill('#passwordConfirm', 'Alice1234')
     await page.click('button[type="submit"]')

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from './components/ui/button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { gatewayUrl } from './lib/config';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -27,6 +26,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     countryToRegister: string
   ): Promise<void> => {
     try {
+      // Determine API URLs based on environment
+      const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+
+      
       const registerData = { 
         username: usernameToRegister,
         email: emailToRegister,
@@ -35,10 +38,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
         country: countryToRegister
       };
 
-      const res = await fetch(`${gatewayUrl}/api/users/createuser`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData)
+      const res = await fetch(`${gatewayUrl}/api/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(registerData)
       });
 
       const data = await res.json();
@@ -50,9 +53,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
         setPasswordConfirm('');
         setAge('');
         setCountry('');
-      } else if (res.status >= 400 && res.status < 500) {
+      } 
+      else if (res.status >= 400 && res.status < 500) {
         setError(data.error || 'Invalid input. Please check your data and try again.');
-      } else {
+      }
+      else {
         setError(data.error || 'Server error');
       }
     } catch (err: any) {
@@ -60,6 +65,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     } finally {
       setLoading(false);
     }
+   
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -67,65 +73,117 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     setResponseMessage(null);
     setError(null);
 
-    if (!username.trim()) { setError('Please enter a username.'); return; }
-    if (!email.trim()) { setError('Please enter an email.'); return; }
-    if (!password.trim()) { setError('Please enter a password.'); return; }
-    if (password !== passwordConfirm) { setError('Passwords do not match.'); return; }
+    if (!username.trim()) {
+      setError('Please enter a username.');
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Please enter an email.');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Please enter a password.');
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      setError('Passwords do not match.');
+      return;
+    }
 
     setLoading(true);
     await registerUser(username, email, password, age, country);
   };
 
+
   return (
     <form onSubmit={handleSubmit} className="register-form">
       <h2>Register</h2>
-
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
-        <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-      </div>
-
+  <Label htmlFor="username">Username</Label>
+    <Input
+    id="username"
+    value={username}
+    onChange={(e) => setUsername(e.target.value)}
+     />
+</div>
+     <div className="space-y-2">
+  <Label htmlFor="email">Email</Label>
+  <Input
+    id="email"
+    type="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+  />
+</div>
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      </div>
+  <Label htmlFor="password">Password</Label>
+  <Input
+    id="password"
+    type="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+  />
+</div>
+      
+<div className="space-y-2">
+  <Label htmlFor="passwordConfirm">Confirm Password</Label>
+  <Input
+    id="passwordConfirm"
+    type="password"
+    value={passwordConfirm}
+    onChange={(e) => setPasswordConfirm(e.target.value)}
+  />
+</div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      </div>
+    
+<div className="space-y-2">
+  <Label htmlFor="age">Age (optional)</Label>
+  <Input
+    id="age"
+    type="number"
+    value={age}
+    min="0"
+    onChange={(e) => setAge(e.target.value)}
+  />
+</div>
 
-      <div className="space-y-2">
-        <Label htmlFor="passwordConfirm">Confirm Password</Label>
-        <Input id="passwordConfirm" type="password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="age">Age (optional)</Label>
-        <Input id="age" type="number" value={age} min="0" onChange={(e) => setAge(e.target.value)} />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="country">Country (optional)</Label>
-        <Input id="country" value={country} onChange={(e) => setCountry(e.target.value)} />
-      </div>
+     
+<div className="space-y-2">
+  <Label htmlFor="country">Country (optional)</Label>
+  <Input
+    id="country"
+    value={country}
+    onChange={(e) => setCountry(e.target.value)}
+  />
+</div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creating account..." : "Register"}
-      </Button>
+       {loading ? "Creating account..." : "Register"}
+      </Button> 
 
       {responseMessage && (
-        <div style={{ marginTop: 12, color: 'green' }}>{responseMessage}</div>
+        <div className="success-message" style={{ marginTop: 12, color: 'green' }}>
+          {responseMessage}
+        </div>
       )}
 
       {error && (
-        <div style={{ marginTop: 12, color: 'red' }}>{error}</div>
+        <div className="error-message" style={{ marginTop: 12, color: 'red' }}>
+          {error}
+        </div>
       )}
 
-      <div style={{ marginTop: 20, textAlign: 'center' }}>
+      <div className="auth-switch" style={{ marginTop: 20, textAlign: 'center' }}>
         <p>
           Already have an account?{' '}
-          <button type="button" onClick={onSwitchToLogin} className="link-button">
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="link-button"
+          >
             Login here
           </button>
         </p>

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { gatewayUrl } from './lib/config';
 
 interface MenuViewProps {
     onLogout: () => void;
@@ -10,7 +9,9 @@ const MenuView: React.FC<MenuViewProps> = ({ onLogout }) => {
     const [hovered, setHovered] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    /*
+
+    const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+
     const handlePlayVsBot = async () => {
         setLoading(true);
         try {
@@ -33,7 +34,7 @@ const MenuView: React.FC<MenuViewProps> = ({ onLogout }) => {
         } finally {
             setLoading(false);
         }
-    };*/
+    };
 
     const options = [
         { label: "Play vs Bot", icon: "🤖", onClick: () => navigate("/select-game") },

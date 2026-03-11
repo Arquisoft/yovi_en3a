@@ -1,6 +1,5 @@
 import React, { useState, forwardRef, useImperativeHandle } from "react";
 import clsx from "clsx";
-import { gatewayUrl } from '../lib/config';
 
 interface Coordinates {
   x: number;
@@ -109,6 +108,8 @@ const colors = {
       onCellPlayed?.("p1", "Player 1", name);
 
       try {
+        const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+
         const token = localStorage.getItem('token');
 
         // Guardamos el layout antes del movimiento para comparar después
