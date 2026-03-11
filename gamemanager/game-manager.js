@@ -5,6 +5,8 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const Game = require('./models/game');
 
+const { GameFactory } = require('./models/gameFactory');
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 const GAMEY_SERVICE_URL = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
 
@@ -24,7 +26,7 @@ app.use(express.json());
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-user-id');
     if (req.method === 'OPTIONS') return res.sendStatus(204);
     next();
 });
@@ -56,7 +58,8 @@ const getBotMove = async (botId, yen) => {
 
 const applyMove = (layout, size, coords, playerSymbol) => {
     const rows = layout.split('/');
-    const row = rows[coords.x];
+    const rowIndex = size - 1 - coords.x;
+    const row = rows[rowIndex];
 
     if (!row || coords.y >= row.length) {
         return null;
@@ -65,15 +68,23 @@ const applyMove = (layout, size, coords, playerSymbol) => {
         return null;
     } 
 
-    rows[coords.x] = row.substring(0, coords.y) + playerSymbol + row.substring(coords.y + 1);
+    rows[rowIndex] = row.substring(0, coords.y) + playerSymbol + row.substring(coords.y + 1);
     return rows.join('/');
 }
 
 // End aux methods
 
 // New game
-app.post('/game', async (req, res) => {
-    const { userId, botId = 'random_bot', boardSize = 5 } = req.body;
+app.post('/create/:gameName', async (req, res) => {
+    const userId = req.headers['x-user-id'];
+    const { botId = 'random_bot', boardSize = 5 } = req.body;
+    const { gameName } = req.params;
+
+    console.log(userId);
+
+    if (!GameFactory.isValid(gameName)) {
+        return res.status(400).json({ error: `Unknown game type: ${gameName}` });
+    }
 
     try {
         if (!userId) {
@@ -98,6 +109,7 @@ app.post('/game', async (req, res) => {
             boardSize,
             yen,
             status: 'ongoing',
+            type: gameName,
         });
 
         await newGame.save();
@@ -115,7 +127,7 @@ app.post('/game', async (req, res) => {
 });
 
 // Get game state
-app.get('/game/:id', async (req, res) => {
+app.get('/state/:id', async (req, res) => {
     try {
         const game = await Game.findById(req.params.id);
         if (!game) {
@@ -137,11 +149,28 @@ app.get('/game/:id', async (req, res) => {
     }
 });
 
+const checkWin = async (yen) => {
+    try {
+        const response = await axios.post(
+            `${GAMEY_SERVICE_URL}/v1/ybot/checkWin`,
+            yen,
+            { headers: { 'Content-Type': 'application/json' } }
+        );
+        return response.data;
+    } catch (err) {
+        console.warn('checkWin failed:', err.message);
+        return null;
+    }
+}
+
 // Player makes a move
 app.post('/game/:id/move', async (req, res) => {
     const { coords } = req.body;
+    const userId = req.headers['x-user-id'];
 
     try {
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' }); //Verify userId exists in headers
+
         if (!coords || coords.x === undefined || coords.y === undefined) {
             return res.status(400).json({ error: 'Coords (x,y) are mandatory' });
         }
@@ -149,6 +178,10 @@ app.post('/game/:id/move', async (req, res) => {
         const game = await Game.findById(req.params.id);
         if (!game) {
             return res.status(404).json({ error: 'Game not found' });
+        }
+
+        if (game.userId.toString() !== userId) { //Verify the user is the owner of the game
+            return res.status(403).json({ error: 'Forbidden' });
         }
 
         if (game.status !== 'ongoing') {
@@ -173,6 +206,20 @@ app.post('/game/:id/move', async (req, res) => {
         game.markModified('yen');
         await game.save();
 
+        // Comprobar si el jugador ganó
+        const winCheckAfterPlayer = await checkWin(game.yen);
+        if (winCheckAfterPlayer?.game_over) {
+            game.status = winCheckAfterPlayer.winner === 0 ? 'won' : 'lost';
+            game.markModified('status');
+            await game.save();
+            return res.json({
+                message: 'Game over',
+                gameId: game._id,
+                yen: game.yen,
+                status: game.status,
+            });
+        }
+
         const botCoords = await getBotMove(game.botId, game.yen);
 
         if (botCoords) {
@@ -184,6 +231,14 @@ app.post('/game/:id/move', async (req, res) => {
                 game.updatedAt = new Date();
                 game.markModified('yen');
                 await game.save();
+
+                // Comprobar si el bot ganó
+                const winCheckAfterBot = await checkWin(game.yen);
+                if (winCheckAfterBot?.game_over) {
+                    game.status = winCheckAfterBot.winner === 0 ? 'won' : 'lost';
+                    game.markModified('status');
+                    await game.save();
+                }
             }
         } else {
             game.yen.turn = 0;
@@ -205,10 +260,18 @@ app.post('/game/:id/move', async (req, res) => {
 
 // Player surrenders
 app.post('/game/:id/resign', async (req, res) => {
+    const userId = req.headers['x-user-id'];
+
     try {
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' }); //Verify userId exists in headers
+
         const game = await Game.findById(req.params.id);
         if (!game) {
             return res.status(404).json({ error: 'Game not found' });
+        }
+
+        if (game.userId.toString() !== userId) { //Verify the user is the owner of the game
+            return res.status(403).json({ error: 'Forbidden' });
         }
 
         if (game.status !== 'ongoing') {
@@ -220,6 +283,35 @@ app.post('/game/:id/resign', async (req, res) => {
         await game.save();
 
         res.json({ message: 'Game resigned', gameId: game._id, status: game.status });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// List user's games
+
+app.get('/list', async (req, res) => {
+    const userId = req.headers['x-user-id'];
+
+    try {
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const games = await Game.find({ userId });
+
+        res.json({
+            userId,
+            total: games.length,
+            games: games.map(game => ({
+                gameId: game._id,
+                gameName: game.gameName,
+                botId: game.botId,
+                boardSize: game.boardSize,
+                status: game.status,
+                createdAt: game.createdAt,
+                updatedAt: game.updatedAt,
+            }))
+        });
 
     } catch (err) {
         res.status(500).json({ error: err.message });

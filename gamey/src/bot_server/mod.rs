@@ -23,6 +23,7 @@ pub mod choose;
 pub mod error;
 pub mod state;
 pub mod version;
+pub mod check_win;
 use axum::response::IntoResponse;
 use std::sync::Arc;
 pub use choose::MoveResponse;
@@ -31,7 +32,7 @@ pub use version::*;
 use tower_http::cors::{CorsLayer, Any};
 use axum::http::{HeaderValue, Method};
 
-use crate::{GameYError, RandomBot, BeginnerBot, MediumBot, YBotRegistry, state::AppState};
+use crate::{GameYError, RandomBot, BeginnerBot, MediumBot, YBotRegistry, state::AppState, game};
 
 /// Creates the Axum router with the given state.
 ///
@@ -47,6 +48,10 @@ pub fn create_router(state: AppState) -> axum::Router {
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
+        )
+        .route(
+            "/{api_version}/ybot/checkWin",
+            axum::routing::post(check_win::check_win),
         )
         .layer(cors)
         .with_state(state)

@@ -34,11 +34,78 @@ endif::arc42help[]
 
 [cols="e,2e" options="header"]
 |===
-|Term |Definition
+| Term | Definition
 
-|<Term-1>
-|<definition-1>
+| *ADR (Architectural Decision Record)*
+| A document that captures an important architectural decision made during the project, including its context and its consequences/responsabilities. ADRs for this project are located in the GitHub Wiki.
 
-|<Term-2>
-|<definition-2>
+| *Azure VM*
+| The Virtual Machine hosted on Microsoft Azure where the YOVI application is deployed in production.
+
+| *bcrypt*
+| A password-hashing function used to securely store user passwords, which is used in this project.
+
+| *Bot*
+| An artificial intelligence opponent in YOVI. Internal bots are implemented in Rust. External bots can also interact with the system through the public bot API.
+
+| *Cargo*
+| The build system and package manager for Rust. Used to compile, test, and run the gamey microservice.
+
+| *CI/CD (Continuous Integration / Continuous Deployment)*
+| The automated pipeline implemented via GitHub Actions that runs tests and code quality checks on every push and deploys the application to the Azure VM on each release.
+
+| *Docker*
+| A platform for packaging and running applications in isolated containers. All YOVI microservices are put in containers using Docker and managed with docker-compose.
+
+| *docker-compose*
+| A tool for defining and running multi-container Docker applications via a single docker-compose.yml configuration file. Used to manage the full YOVI application, including all microservices, MongoDB, Grafana...
+
+| *Express*
+| A minimal and flexible Node.js web framework used in the users and gateway microservices to define REST API routes.
+
+| *Gateway*
+| A microservice that acts as the single entry point for all external HTTP requests. It guides requests to the appropriate internal microservice based on the URL prefix (for example: /api/users, /api/gamey`).
+
+| *GitHub Actions*
+| The CI/CD platform integrated with the YOVI GitHub repository. It automates testing, code quality analysis, Docker image builds, and production deployments.
+
+| *Gitflow*
+| The branching strategy chosen by the YOVI team. It organizes work into feature branches, a develop branch for integration, and a master branch for stable releases.
+
+| *JWT (JSON Web Token)*
+| A compact, URL-safe token format used for authenticating users in YOVI. Tokens are issued at login and expire after 24 hours.
+
+| *Microservice*
+| An independently deployable service that handles a specific business capability. YOVI is composed of four main microservices: webapp, users, game-manager and gamey.
+
+| *MongoDB*
+| A document-oriented NoSQL database used for data persistence. A single shared MongoDB container hosts both usersdb and gamesdb.
+
+| *React*
+| A JavaScript library for building user interfaces. Used together with TypeScript to implement the YOVI webapp frontend.
+
+| *Rust*
+| A programming language focused on performance and memory safety. Used in YOVI to implement the gamey microservice (game engine and bots) due to its high computational efficiency.
+
+| *SonarCloud*
+| A cloud-based code quality and security analysis service integrated into the YOVI CI pipeline. It checks for bugs, vulnerabilities, and test coverage.
+
+| *Swagger / OpenAPI*
+| An open standard and toolset for describing REST APIs. Each YOVI microservice exposes a Swagger UI.
+
+| *Strategy Pattern*
+| A behavioral design pattern used for the YOVI bots. Each bot implementation provides a different strategy and difficulty level.
+
+| *TypeScript*
+| A strongly-typed superset of JavaScript. Used mainly in the frontend development of webapp microservice.
+
+| *Vite*
+| A fast build tool and development server used to bundle and serve the YOVI React/TypeScript frontend application.
+
+| *Vitest*
+| A Vite-native unit testing framework used to write and run tests for the Node.js microservices.
+
+| *YEN Notation*
+| A string format used as the common language for representing game states across all YOVI microservices. It encodes the board layout, current turn, players, and board size (example: "layout": "B/.B/RB./B..R").
+
 |===

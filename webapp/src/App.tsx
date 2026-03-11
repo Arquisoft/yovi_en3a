@@ -1,32 +1,41 @@
-import { useEffect, useState } from 'react';
+import {useState } from 'react';
 import './App.css'
 import RegisterForm from './RegisterForm';
-import reactLogo from './assets/react.svg'
+import LoginForm from './LoginForm';
+import Landing from './Landing';
+import MenuView from './MenuView';
+
+type AuthScreen = 'landing' | 'login' | 'register' | 'menu';
 
 function App() {
-  const [status, setStatus] = useState<string>('Cargando...');
-
-  useEffect(() => {
-    fetch('http://4.233.138.159:4000/status')
-      .then(res => res.text())
-      .then(data => setStatus(data))
-      .catch(err => setStatus(`Error: ${err.message}`));
-  }, []);
+  const [currentScreen, setCurrentScreen] = useState<AuthScreen>('landing');
+  // Para probar el menu sin el login, deberia de estar comentado y la linea superior descomentada
+  //const [currentScreen, setCurrentScreen] = useState<AuthScreen>('menu');
 
   return (
     <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
 
-      <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
-      <p>{"Server status: " + status}</p>
-      <RegisterForm />
+      {currentScreen === 'landing' && (
+        <Landing
+          onSelectLogin={() => setCurrentScreen('login')}
+          onSelectRegister={() => setCurrentScreen('register')}
+        />
+      )}
+
+      {currentScreen === 'login' && (
+        <LoginForm onSwitchToRegister={() => setCurrentScreen('register')}
+          onLoginSuccess={() => setCurrentScreen('menu')}
+        />
+      )}
+
+      {currentScreen === 'register' && (
+        <RegisterForm onSwitchToLogin={() => setCurrentScreen('login')} />
+      )}
+
+      {currentScreen === 'menu' && (
+        <MenuView onLogout={() => setCurrentScreen('landing')} />
+      )}
+
     </div>
   );
 }

@@ -12,11 +12,19 @@
     "skipLibCheck": true,
     "noEmit": true,
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    
+ // 👇 Add these two lines
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+
+  
   },
   "include": ["src", "vite.config.ts"]
 }

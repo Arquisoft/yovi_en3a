@@ -17,8 +17,20 @@
     "start:all": "concurrently \"npm run dev\" \"npm --prefix ../users start\""
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-scroll-area": "^1.2.10",
+    "@radix-ui/react-separator": "^1.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tailwindcss/postcss": "^4.2.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.576.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.13.1",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.1",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.4.0",
@@ -31,6 +43,7 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.16",
+    "autoprefixer": "^10.4.27",
     "concurrently": "^8.2.0",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -38,6 +51,7 @@
     "globals": "^16.5.0",
     "jsdom": "^22.1.0",
     "playwright": "^1.43.0",
+    "postcss": "^8.5.6",
     "start-server-and-test": "^2.1.3",
     "ts-node": "^10.9.1",
     "typescript": "~5.9.3",
