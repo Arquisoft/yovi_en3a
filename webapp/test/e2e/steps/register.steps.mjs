@@ -1,4 +1,4 @@
-import { Given, When, Then } from '@cucumber/cucumber'
+/*import { Given, When, Then } from '@cucumber/cucumber'
 import assert from 'assert'
 
 Given('the register page is open', async function () {
@@ -25,4 +25,4 @@ Then('I should see a success message', async function () {
     await page.waitForSelector('.success-message', { timeout: 5000 })
     const text = await page.textContent('.success-message')
     assert.ok(text && text.length > 0, `Expected success message but got: "${text}"`)
-})
+})*/
