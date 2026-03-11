@@ -58,7 +58,8 @@ const getBotMove = async (botId, yen) => {
 
 const applyMove = (layout, size, coords, playerSymbol) => {
     const rows = layout.split('/');
-    const row = rows[coords.x];
+    const rowIndex = size - 1 - coords.x;
+    const row = rows[rowIndex];
 
     if (!row || coords.y >= row.length) {
         return null;
@@ -67,7 +68,7 @@ const applyMove = (layout, size, coords, playerSymbol) => {
         return null;
     } 
 
-    rows[coords.x] = row.substring(0, coords.y) + playerSymbol + row.substring(coords.y + 1);
+    rows[rowIndex] = row.substring(0, coords.y) + playerSymbol + row.substring(coords.y + 1);
     return rows.join('/');
 }
 
@@ -78,6 +79,8 @@ app.post('/create/:gameName', async (req, res) => {
     const userId = req.headers['x-user-id'];
     const { botId = 'random_bot', boardSize = 5 } = req.body;
     const { gameName } = req.params;
+
+    console.log(userId);
 
     if (!GameFactory.isValid(gameName)) {
         return res.status(400).json({ error: `Unknown game type: ${gameName}` });
@@ -146,6 +149,20 @@ app.get('/state/:id', async (req, res) => {
     }
 });
 
+const checkWin = async (yen) => {
+    try {
+        const response = await axios.post(
+            `${GAMEY_SERVICE_URL}/v1/ybot/checkWin`,
+            yen,
+            { headers: { 'Content-Type': 'application/json' } }
+        );
+        return response.data;
+    } catch (err) {
+        console.warn('checkWin failed:', err.message);
+        return null;
+    }
+}
+
 // Player makes a move
 app.post('/game/:id/move', async (req, res) => {
     const { coords } = req.body;
@@ -189,6 +206,20 @@ app.post('/game/:id/move', async (req, res) => {
         game.markModified('yen');
         await game.save();
 
+        // Comprobar si el jugador ganó
+        const winCheckAfterPlayer = await checkWin(game.yen);
+        if (winCheckAfterPlayer?.game_over) {
+            game.status = winCheckAfterPlayer.winner === 0 ? 'won' : 'lost';
+            game.markModified('status');
+            await game.save();
+            return res.json({
+                message: 'Game over',
+                gameId: game._id,
+                yen: game.yen,
+                status: game.status,
+            });
+        }
+
         const botCoords = await getBotMove(game.botId, game.yen);
 
         if (botCoords) {
@@ -200,6 +231,14 @@ app.post('/game/:id/move', async (req, res) => {
                 game.updatedAt = new Date();
                 game.markModified('yen');
                 await game.save();
+
+                // Comprobar si el bot ganó
+                const winCheckAfterBot = await checkWin(game.yen);
+                if (winCheckAfterBot?.game_over) {
+                    game.status = winCheckAfterBot.winner === 0 ? 'won' : 'lost';
+                    game.markModified('status');
+                    await game.save();
+                }
             }
         } else {
             game.yen.turn = 0;

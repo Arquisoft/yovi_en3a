@@ -8,6 +8,7 @@ interface Coordinates {
 }
 
 interface HexCellProps {
+  gameId?: string;
   size?: number;
   name?: string;
   owner?: "none" | "p1" | "p2";
@@ -16,6 +17,7 @@ interface HexCellProps {
   coordinates?: Coordinates;
   onRequestSelectCell?: (coordinates: Coordinates, player: "p1" | "p2") => void;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
+  onGameOver?: (winner: "p1" | "p2") => void;
 
 }
 
@@ -33,8 +35,10 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(({
   initialSelected = false,
   disabled = false,
   coordinates,
+  gameId,
   onRequestSelectCell,
   onCellPlayed,
+  onGameOver,
 }: HexCellProps, ref) => {
   const [selected, setSelected] = useState(initialSelected);
   const [cellOwner, setCellOwner] = useState(owner);
@@ -44,32 +48,25 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(({
 
   
 const colors = {
-    none: {
-      bg: "#64748b",        // slate-500
-      hover: "#94a3b8",     // slate-400
-      sel: "#cbd5e1",       // slate-300
-      fg: "#f8fafc",
-    },
-    p1: {
-       bg: "#3b82f6",        // blue-500
-      sel: "#60a5fa",
-      fg: "#eff6ff",
-    },
-    p2: {
-      bg: "#ef4444",   // red-500
-      sel: "#f87171",  // red-400 
-      fg: "#fff1f2",   // red-50 (light tint for foreground text, mirrors blue-50)
-    },
-  };
+  none: {
+    bg: "#21262d",
+    hover: "#30363d",
+    sel: "#388bfd",
+    fg: "rgba(255,255,255,0.4)",
+  },
+  p1: {
+    bg: "#1d4ed8",
+    sel: "#3b82f6",
+    fg: "#eff6ff",
+  },
+  p2: {
+    bg: "#991b1b",
+    sel: "#ef4444",
+    fg: "#fff1f2",
+  },
+};
 
   const chosen = colors[cellOwner];  
-
-
-
-    function gameyCall() {
-    //Call API here
-    return true; 
-    }
 
     function selectByPlayer() {
     setSelected(true);
@@ -105,26 +102,62 @@ const colors = {
 
   
     const handleClick = async () => {
-    if (selected || cellOwner !== "none" ) return;
+      if (selected || cellOwner !== "none" || !gameId || !coordinates) return;
 
+      selectByPlayer();
+      onCellPlayed?.("p1", "Player 1", name);
 
-    if (gameyCall()){
+      try {
+        const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-        selectByPlayer();
-    }else{
-        deselect(); // Revert to unselected if API call fails
-        
-        return;
-    }
+        const token = localStorage.getItem('token');
 
-    //Add to move history
-    onCellPlayed?.("p1", "Player 1", name);
-   
-    var botTargetCoordinates: Coordinates = { x: 0, y: 6, z: 0 }; // Example target for bot move - replace with actual logic
-    requestSelectForPlayer2(botTargetCoordinates);
-    // add bot move to move history
-    onCellPlayed?.("p2", "Bot", `(${botTargetCoordinates.x},${botTargetCoordinates.y},${botTargetCoordinates.z})`);
-  };
+        // Guardamos el layout antes del movimiento para comparar después
+        const stateRes = await fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const stateData = await stateRes.json();
+        const layoutBefore: string = stateData.yen.layout;
+
+        // Enviamos el movimiento del jugador
+        const res = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ coords: { x: coordinates.x, y: coordinates.y } })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        if (data.status === 'won' || data.status === 'lost') {
+          onGameOver?.(data.status === 'won' ? 'p1' : 'p2');
+          return;
+        }
+
+        const layoutAfter: string = data.yen.layout;
+        const rowsBefore = layoutBefore.split('/');
+        const rowsAfter = layoutAfter.split('/');
+
+        // Comparar layouts para encontrar la celda nueva del bot (símbolo 'R')
+        rowsAfter.forEach((row, rowIndex) => {
+          for (let colIndex = 0; colIndex < row.length; colIndex++) {
+            if (row[colIndex] === 'R' && rowsBefore[rowIndex]?.[colIndex] !== 'R') {
+              const x = data.yen.size - 1 - rowIndex;
+              const y = colIndex;
+              const z = rowIndex - colIndex;
+              requestSelectForPlayer2({ x, y, z });
+              onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error("Move error:", err);
+      }
+    };
 
 
 

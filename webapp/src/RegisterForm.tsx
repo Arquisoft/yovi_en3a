@@ -27,11 +27,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
   ): Promise<void> => {
     try {
       // Determine API URLs based on environment
-      const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-      const gatewayUrl = isLocalhost 
-        ? (import.meta.env.VITE_API_URL ?? 'http://localhost:8000')
-        : 'http://gatewayservice:8000';
-      const directUrl = isLocalhost ? 'http://localhost:3000' : 'http://users:3000';
+      const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+
       
       const registerData = { 
         username: usernameToRegister,
@@ -41,23 +38,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
         country: countryToRegister
       };
 
-      let res;
-
-      // Try gateway first
-      try {
-        res = await fetch(`${gatewayUrl}/api/users/register`, {
+      const res = await fetch(`${gatewayUrl}/api/users/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(registerData)
-        });
-      } catch (err) {
-        // Gateway failed, try direct access
-        res = await fetch(`${directUrl}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(registerData)
-        });
-      }
+      });
 
       const data = await res.json();
       if (res.ok) {
