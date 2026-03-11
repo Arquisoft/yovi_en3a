@@ -49,19 +49,54 @@ hide footbox
 
 actor User
 participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
 participant "Users Service" as Service
 
 User -> Webapp : Fill form
-Webapp -> Service : POST /createuser\n{ username }
+Webapp -> Gateway : Forward request
+Gateway -> Service : POST /createuser\n{ username, password, email ... }
+Service --> Service : { Validate input }
 
 alt Success
     Service --> Webapp : { message }
+    Gateway --> Webapp : Forward response
     Webapp -> User : Show welcome message
 else Error
     Service --> Webapp : { error }
+    Gateway --> Webapp : Forward response
     Webapp -> User : Show error message
 end
 ----
+
+=== User Login
+
+This scenario shows how a user logs into the system, including how the frontend and backend communicate.
+
+[plantuml,"Sequence diagram - Login ",png]
+----
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -> Webapp : Fill form
+Webapp -> Gateway : Forward request
+Gateway -> Service : POST /login\n{ username, password }
+
+alt Success
+    Service --> Webapp : { message }
+    Gateway --> Webapp : Forward response
+    Webapp -> User : Show welcome message and redirect to main menu
+else Error
+    Service --> Webapp : { error }
+    Gateway --> Webapp : Forward response
+    Webapp -> User : Show error message
+end
+----
+
+
 
 === Game loop
 
@@ -73,6 +108,7 @@ This scenario shows how a user plays a game, including interactions with the web
 actor "Player" as User
 participant "WebApp" as Web
 participant "Game Core" as GameCore
+
 participant "Bot Service" as Bot
 
 User -> Web : Start Game
