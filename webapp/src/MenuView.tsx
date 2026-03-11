@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface MenuViewProps {
-    onLogout: () => void;
-}
 
-const MenuView: React.FC<MenuViewProps> = ({ onLogout }) => {
+const MenuView: React.FC = () => {
     const [hovered, setHovered] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -79,7 +76,14 @@ const MenuView: React.FC<MenuViewProps> = ({ onLogout }) => {
                     <button
                         onMouseEnter={() => setHovered("logout")}
                         onMouseLeave={() => setHovered(null)}
-                        onClick={onLogout}
+                        onClick={() => {
+
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('userId');
+
+
+                            navigate('/');
+                        }}
                         className="w-full py-3 rounded-lg font-medium text-sm transition-all duration-150"
                         style={{
                             background: "transparent",
