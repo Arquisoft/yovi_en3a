@@ -452,7 +452,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_stakeholders">1.3. Stakeholders</a></li>
 </ul>
 </li>
-<li><a href="#section-architectural-constraints">2. Architectural Constraints</a></li>
+<li><a href="#section-architecture-constraints">2. Architecture Constraints</a>
+<ul class="sectlevel2">
+<li><a href="#_technical_constraints">2.1. Technical Constraints</a></li>
+<li><a href="#_organizational_constraints">2.2. Organizational Constraints</a></li>
+<li><a href="#_conventions">2.3. Conventions</a></li>
+</ul>
+</li>
 <li><a href="#section-context-and-scope">3. Context and Scope</a>
 <ul class="sectlevel2">
 <li><a href="#_business_context">3.1. Business Context</a></li>
@@ -478,7 +484,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#section-runtime-view">6. Runtime View</a>
 <ul class="sectlevel2">
 <li><a href="#_user_registration">6.1. User registration</a></li>
-<li><a href="#_game_loop">6.2. Game loop</a></li>
+<li><a href="#_user_login">6.2. User Login</a></li>
+<li><a href="#_game_loop">6.3. Game loop</a></li>
 </ul>
 </li>
 <li><a href="#section-deployment-view">7. Deployment View</a>
@@ -489,9 +496,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#section-concepts">8. Cross-cutting Concepts</a>
 <ul class="sectlevel2">
-<li><a href="#_concept_1">8.1. <em>&lt;Concept 1&gt;</em></a></li>
-<li><a href="#_concept_2">8.2. <em>&lt;Concept 2&gt;</em></a></li>
-<li><a href="#_concept_n">8.3. <em>&lt;Concept n&gt;</em></a></li>
+<li><a href="#_domain_concepts">8.1. Domain Concepts</a></li>
+<li><a href="#_security_concepts">8.2. Security Concepts</a></li>
+<li><a href="#_architecture_and_design_patterns">8.3. Architecture and Design Patterns</a></li>
+<li><a href="#_development_concepts">8.4. Development Concepts</a></li>
+<li><a href="#_operational_concepts">8.5. Operational Concepts</a></li>
 </ul>
 </li>
 <li><a href="#section-design-decisions">9. Architecture Decisions</a></li>
@@ -501,7 +510,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_quality_scenarios">10.2. Quality Scenarios</a></li>
 </ul>
 </li>
-<li><a href="#section-technical-risks">11. Risks and Technical Debts</a></li>
+<li><a href="#section-technical-risks">11. Risks and Technical Debts</a>
+<ul class="sectlevel2">
+<li><a href="#_technical_risks">11.1. Technical Risks</a></li>
+<li><a href="#_technical_debts">11.2. Technical Debts</a></li>
+</ul>
+</li>
 <li><a href="#section-glossary">12. Glossary</a></li>
 </ul>
 </div>
@@ -792,53 +806,103 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-architectural-constraints">2. Architectural Constraints</h2>
+<h2 id="section-architecture-constraints">2. Architecture Constraints</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section describes the conditions and non-functional requirements that limit our design freedom. These constraints are primarily defined by the academic requirements of the ASW course and the pre-existing technical template provided for the project.</p>
+<p>The following constraints are the "boundary conditions" that limit the freedom of design decisions for the gamey project. They are derived from the lab assignment requirements.</p>
 </div>
+<div class="sect2">
+<h3 id="_technical_constraints">2.1. Technical Constraints</h3>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 20%;">
-<col style="width: 40%;">
-<col style="width: 40%;">
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
 </colgroup>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Constraint</th>
 <th class="tableblock halign-left valign-top">Description</th>
-<th class="tableblock halign-left valign-top">Consequence</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C1: Polyglot Stack</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Use of Node.js (Users), React (Webapp), and Rust (Gamey).</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Team must manage multiple toolchains (<code>npm</code> and <code>cargo</code>).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Frontend Implementation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The Web application and user interface must be implemented using <strong>TypeScript</strong>.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C2: Dockerization</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Mandatory use of Docker and Docker Compose for deployment.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Developers must have Docker installed. Simplifies grading but adds overhead to local resource (RAM) usage.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Logic Module</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The move suggestion and win verification engine must be implemented in <strong>Rust</strong>.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C3: Arc42 Template</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Documentation must strictly follow the Arc42 structure.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Higher initial effort in documentation, but ensures all architectural aspects of the project are covered.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Data Exchange Format</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All game state communication must utilize <strong>JSON</strong> following the <strong>YEN notation</strong>.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C4: SPA Architecture</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend must be a Single Page Application using Vite/React.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">State management and routing happen entirely in the browser; the backend is strictly a stateless REST API.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Deployment &amp; CI/CD</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The application must be <strong>publicly accessible</strong> via the Web.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_organizational_constraints">2.2. Organizational Constraints</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Constraint</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Documentation Standard</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Documentation must follow the <strong>arc42 template</strong> and include <strong>Architectural Decision Records (ADRs)</strong>.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>C5: Timeframe</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Project must be completed within the academic semester.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Feature prioritization is critical (MVP approach); complex "extra" features might be risky.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Testing Requirements</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mandatory coverage for <strong>Unit</strong>, <strong>Integration</strong>, <strong>End-to-End (e2e)</strong>, and <strong>Load testing</strong>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Project Management</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A github repository tracking <strong>Issue Tracking</strong>, <strong>Meeting Minutes</strong>, and <strong>Code Reviews</strong> must be used.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_conventions">2.3. Conventions</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Constraint</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>YEN Notation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mandatory string format for representing board layouts (e.g., <code>"layout": "B/.B/RB./B..R"</code>).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>AI Strategy Pattern</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The computer opponent must implement <strong>multiple selectable strategies</strong> and support varying difficulty levels.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Bot Compatibility</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The application must provide a documented <strong>External API</strong> with a <code>play</code> method for bot interaction.</p></td>
 </tr>
 </tbody>
 </table>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -880,9 +944,23 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 <div class="sect2">
 <h3 id="_business_context">3.1. Business Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Business%20context.png" alt="Business context" width="271" height="447">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+skinparam linetype ortho
+
+actor User
+actor "External Bots" as Bots
+
+rectangle YOVI as YOVI
+
+User -[hidden]-&gt; YOVI
+YOVI -[hidden]-&gt; Bots
+
+User ---&gt; YOVI : Login credentials \n Game decisions
+YOVI ---&gt; User : Game state \n Statistics/History
+
+Bots &lt;---&gt; YOVI : API requests \n Game data \n Movements</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -941,9 +1019,38 @@ The title of the table is the name of your system, the three columns contain the
 </div>
 <div class="sect2">
 <h3 id="_technical_context">3.2. Technical Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Technical%20context.png" alt="Technical context" width="471" height="556">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+actor User
+actor ExternalBots as Bots
+
+node "YOVI" {
+
+    rectangle "Web Frontend" as Frontend
+
+    rectangle "API" as API
+
+    rectangle "User Registration" as Registration
+    rectangle "User Service" as Service
+
+    rectangle "GameY" as Game {
+        rectangle "Bot"
+    }
+
+    database "MongoDB" as DB
+}
+
+User --&gt; Frontend : HTTPS
+Bots --&gt; API : HTTPS
+
+Frontend --&gt; API : HTTPS
+
+API --&gt; Registration
+API --&gt; Service
+API --&gt; Game
+
+Service &lt;--&gt; DB : MongoDB</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1287,9 +1394,23 @@ In the best case you will get away with examples or simple signatures.</p>
 </div>
 </div>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/05_building_blocks-Level1-Overall-View.svg" alt="Building Block Level 1">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "User" as user
+
+rectangle "YOVI" {
+
+  node WebApp as Web
+  node [User Service] as UserSvc
+  [Gamey] as GameEngine
+
+}
+
+user --&gt; Web :  Browser
+Web --&gt; UserSvc : Login, Create User
+Web --&gt; GameEngine : Play Game</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1419,9 +1540,42 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_gamey">5.2.1. White Box Gamey</h4>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/05_building_blocks-Level2-gamey.svg" alt="Building Block Level 2 - Gamey">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+actor "Player " as player
+actor "Developer" as dev
+
+node WebApp as Web
+
+
+rectangle "GameY" as gamey{
+
+ component "CLI" as cli
+ component "Bot" as bot
+
+
+package "Core" as core{
+  component [Game Logic] as game_logic
+  component [Coordinates] as coords
+  component [Actions] as acts
+  component [Game State] as state
+
+}
+
+component "Bot Server" as api
+
+
+
+}
+
+
+bot --&gt; core
+player--&gt;Web
+Web --&gt; core
+dev --&gt; cli
+cli --&gt; core
+bot --&gt; api</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1465,9 +1619,31 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_webapp">5.2.2. White Box WebApp</h4>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/05_building_blocks-Level2-WebApp.svg" alt="Building Block Level 2 - WebApp">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "Player " as player
+
+
+rectangle "WebApp                                   " {
+
+  [Login Page] as Login
+  [Game UI] as GameUI
+  [Game Selection] as gameSelect
+
+}
+
+
+node "User Service" as UserSvc
+node "Gamey" as Gamey
+
+
+player--&gt; Login
+Login---&gt;UserSvc
+GameUI---&gt;Gamey
+gameSelect--&gt;GameUI
+Login--&gt;gameSelect</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1624,20 +1800,112 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user registers in the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login" width="400" height="355">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -&gt; Webapp : Fill form
+Webapp -&gt; Gateway : Forward request
+Gateway -&gt; Service : POST /createuser\n{ username, password, email ... }
+Service --&gt; Service : { Validate input }
+
+alt Success
+    Service --&gt; Webapp : { message }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show welcome message
+else Error
+    Service --&gt; Webapp : { error }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show error message
+end</pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_game_loop">6.2. Game loop</h3>
+<h3 id="_user_login">6.2. User Login</h3>
+<div class="paragraph">
+<p>This scenario shows how a user logs into the system, including how the frontend and backend communicate.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -&gt; Webapp : Fill form
+Webapp -&gt; Gateway : Forward request
+Gateway -&gt; Service : POST /login\n{ username, password }
+
+alt Success
+    Service --&gt; Webapp : { message }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show welcome message and redirect to main menu
+else Error
+    Service --&gt; Webapp : { error }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show error message
+end</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_game_loop">6.3. Game loop</h3>
 <div class="paragraph">
 <p>This scenario shows how a user plays a game, including interactions with the web app, game core, and bot service.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop" width="512" height="723">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "Player" as User
+participant "WebApp" as Web
+participant "Game Core" as GameCore
+
+participant "Bot Service" as Bot
+
+User -&gt; Web : Start Game
+
+
+Web --&gt; User : Game started
+
+
+loop until game over
+
+    User -&gt; Web : make move
+    Web -&gt; GameCore : process player move
+    GameCore -&gt; GameCore : updated state
+
+    GameCore -&gt; GameCore : check if game over
+        GameCore --&gt; Web : update state
+        Web --&gt; User : show state
+
+
+
+    GameCore -&gt; Bot : send current board state
+    Bot --&gt; GameCore : bot's next move
+    GameCore -&gt; GameCore : update state
+
+    GameCore -&gt; GameCore : check if game over
+
+
+    GameCore --&gt; Web : updated state
+    deactivate GameCore
+
+    Web --&gt; User : show state
+end
+
+
+Web --&gt; User : Game Over</pre>
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1694,9 +1962,21 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 <div class="paragraph">
 <p>This level zooms into the internal structure of the production environment hosted on Azure.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/deployment-lv1.png" alt="deployment lv1" width="739" height="99">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startuml
+!theme plain
+
+node "Developer Machine" as dev
+cloud "GitHub (yovi_en3a)" as ghcr
+node "Azure VM" as azure
+actor "User" as user
+
+dev -&gt; ghcr : push image
+ghcr -&gt; azure : pull image
+user -&gt; azure : access webapp
+@enduml</pre>
 </div>
 </div>
 <div class="sect3">
@@ -1784,9 +2064,79 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="paragraph">
 <p><strong>Azure connections</strong></p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="685" height="390">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startuml
+' =========================
+' Configuración de estilo
+' =========================
+skinparam backgroundColor white
+skinparam roundcorner 5
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam DefaultFontName "Arial"
+skinparam nodesep 50
+skinparam ranksep 40
+
+' =========================
+' Estilo de contenedores
+' =========================
+skinparam node {
+    BackgroundColor #fdfdfd
+    BorderColor black
+    FontColor black
+    FontSize 12
+    StereotypeAlignment center
+}
+
+' =========================
+' Estilo de actores (cabeza pintada)
+' =========================
+skinparam actor {
+    BackgroundColor #3399FF  ' Azul oscuro
+    BorderColor #1F4E79
+    FontColor black
+    FontStyle bold
+    FontSize 12
+}
+skinparam actorStyle classic  ' Para que la cabeza sea visible y uniforme
+
+' =========================
+' Actores externos
+' =========================
+actor "User" as user
+actor "External Bot" as bot
+
+' =========================
+' Contenedor Azure VM con fondo azul claro
+' =========================
+node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
+
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;webapp&lt;/b&gt;&lt;/size&gt;\nPort 80" as webapp
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;gatewayservice&lt;/b&gt;&lt;/size&gt;\nPort 8000" as gateway
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;users API&lt;/b&gt;&lt;/size&gt;\nPort 3000" as users
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;game-manager&lt;/b&gt;&lt;/size&gt;\nPort 5000" as manager
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;gamey API&lt;/b&gt;&lt;/size&gt;\nPort 4000" as gamey
+
+    database "«container»\n&lt;size:14&gt;&lt;b&gt;MongoDB&lt;/b&gt;&lt;/size&gt;\nPort 27017" as mongodb
+}
+
+' =========================
+' Flujos
+' =========================
+user -right-&gt; webapp : HTTP / REST
+bot -right-&gt; gateway : REST / JSON (Bot)
+webapp -right-&gt; gateway : REST / JSON
+gateway -down-&gt; users : REST / JSON
+gateway -down-&gt; manager : REST / JSON
+gateway -[bold]-&gt; gamey : REST / JSON (Bot)
+manager -right-&gt; gamey : REST / JSON (YEN)
+manager -left-&gt; users : REST / JSON (Stats)
+users -down-&gt; mongodb : MongoDB Driver
+manager -down-&gt; mongodb : MongoDB Driver
+
+@enduml</pre>
 </div>
 </div>
 </div>
@@ -1822,6 +2172,200 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="sect1">
 <h2 id="section-concepts">8. Cross-cutting Concepts</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_domain_concepts">8.1. Domain Concepts</h3>
+<div class="sect3">
+<h4 id="_user_management">8.1.1. User Management</h4>
+<div class="paragraph">
+<p>Users are identified by a unique username and email. Each user has an associated
+statistics document (userstats) that tracks game performance. The relationship
+between users and their stats is maintained via MongoDB ObjectId references.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_game_representation_yen_notation">8.1.2. Game Representation (YEN Notation)</h4>
+<div class="paragraph">
+<p>All game states are represented using <strong>YEN notation</strong>, a custom format that encodes
+the board layout, current turn, players and board size. This notation is used
+across the microservices as the common language for
+game state communication.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_game_flow">8.1.3. Game Flow</h4>
+<div class="paragraph">
+<p>A game is played between a player and a bot:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>player</strong> can be either a human(turn 0) or an external bot communicating through the gateway API.</p>
+</li>
+<li>
+<p>The <strong>internal bot</strong> (turn 1) is managed by <code>gamey</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>game-manager</code> orchestrates the flow:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Receives the player move</p>
+</li>
+<li>
+<p>Applies the move</p>
+</li>
+<li>
+<p>Requests the bot move from gamey</p>
+</li>
+<li>
+<p>Returns the updated state of the board</p>
+</li>
+</ol>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security_concepts">8.2. Security Concepts</h3>
+<div class="sect3">
+<h4 id="_authentication_with_jwt">8.2.1. Authentication with JWT</h4>
+<div class="paragraph">
+<p>All authenticated endpoints use <strong>JSON Web Tokens</strong> (JWT). Tokens are generated
+at login with a <strong>24-hour expiration</strong> and must be included in subsequent requests.
+The JWT secret is stored as an environment variable and injected via <code>docker-compose</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_password_encryption">8.2.2. Password Encryption</h4>
+<div class="paragraph">
+<p>All user passwords are hashed using <strong>bcrypt</strong> with a salt factor of 10 before
+being stored in <code>MongoDB`</code>. Plain text passwords are never persisted.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_mongodb_authentication">8.2.3. MongoDB Authentication</h4>
+<div class="paragraph">
+<p><code>MongoDB</code> requires <strong>username</strong> and <strong>password</strong> authentication via SCRAM-SHA-256.
+Credentials are stored in a <code>.env</code> file on the server and injected as environment
+variables. The <strong>authSource=admin</strong> parameter is required for all connections.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_internal_network_isolation">8.2.4. Internal Network Isolation</h4>
+<div class="paragraph">
+<p>All microservices communicate through an internal Docker network (monitor-net).
+Only the <code>gateway</code> (port 8000) and <code>webapp</code> (port 80) are exposed externally.
+Direct access to <code>users</code>, <code>game-manager</code>, <code>gamey</code> and <code>MongoDB</code> is restricted to
+internal container communication.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_architecture_and_design_patterns">8.3. Architecture and Design Patterns</h3>
+<div class="sect3">
+<h4 id="_gateway_pattern">8.3.1. Gateway Pattern</h4>
+<div class="paragraph">
+<p>All external requests enter the system through a single <strong>gateway service</strong> running
+on port 8000. The <strong>gateway proxies</strong> requests to the appropriate microservice based
+on the URL prefix (/api/users, /api/game-manager, /api/gamey).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_proxy_request_pattern">8.3.2. Proxy Request Pattern</h4>
+<div class="paragraph">
+<p>The <code>gateway</code> uses a generic <strong>proxyRequest</strong> function that forwards any HTTP method,
+body, headers and query parameters to the target service. This allows adding
+new microservices without changing the proxy logic.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_database_per_microservice">8.3.3. Database per Microservice</h4>
+<div class="paragraph">
+<p>Only the microservices that require persistence have their own <code>MongoDB</code> database:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>users</code> connects to <code>usersdb</code></p>
+</li>
+<li>
+<p><code>game-manager</code> connects to <code>gamesdb</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both communication are made with a shared <code>MongoDB</code> container.
+This ensures data isolation while reducing infrastructure overhead.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_development_concepts">8.4. Development Concepts</h3>
+<div class="sect3">
+<h4 id="_environment_variables">8.4.1. Environment Variables</h4>
+<div class="paragraph">
+<p>All sensitive configuration (MongoDB credentials, JWT secret, service URLs) is
+managed through environment variables. Local development uses a <code>.env</code> file,
+while production injects them via <code>docker-compose`</code> on the server.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_api_documentation">8.4.2. API Documentation</h4>
+<div class="paragraph">
+<p>Each microservice exposes a <strong>Swagger UI</strong> at /api-docs using swagger-ui-express
+and <code>openapi.yaml</code>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_testing_strategy">8.4.3. Testing Strategy</h4>
+<div class="paragraph">
+<p><strong>Node.js</strong> microservices (users, gateway) use <strong>Vitest</strong> and <strong>Supertest</strong> for unit and
+integration testing. Each <strong>Node.js</strong> service has a <code>test:coverage</code> script that generates
+coverage reports. The <code>gamey</code> service uses <strong>cargo test</strong> for unit testing and
+<strong>cargo llvm-cov</strong> for coverage reporting. The <strong>CI/CD pipeline</strong> runs all tests on
+every push and pull request before building and deploying.</p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_operational_concepts">8.5. Operational Concepts</h3>
+<div class="sect3">
+<h4 id="_containerization">8.5.1. Containerization</h4>
+<div class="paragraph">
+<p>All microservices run as Docker containers managed by a single <code>docker-compose.yml</code>.
+Each service has its own <code>Dockerfile</code> based on lightweight base images (node:22-alpine,
+nginx:stable-alpine, debian:bookworm-slim for Rust).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_cicd_pipeline">8.5.2. CI/CD Pipeline</h4>
+<div class="paragraph">
+<p>Two <strong>GitHub Actions</strong> workflows manage the pipeline:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>build.yml:</strong> runs on every push and pull request, executes tests and SonarQube analysis.</p>
+</li>
+<li>
+<p><strong>release-deploy.yml</strong>: triggered on release, builds and publishes Docker images to
+GitHub Container Registry (ghcr.io), then deploys to the Azure VM via SSH.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_memory_management">8.5.3. Memory Management</h4>
+<div class="paragraph">
+<p>The <strong>Azure VM</strong> has limited RAM (848MB). <strong>Swap</strong> (2GB) is configured with swappiness=10
+to prioritize RAM usage and avoid performance degradation.</p>
+</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -1921,33 +2465,17 @@ on this list.</p>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_concept_1">8.1. <em>&lt;Concept 1&gt;</em></h3>
-<div class="paragraph">
-<p><em>&lt;explanation&gt;</em></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_concept_2">8.2. <em>&lt;Concept 2&gt;</em></h3>
-<div class="paragraph">
-<p><em>&lt;explanation&gt;</em></p>
-</div>
-<div class="paragraph">
-<p>&#8230;&#8203;</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_concept_n">8.3. <em>&lt;Concept n&gt;</em></h3>
-<div class="paragraph">
-<p><em>&lt;explanation&gt;</em></p>
-</div>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="section-design-decisions">9. Architecture Decisions</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>The detailed Architectural Decisions are documented in the project Wiki: <a href="https://github.com/Arquisoft/yovi_en3a/wiki/Architectural-Decisions">Architectural Decisions</a></p>
+</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2022,6 +2550,36 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
+<div class="listingblock">
+<div class="content">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startmindmap
+* Quality
+** Performance
+*** Low-latency bot computation (Q1)
+*** Fast API response time (Q2)
+** Usability
+*** Intuitive board interaction (Q3)
+*** Seamless authentication flow (Q4)
+** Scalability
+*** Concurrent bot requests (Q5)
+*** Growing number of players (Q6)
+** Interoperability
+*** External bot API (Q7)
+*** YEN notation as common language (Q8)
+** Maintainability
+*** Modular microservice structure (Q9)
+*** Independent deployability (Q10)
+** Security
+*** JWT authentication (Q11)
+*** Secure password storage (Q12)
+** Testability
+*** Unit and integration tests (Q13)
+*** CI/CD pipeline (Q14)
+@endmindmap</pre>
+</div>
+</div>
+<hr>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2054,6 +2612,452 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_scenarios">10.2. Quality Scenarios</h3>
+<div class="sect3">
+<h4 id="_performance">10.2.1. Performance</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q1</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A player requests a bot move during a game. The bot (gamey, written in Rust) computes and returns the move coordinates within 1000ms under normal load.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST</strong> <code>/api/game-manager/game/:id/move</code> request</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot move computed and game state updated in under 1000ms</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q2</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A user sends a login request to the gateway. The gateway proxies the request to the users service and returns a JWT token within 1000ms.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST</strong> <code>/api/users/login</code> request</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JWT token returned in under 1000ms</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_usability">10.2.2. Usability</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q3</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A new user accesses the webapp for the first time. Without any instructions they are able to register, login and start a game within 5 minutes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User navigates to the webapp landing page</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User completes registration, login and game creation without taking a long time thinking how to achieve it</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q4</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A user attempts to register with an invalid email. The system displays a clear and descriptive error message without reloading the page.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST</strong> <code>/api/users/register</code> with invalid email</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Error message displayed inline within 1000ms</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_scalability">10.2.3. Scalability</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q5</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50 concurrent players request bot moves simultaneously. The system processes all requests without errors and response time does not exceed 2 seconds.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50 simultaneous <strong>POST</strong> <code>/api/game-manager/game/:id/move</code> requests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All requests processed successfully within 2 seconds</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q6</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The number of registered users doubles. The system continues to operate normally without requiring architectural changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User database grows significantly</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No degradation in performance or availability</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Low</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_interoperability">10.2.4. Interoperability</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q7</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An external bot sends a <strong>POST</strong> request to <code>/api/gamey/play</code> with a valid YEN game state. The gateway proxies the request to gamey and returns the bot move coordinates.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST</strong> <code>/api/gamey/play</code> with valid YEN body</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot move coordinates returned in JSON format</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q8</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A new microservice needs to communicate game state with game-manager. The developer uses YEN notation as the common format and integration is completed without modifying existing services.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">New service integrated into the system</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Service communicates successfully using YEN notation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_maintainability">10.2.5. Maintainability</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q9</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A developer needs to update the game logic in game-manager. The change is made, tested and deployed without modifying users, gamey or the gateway.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Change request for game-manager logic</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Change deployed independently without affecting other services</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q10</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A new microservice needs to be added to the system. The developer adds it to docker-compose.yml and the gateway without modifying existing services.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">New microservice added to the system</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">New service deployed and accessible through the gateway within one day</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Medium</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_security">10.2.6. Security</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q11</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A user attempts to access<strong> </strong> <code>/api/game-manager</code> endpoints without a valid JWT token. The gateway rejects the request with a 401 Unauthorized response before it reaches game-manager.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request to<strong> </strong> <code>/api/game-manager</code> without Authorization header</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">401 Unauthorized returned by the gateway</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q12</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An attacker gains read access to the MongoDB database. User passwords are not recoverable because they are stored as bcrypt hashes with a salt factor of 10.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unauthorized database access</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Passwords remain unrecoverable due to bcrypt hashing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="_testability">10.2.7. Testability</h4>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q13</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A developer modifies an endpoint in game-manager. The existing integration test suite detects any regression and reports it within 1 minute of running npm test.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code change in game-manager</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test suite runs and reports pass or failure within 1 minute</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"><strong>ID</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Q14</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A pull request is opened against the develop branch. The CI/CD pipeline automatically runs all tests and coverages for all services and blocks the merge if any test fails.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pull request opened on GitHub</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GitHub Actions runs all tests and SonarQube checks coverage reporting results within 5 minutes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">High</p></td>
+</tr>
+</tbody>
+</table>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -2096,6 +3100,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="section-technical-risks">11. Risks and Technical Debts</h2>
 <div class="sectionbody">
@@ -2122,7 +3127,95 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_technical_risks">11.1. Technical Risks</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Risk</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Possible Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Single Point of Failure at Gateway</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All external traffic is routed through a single gateway service on port 8000. If the service crashes or overloads, the entire application becomes unreachable, despite the availability of the microservices.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement health checks and automatic container restart policies in docker-compose.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>JWT Secret Exposure Risk</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The JWT secret used to sign authentication tokens is stored in a .env file on the Azure server and injected via docker-compose. If the server is compromised or the file is accidentally committed to the repository, all user sessions could be forged.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Use a secrets manager (GitHub Secrets or Azure Key Vault) for production credentials. Rotate the JWT secret periodically.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>MongoDB Single Container</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Both usersdb and gamesdb share a single MongoDB container. A failure in this container would cause data loss for both users and game records, with no replication or backup strategy.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implement automated database backups.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Rust / Node.js Communications via HTTP</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The game Rust service communicates with Node.js microservices through HTTP calls. Network latency and serialization overhead between these services could degrade perceived game performance, especially for bot move requests.</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Lack of External Bot Limitations</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The public play API endpoint exposed for external bots has no rate limiting or authentication. A malicious attack could flood the game with requests, consuming all available Rust processing capacity.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add rate limiting middleware to the gateway for the /api/gamey route. Require an API key for external bot access.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_technical_debts">11.2. Technical Debts</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 40%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Debt</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Possible Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>No Persistent Game State Recovery</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If the game-manager container crashes mid-game, the current game state is lost. Games are not saved to the gamesdb during play, only at completion.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persist game state to gamesdb after each move. On reconnection, allow the player to resume an interrupted game by querying the last saved state.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Hardcoded Service URLs in Gateway</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The gateway resolves microservice addresses using hardcoded service names from docker-compose (for example <a href="http://users:3001" class="bare">http://users:3001</a>).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extract service URLs into environment variables. This would allow reconfiguration without code changes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Missing API Versioning</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All REST endpoints in the gateway and microservices are exposed without versioning (/api/users/login instead of /api/v1/users/login). Any breaking API change will require coordinated updates across all consumers simultaneously.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Introduce API versioning.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>No Structured Logging</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Microservices output logs to stdout using console.log without formatting.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adopt a structured logging library that outputs JSON logs.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Swagger Documentation Incomplete</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Each microservice is configured to expose a Swagger UI via openapi.yaml, but the actual files may not fully document all endpoints, request schemas, and error responses.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ensure all request/response schemas, authentication requirements and error codes are documented.</p></td>
+</tr>
+</tbody>
+</table>
 <div style="page-break-after: always;"></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -2177,12 +3270,100 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;Term-1&gt;</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;definition-1&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>ADR (Architectural Decision Record)</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A document that captures an important architectural decision made during the project, including its context and its consequences/responsabilities. ADRs for this project are located in the GitHub Wiki.</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;Term-2&gt;</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;definition-2&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Azure VM</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>The Virtual Machine hosted on Microsoft Azure where the YOVI application is deployed in production.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>bcrypt</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A password-hashing function used to securely store user passwords, which is used in this project.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Bot</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An artificial intelligence opponent in YOVI. Internal bots are implemented in Rust. External bots can also interact with the system through the public bot API.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Cargo</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>The build system and package manager for Rust. Used to compile, test, and run the gamey microservice.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>CI/CD (Continuous Integration / Continuous Deployment)</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>The automated pipeline implemented via GitHub Actions that runs tests and code quality checks on every push and deploys the application to the Azure VM on each release.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Docker</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A platform for packaging and running applications in isolated containers. All YOVI microservices are put in containers using Docker and managed with docker-compose.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>docker-compose</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A tool for defining and running multi-container Docker applications via a single docker-compose.yml configuration file. Used to manage the full YOVI application, including all microservices, MongoDB, Grafana&#8230;&#8203;</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Express</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A minimal and flexible Node.js web framework used in the users and gateway microservices to define REST API routes.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Gateway</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A microservice that acts as the single entry point for all external HTTP requests. It guides requests to the appropriate internal microservice based on the URL prefix (for example: /api/users, /api/gamey`).</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>GitHub Actions</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>The CI/CD platform integrated with the YOVI GitHub repository. It automates testing, code quality analysis, Docker image builds, and production deployments.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Gitflow</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>The branching strategy chosen by the YOVI team. It organizes work into feature branches, a develop branch for integration, and a master branch for stable releases.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>JWT (JSON Web Token)</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A compact, URL-safe token format used for authenticating users in YOVI. Tokens are issued at login and expire after 24 hours.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Microservice</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An independently deployable service that handles a specific business capability. YOVI is composed of four main microservices: webapp, users, game-manager and gamey.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>MongoDB</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A document-oriented NoSQL database used for data persistence. A single shared MongoDB container hosts both usersdb and gamesdb.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>React</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A JavaScript library for building user interfaces. Used together with TypeScript to implement the YOVI webapp frontend.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Rust</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A programming language focused on performance and memory safety. Used in YOVI to implement the gamey microservice (game engine and bots) due to its high computational efficiency.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>SonarCloud</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A cloud-based code quality and security analysis service integrated into the YOVI CI pipeline. It checks for bugs, vulnerabilities, and test coverage.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Swagger / OpenAPI</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An open standard and toolset for describing REST APIs. Each YOVI microservice exposes a Swagger UI.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Strategy Pattern</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A behavioral design pattern used for the YOVI bots. Each bot implementation provides a different strategy and difficulty level.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>TypeScript</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A strongly-typed superset of JavaScript. Used mainly in the frontend development of webapp microservice.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Vite</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A fast build tool and development server used to bundle and serve the YOVI React/TypeScript frontend application.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Vitest</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A Vite-native unit testing framework used to write and run tests for the Node.js microservices.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>YEN Notation</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A string format used as the common language for representing game states across all YOVI microservices. It encodes the board layout, current turn, players, and board size (example: "layout": "B/.B/RB./B..R").</em></p></td>
 </tr>
 </tbody>
 </table>
@@ -2192,7 +3373,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-11 18:39:13 +0100
+Last updated 2026-02-11 19:11:22 +0100
 </div>
 </div>
 </body>
