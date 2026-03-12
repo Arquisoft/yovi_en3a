@@ -53,6 +53,9 @@ const RegisterForm: React.FC = () => {
         setPasswordConfirm('');
         setAge('');
         setCountry('');
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
       }
       else if (res.status >= 400 && res.status < 500) {
         setError(data.error || 'Invalid input. Please check your data and try again.');
