@@ -12,7 +12,7 @@ function App() {
       <div className="App">
         <Routes>
           {/* Ruta inicial */}
-          <Route path="/" element={<MenuView />} />
+          <Route path="/" element={<Landing />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<LoginForm />} />
