@@ -5,6 +5,8 @@ import RegisterForm from './RegisterForm';
 import MenuView from './MenuView';
 import GameSelect from './game/GameSelect';
 import './App.css';
+import GameBoard from './game/GameBoard';
+import { GameScreen } from './GameScreen';
 
 function App() {
   return (
@@ -22,8 +24,9 @@ function App() {
           <Route path="/menu" element={<MenuView />} />
           <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
 
-          {/* Pantalla de juego dinámica */}
-          <Route path="/game/:id" element={<div>Pantalla de Juego (ID: recuperable vía useParams)</div>} />
+
+          {/*Panel de juego */}
+          <Route path="/game/:gameId/:size" element={<GameScreen />} />
 
           {/* Redirección por defecto si la ruta no existe */}
           <Route path="*" element={<Navigate to="/" />} />
