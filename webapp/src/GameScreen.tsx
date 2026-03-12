@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './GameScreen.css';
 import { Button } from './components/ui/button';
@@ -12,7 +12,7 @@ interface GameScreenProps {
 
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const { gameId, size } = useParams();
-    const [boardSize] = useState<number>(size ? parseInt(size) : 7);
+    const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
 
 
     const sidePanelRef = useRef<SidePanelRef>(null);

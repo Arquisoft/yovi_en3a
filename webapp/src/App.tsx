@@ -5,7 +5,6 @@ import RegisterForm from './RegisterForm';
 import MenuView from './MenuView';
 import GameSelect from './game/GameSelect';
 import './App.css';
-import GameBoard from './game/GameBoard';
 import { GameScreen } from './GameScreen';
 
 function App() {
