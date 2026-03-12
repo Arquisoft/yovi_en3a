@@ -1,11 +1,10 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-interface AuthLandingProps {
-  onSelectLogin: () => void;
-  onSelectRegister: () => void;
-}
 
-const Landing: React.FC<AuthLandingProps> = ({ onSelectLogin, onSelectRegister }) => {
+
+const Landing: React.FC = () => {
+  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Animated hex grid on canvas
@@ -159,7 +158,7 @@ const Landing: React.FC<AuthLandingProps> = ({ onSelectLogin, onSelectRegister }
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button
-              onClick={onSelectLogin}
+              onClick={() => navigate('/login')}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLButtonElement).style.background = '#4f46e5';
                 (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
@@ -182,7 +181,7 @@ const Landing: React.FC<AuthLandingProps> = ({ onSelectLogin, onSelectRegister }
             </button>
 
             <button
-              onClick={onSelectRegister}
+              onClick={() => navigate('/register')}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'rgba(99,102,241,0.12)';
                 (e.currentTarget as HTMLButtonElement).style.borderColor = '#6366f1';
