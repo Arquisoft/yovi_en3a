@@ -1,5 +1,4 @@
 use crate::{Coordinates, GameStatus, GameY, Movement, PlayerId, YBot};
-use rand::prelude::IndexedRandom;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 pub const MAX_NUMBER: i32 = i32::MAX / 2;
@@ -100,27 +99,16 @@ impl MediumBot {
      */
     fn evaluate_board(&self, board: &GameY) -> i32 {
         if let Some(winner) = self.get_winner(board) {
-            return if winner.id() == 1 { 10_000 } else { -100_000 };
+            return if winner.id() == 1 { 100_000 } else { -100_000 };
         }
 
-        let size = board.board_size() as i32;
-        let max_dist = (size * (size - 1) / 4 + 2) * 3;
-
-        let score_bot = self.player_score(board, PlayerId::new(1)) as i32;
+        let score_bot   = self.player_score(board, PlayerId::new(1)) as i32;
         let score_human = self.player_score(board, PlayerId::new(0)) as i32;
 
-        let grade_bot = if max_dist > 0 {
-            99 * (max_dist - score_bot.min(max_dist)) / max_dist
-        } else {
-            0
-        };
-        let grade_human = if max_dist > 0 {
-            99 * (max_dist - score_human.min(max_dist)) / max_dist
-        } else {
-            0
-        };
-
-        grade_bot - grade_human
+        // Si el humano está muy cerca de ganar, priorizar el bloqueo
+        let urgency = if score_human <= 2 { 3 } else { 1 };
+        
+        score_human * urgency - score_bot
     }
 
     fn get_winner(&self, board: &GameY) -> Option<PlayerId> {
@@ -146,18 +134,90 @@ impl MediumBot {
             return MAX_NUMBER as u32;
         }
 
-        islets
-            .iter()
-            .map(|islet| {
-                let d_a = self.min_distance_to_side(board, islet, 0, &visitable);
-                let d_b = self.min_distance_to_side(board, islet, 1, &visitable);
-                let d_c = self.min_distance_to_side(board, islet, 2, &visitable);
-                d_a + d_b + d_c
+        let all_cells: Vec<Coordinates> = islets.iter().flatten().copied().collect();
+        let player_set: HashSet<Coordinates> = all_cells.iter().copied().collect();
+
+        let dist_a = self.distances_from_side(board, 0, &all_cells, &visitable);
+        let dist_b = self.distances_from_side(board, 1, &all_cells, &visitable);
+        let dist_c = self.distances_from_side(board, 2, &all_cells, &visitable);
+
+        visitable.iter()
+            .map(|cell| {
+                let da = dist_a.get(cell).copied().unwrap_or(MAX_NUMBER as u32);
+                let db = dist_b.get(cell).copied().unwrap_or(MAX_NUMBER as u32);
+                let dc = dist_c.get(cell).copied().unwrap_or(MAX_NUMBER as u32);
+
+                // Los 3 BFS cuentan el hub como parte de su camino.
+                // Si el hub está vacío, los 3 lo contaron como coste 1 cada uno → triple conteo.
+                // El hub real vale 1 ficha, así que restamos 2 para no contar triple.
+                // Si ya tiene ficha del jugador, los 3 lo contaron como 0 → sin problema.
+                let hub_cost = if player_set.contains(cell) { 0u32 } else { 1u32 };
+
+                da.saturating_add(db)
+                .saturating_add(dc)
+                .saturating_sub(2 * hub_cost)
             })
             .min()
             .unwrap_or(MAX_NUMBER as u32)
     }
 
+    // BFS desde las celdas del lado `side` hacia todo el tablero,
+    // usando `player_cells` como coste 0 y celdas vacías como coste 1.
+    fn distances_from_side(
+        &self,
+        board: &GameY,
+        side: u8,
+        player_cells: &[Coordinates],
+        visitable: &HashSet<Coordinates>,
+    ) -> HashMap<Coordinates, u32> {
+        let player_set: HashSet<Coordinates> = player_cells.iter().copied().collect();
+        let mut dist: HashMap<Coordinates, u32> = HashMap::new();
+        let mut deque: VecDeque<Coordinates> = VecDeque::new();
+        let mut visited: HashSet<Coordinates> = HashSet::new();
+
+        for &cell in visitable {
+            let on_side = match side {
+                0 => cell.touches_side_a(),
+                1 => cell.touches_side_b(),
+                _ => cell.touches_side_c(),
+            };
+            if on_side {
+                // Coste 0 siempre: el lado es el punto de partida del BFS,
+                // no cuesta nada "estar" en él
+                dist.insert(cell, 0);
+                deque.push_front(cell);
+            }
+        }
+
+        while let Some(current) = deque.pop_front() {
+            if visited.contains(&current) { continue; }
+            visited.insert(current);
+
+            let current_dist = dist[&current];
+
+            for neighbor in board.get_neighbors(&current) {
+                if !visitable.contains(&neighbor) || visited.contains(&neighbor) { continue; }
+
+                // El coste de ENTRAR a un vecino:
+                // - ficha del jugador ya puesta → 0 (ya es parte del camino)
+                // - celda vacía → 1 (hay que colocar una ficha)
+                let step_cost = if player_set.contains(&neighbor) { 0 } else { 1 };
+                let new_dist = current_dist + step_cost;
+
+                if new_dist < *dist.get(&neighbor).unwrap_or(&u32::MAX) {
+                    dist.insert(neighbor, new_dist);
+                    if step_cost == 0 {
+                        deque.push_front(neighbor);
+                    } else {
+                        deque.push_back(neighbor);
+                    }
+                }
+            }
+        }
+
+        dist
+    }
+    
     /*
         This method is used to separate the player's occupied cells into islets (connected components). 
         We iterate through all the cells owned by the player and perform a BFS to find all connected cells, 
@@ -212,73 +272,6 @@ impl MediumBot {
     }
 
     /*
-        This method is used for calculating the minimum distance from an islet to a side of the board.
-        It uses a multi-source BFS starting from all cells in the islet simultaneously. The distance is 
-        defined as the number of empty cells that need to be added to connect the islet to the side. Cells 
-        already in the islet have a cost of 0, while empty cells have a cost of 1. We use a 0-1 BFS (deque) 
-        where moving to an islet cell costs 0 and moving to an empty cell costs 1.
-     */
-    fn min_distance_to_side(&self, board: &GameY, islet: &[Coordinates], side: u8, visitable: &HashSet<Coordinates>,
-    ) -> u32 {
-        // BFS: start from all cells in the islet simultaneously (multi-source)
-        // Distance = number of empty cells we need to add to reach the side.
-        // Cells already in the islet have cost 0, empty cells cost 1.
-        //
-        // We use a 0-1 BFS (deque) where moving to an islet cell costs 0
-        // and moving to an empty cell costs 1.
-
-        let islet_set: HashSet<Coordinates> = islet.iter().copied().collect();
-
-        let mut dist: HashMap<Coordinates, u32> = HashMap::new();
-        let mut deque: VecDeque<Coordinates> = VecDeque::new();
-        let mut visited: HashSet<Coordinates> = HashSet::new();
-
-        for &cell in islet {
-            dist.insert(cell, 0);
-            deque.push_front(cell);
-        }
-
-        while let Some(current) = deque.pop_front() {
-            // Skip stale entries — node already settled with a shorter distance
-            if visited.contains(&current) {
-                continue;
-            }
-            visited.insert(current);
-
-            let current_dist = dist[&current];
-
-            let on_side = match side {
-                0 => current.touches_side_a(),
-                1 => current.touches_side_b(),
-                _ => current.touches_side_c(),
-            };
-            if on_side {
-                return current_dist;
-            }
-
-            for neighbor in board.get_neighbors(&current) {
-                if !visitable.contains(&neighbor) || visited.contains(&neighbor) {
-                    continue;
-                }
-
-                let step_cost = if islet_set.contains(&neighbor) { 0 } else { 1 };
-                let new_dist = current_dist + step_cost;
-
-                if new_dist < *dist.get(&neighbor).unwrap_or(&(MAX_NUMBER as u32)) {
-                    dist.insert(neighbor, new_dist);
-                    if step_cost == 0 {
-                        deque.push_front(neighbor);
-                    } else {
-                        deque.push_back(neighbor);
-                    }
-                }
-            }
-        }
-
-        MAX_NUMBER as u32
-    }
-
-    /*
         Method used for obtaining the candidate cells for the minimax algorithm. Instead of considering all available cells,
         we focus on those that are adjacent to occupied cells, as they are more likely to influence the game state and lead 
         to a win or loss. This heuristic reduces the branching factor of the search tree, allowing for deeper exploration
@@ -288,30 +281,43 @@ impl MediumBot {
         but most moves will be correct since we have other heuristics to check if there are better moves.
      */
     fn relevant_cells(&self, board: &GameY) -> Vec<u32> {
-        // First we obtain all the occupied cells on the board, filtering to just the coordinates.
         let occupied: HashSet<Coordinates> = (0..board.total_cells())
             .map(|idx| Coordinates::from_index(idx, board.board_size()))
             .filter(|c| board.get_cell_owner(c).is_some())
             .collect();
 
-        // If it is empty, we return all the available cells, since there are no occupied cells to be adjacent to.
         if occupied.is_empty() {
             return board.available_cells().clone();
         }
 
-        //From all the available cells, we filter to just obtain the ones that are near a occupied cell, since they are 
-        //more likely to influence the game state and lead to a win or loss.
-        board
-            .available_cells()
-            .iter()
-            .copied()
-            .filter(|&idx| {
-                let coord = Coordinates::from_index(idx, board.board_size());
-                board.get_neighbors(&coord).iter().any(|n| occupied.contains(n))
-            })
-            .collect()
+        // Vecinos a distancia 1 de cualquier ficha ocupada
+        let mut candidate_set: HashSet<u32> = HashSet::new();
+        
+        for &idx in board.available_cells() {
+            let coord = Coordinates::from_index(idx, board.board_size());
+            let neighbors = board.get_neighbors(&coord);
+            
+            // Distancia 1: adyacente a una ficha ocupada
+            if neighbors.iter().any(|n| occupied.contains(n)) {
+                candidate_set.insert(idx);
+                continue;
+            }
+            
+            // Distancia 2: vecino de un vecino de una ficha ocupada
+            // Solo para celdas adyacentes a fichas del bot (PlayerId 1),
+            // para no explotar el branching factor
+            let near_bot_neighbor = neighbors.iter().any(|n| {
+                board.get_neighbors(n).iter().any(|nn| {
+                    occupied.contains(nn) && board.get_cell_owner(nn) == Some(PlayerId::new(1))
+                })
+            });
+            if near_bot_neighbor {
+                candidate_set.insert(idx);
+            }
+        }
+
+        candidate_set.into_iter().collect()
     }
-    
 }
 
 impl YBot for MediumBot {
