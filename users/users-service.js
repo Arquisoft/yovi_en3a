@@ -185,12 +185,12 @@ app.post('/stats/update', async(req,res) => {
   }
 
   if(!['won', 'lost', 'resigned'].includes(result)){
-    return res.status(400).json({error: "result is not valid"})
+    return res.status(401).json({error: "result is not valid"})
   }
 
   try{
     if(!mongoose.Types.ObjectId.isValid(userId)){
-      return res.status(400).json({error: "Invalid userId"})
+      return res.status(401).json({error: "Invalid userId"})
     }
 
     const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
@@ -249,7 +249,7 @@ app.get('/stats/ranking', async(req,res) => {
 
 //Returs the personal statistics
 app.get('/stats/:userId', async(req,res) => {
-  const {userId} = req.params
+  const userId = req.headers['x-user-id']
   try{
     if(!mongoose.Types.ObjectId.isValid(userId)){
       return res.status(400).json({error: 'Invalid user'})
