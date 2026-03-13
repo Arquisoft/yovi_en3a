@@ -172,6 +172,7 @@ app.post('/login',
   }
 );
 
+//Updates user stats
 app.post('/stats/update', async(req,res) => {
   const { userId, result } = req.body;
 
@@ -192,12 +193,14 @@ app.post('/stats/update', async(req,res) => {
       return res.status(400).json({error: "Invalid userId"})
     }
 
-    const userStats = await Stats.findOne({userId})
+    const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
     if(!userStats){
       return res.status(404).json({error: "Stats not found"})
     }
 
-    userStats.gamesPlayed++;
+    userStats.gamesPlayed++; //We increase by one the number of games
+    
+    //We add a new victory or defeat depending on the last result
     switch (result){
       case 'won': 
         userStats.wins++
@@ -208,6 +211,7 @@ app.post('/stats/update', async(req,res) => {
         break
     }
 
+    //We modify its win rate depending on the current result
     userStats.winRate = userStats.gamesPlayed > 0
       ? userStats.wins / userStats.gamesPlayed * 100
       : 0;
@@ -219,9 +223,10 @@ app.post('/stats/update', async(req,res) => {
   }
 })
 
+//Returns the general ranking of best players (limited to 20 for the moment)
 app.get('/stats/ranking', async(req,res) => {
-  const {sortBy = 'wins'} = req.query
-
+  const {sortBy = 'wins'} = req.query  //It can be ordered by both wins and winRate, by specifying it on the query
+  
   if(!['wins', 'winRate'].includes(sortBy)){
     return res.status(400).json({error: 'Invalid sort method'})
   }
@@ -233,7 +238,7 @@ app.get('/stats/ranking', async(req,res) => {
 
     const ranking = await Stats.find({ gamesPlayed : {$gt: 0}})
       .sort(sortOptions)
-      .limit(10)
+      .limit(20)
       .populate('userId', 'username')
 
     res.json(ranking)
@@ -242,13 +247,14 @@ app.get('/stats/ranking', async(req,res) => {
   }
 })
 
+//Returs the personal statistics
 app.get('/stats/:userId', async(req,res) => {
   const {userId} = req.params
   try{
     if(!mongoose.Types.ObjectId.isValid(userId)){
       return res.status(400).json({error: 'Invalid user'})
     }
-    const userStats = await Stats.findOne({ userId })
+    const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
     if(!userStats){
       return res.status(404).json({error: 'User has never played a game'})
     }

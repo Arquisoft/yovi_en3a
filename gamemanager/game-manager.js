@@ -73,6 +73,7 @@ const applyMove = (layout, size, coords, playerSymbol) => {
     return rows.join('/');
 }
 
+//It calls the update stats endpoint from users module
 const updateStats = async(userId, result) => {
     try{
         await axios.post(`${USERS_SERVICE_URL}/stats/update`,
