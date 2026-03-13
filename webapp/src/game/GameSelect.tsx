@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./GameSelect.css";
 
 interface GameSelectProps {
     onBack: () => void;
 }
 
-const GAMES = [
-    { id: "standard", label: "Standard", description: "Classic rules, no surprises" },
+const VARIANTES = [
     { id: "master", label: "Master", description: "For experienced players" },
     { id: "fortune", label: "Fortune", description: "Luck plays a role" },
     { id: "tabu", label: "Tabu", description: "Some moves are forbidden" },
@@ -16,13 +16,16 @@ const GAMES = [
 ];
 
 const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
-    const [hovered, setHovered] = useState<string | null>(null);
     const [loading, setLoading] = useState<string | null>(null);
-    const navigate = useNavigate();
+    const [isStandardOpen, setIsStandardOpen] = useState(false);
 
+    const [boardSize, setBoardSize] = useState(7);
+    const [difficulty, setDifficulty] = useState("random_bot");
+
+    const navigate = useNavigate();
     const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-    const handleSelect = async (gameId: string) => {
+    const handleSelect = async (gameId: string, size: number = 7, bot: string = "random_bot") => {
         setLoading(gameId);
         try {
             const token = localStorage.getItem("token");
@@ -32,13 +35,12 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ botId: "random_bot", boardSize: 7 }),
+                body: JSON.stringify({ botId: bot, boardSize: size }),
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-
-            navigate(`/game/${data.gameId}`);
+            navigate(`/game/${data.gameId}/${size}`);
         } catch (err) {
             console.error("Error creating game:", err);
         } finally {
@@ -47,47 +49,90 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
-            <div className="w-full max-w-sm">
-                <div className="text-center mb-8">
-                    <button
-                        onClick={onBack}
-                        style={{ color: "#6b7280", fontSize: "0.85rem", background: "none", border: "none", cursor: "pointer", marginBottom: "1rem" }}
-                    >
-                        ← Back
-                    </button>
+        <div className="game-select-overlay">
+            <div className="game-select-container">
+
+                <header className="text-center mb-8">
+                    <button onClick={onBack} className="btn-back">← Back</button>
                     <h1 className="text-4xl font-bold text-white mb-1">Select Mode</h1>
                     <p className="text-gray-400 text-sm">Choose a game type to play vs Bot</p>
+                </header>
+
+                {/* MODO STANDARD */}
+                <section className="flex flex-col mb-2">
+                    <button
+                        onClick={() => setIsStandardOpen(!isStandardOpen)}
+                        className={`mode-card ${isStandardOpen ? 'mode-card-active' : ''}`}
+                    >
+                        <span className="text-2xl">🏆</span>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-lg">Standard Mode</span>
+                            <span className="text-xs text-gray-500">The classic hex experience.</span>
+                        </div>
+                        <span className="ml-auto text-gray-600">{isStandardOpen ? "▲" : "▼"}</span>
+                    </button>
+
+                    {isStandardOpen && (
+                        <div className="config-panel">
+                            <div>
+                                <label className="config-label">Board Size: {boardSize}x{boardSize}</label>
+                                <div className="size-selector-grid">
+                                    {[5, 7, 9, 11].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => setBoardSize(s)}
+                                            className={`size-option-btn ${boardSize === s ? 'is-selected' : ''}`}
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="config-label">Difficulty</label>
+                                <select
+                                    value={difficulty}
+                                    onChange={(e) => setDifficulty(e.target.value)}
+                                    className="difficulty-dropdown"
+                                >
+                                    <option value="random_bot">Easy </option>
+                                    <option value="beginner_bot">Medium </option>
+                                    <option value="medium_bot">Hard </option>
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={() => handleSelect("standard", boardSize, difficulty)}
+                                disabled={loading !== null}
+                                className="btn-primary-start"
+                            >
+                                {loading === "standard" ? "Creating..." : "Start Standard"}
+                            </button>
+                        </div>
+                    )}
+                </section>
+
+                <div className="variant-divider">
+                    <div className="divider-line"></div>
+                    <span className="divider-text">Variants</span>
+                    <div className="divider-line"></div>
                 </div>
 
+                {/* LISTA DE VARIANTES */}
                 <div className="flex flex-col gap-3">
-                    {GAMES.map((game) => (
+                    {VARIANTES.map((game) => (
                         <button
                             key={game.id}
-                            onMouseEnter={() => setHovered(game.id)}
-                            onMouseLeave={() => setHovered(null)}
                             onClick={() => handleSelect(game.id)}
                             disabled={loading !== null}
-                            className="flex items-center gap-3 w-full px-5 py-4 rounded-lg text-left transition-all duration-150"
-                            style={{
-                                background: hovered === game.id ? "#1e293b" : "#111827",
-                                border: `1px solid ${hovered === game.id ? "#6366f1" : "#1f2937"}`,
-                                color: hovered === game.id ? "#fff" : "#9ca3af",
-                                opacity: loading !== null && loading !== game.id ? 0.5 : 1,
-                                cursor: loading !== null ? "not-allowed" : "pointer",
-                            }}
+                            className="mode-card"
                         >
                             <div className="flex flex-col">
-                                <span className="font-medium text-base">
-                                    {loading === game.id ? "Creating..." : game.label}
-                                </span>
-                                <span style={{ fontSize: "0.75rem", color: hovered === game.id ? "#94a3b8" : "#4b5563" }}>
-                                    {game.description}
-                                </span>
+                                <span className="font-bold text-gray-300">{game.label}</span>
+                                <span className="text-xs text-gray-600">{game.description}</span>
                             </div>
-                            <span className="ml-auto text-xs opacity-50">
-                                {hovered === game.id ? "→" : ""}
-                            </span>
+                            <span className="ml-auto text-gray-700">→</span>
                         </button>
                     ))}
                 </div>

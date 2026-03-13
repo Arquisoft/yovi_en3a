@@ -1,5 +1,6 @@
 import React, { useRef, forwardRef, useImperativeHandle } from "react";
 import HexCell, { type HexCellRef } from "./HexCell";
+import { useParams } from "react-router-dom";
 
 interface Coordinates {
   x: number;
@@ -10,7 +11,7 @@ interface Coordinates {
 interface GameBoardProps {
   boardSize?: number;
   cellSize?: number;
-  gameId?: string;
+  gameIdProp?: string;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
   onGameOver?: (winner: "p1" | "p2") => void;
 }
@@ -19,16 +20,27 @@ export interface GameBoardRef {
   selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => boolean;
 }
 
+
+
+
 const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
-  { boardSize = 7, cellSize = 60,gameId, onCellPlayed, onGameOver }: GameBoardProps,
+  { boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver }: GameBoardProps,
   ref
 ) => {
-  const hexSize = cellSize / 2;
-//  const hexWidth = cellSize * 0.75;
-  const hexWidth = cellSize *1.05;
 
-//  const hexHeight = cellSize * 0.866;
+  const { gameId: urlGameId } = useParams<{ gameId: string }>();
+  const gameId = gameIdProp || urlGameId;
+
+
+  const hexSize = cellSize / 2;
+  //  const hexWidth = cellSize * 0.75;
+  const hexWidth = cellSize * 1.05;
+
+  //  const hexHeight = cellSize * 0.866;
   const hexHeight = cellSize * 0.8;
+
+
+
 
   /**
    * Generate all valid coordinates for the board.
@@ -36,7 +48,9 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
    * Layout follows rows from top to bottom:
    *   Row r: x = boardSize-1-r, y ∈ [0..r], z = r-y
    */
-  const generateCoordinates = (): Coordinates[] => {
+  //Para que el tablero se regenere solo cuando cambie el tamaño, no cada vez que se renderice el componente
+  const coordinates = React.useMemo(() => {
+    console.log("Generando tablero de tamaño:", boardSize);
     const coords: Coordinates[] = [];
     for (let row = 0; row < boardSize; row++) {
       const x = boardSize - 1 - row;
@@ -46,9 +60,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
       }
     }
     return coords;
-  };
-
-  const coordinates = generateCoordinates();
+  }, [boardSize]);
   const cellRefs = useRef<Map<string, HexCellRef>>(new Map());
 
 
@@ -98,8 +110,8 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
         }}
       >
         {coordinates.map((coord) => {
-          const row = boardSize - 1 - coord.x; 
-          const col = coord.y; 
+          const row = boardSize - 1 - coord.x;
+          const col = coord.y;
           const pos = getHexPosition(row, col);
 
           return (

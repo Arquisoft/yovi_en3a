@@ -10,7 +10,7 @@ const gameSchema = new mongoose.Schema({
     botId: {
         type: String,
         required: true,
-        enum: ["random_bot"],
+        enum: ["random_bot", "beginner_bot", "medium_bot"],
         default: "random_bot",
     },
     boardSize: {

@@ -10,11 +10,15 @@ interface GameScreenProps {
     onExit?: () => void;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {   
-    const { gameId } = useParams();
+export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
+    const { gameId, size } = useParams();
+    const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
+
+
     const sidePanelRef = useRef<SidePanelRef>(null);
     const [gameOver, setGameOver] = useState<"p1" | "p2" | null>(null);
     const navigate = useNavigate();
+
 
     const handleExit = () => {
         if (onExit) onExit();
@@ -22,7 +26,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     };
 
     return (
-        <div className="game-screen">           
+        <div className="game-screen">
             <header className="game-header">
                 <h1>Game</h1>
             </header>
@@ -62,7 +66,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             <div className="game-container">
                 <main className="game-board-section">
                     <GameBoard
-                        gameId={gameId}
+                        gameIdProp={gameId}
+                        boardSize={boardSize}
                         onCellPlayed={(player, playerName, coordinate) => {
                             sidePanelRef.current?.addMove(player, playerName, coordinate);
                             if (player === "p1") sidePanelRef.current?.incrementTurn();
