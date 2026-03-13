@@ -19,14 +19,13 @@ services:
   users:
     build: ./users
     container_name: users
+    image: ghcr.io/arquisoft/yovi_en3a-users:latest
     environment:
       - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/usersdb?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
     depends_on:
       mongodb:
         condition: service_healthy
-    ports:
-      - "3000:3000"
     networks:
       - monitor-net
 
