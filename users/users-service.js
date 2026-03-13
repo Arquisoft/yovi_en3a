@@ -15,6 +15,7 @@ app.use(metricsMiddleware);
 const mongoose = require("mongoose")
 const User = require("./models/user")
 const Stats = require("./models/stats");
+const stats = require('./models/stats');
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/userdb"
 const connectToMongoDB = async () => {
@@ -171,6 +172,92 @@ app.post('/login',
   }
 );
 
+app.post('/stats/update', async(req,res) => {
+  const { userId, result } = req.body;
+
+  if(!userId){
+    return res.status(400).json({error: "userId is required!"})
+  }
+
+  if(!result){
+    return res.status(400).json({error: "result is required!"})
+  }
+
+  if(!['won', 'lost', 'resigned'].includes(result)){
+    return res.status(400).json({error: "result is not valid"})
+  }
+
+  try{
+    if(!mongoose.Types.ObjectId.isValid(userId)){
+      return res.status(400).json({error: "Invalid userId"})
+    }
+
+    const userStats = await Stats.findOne({userId})
+    if(!userStats){
+      return res.status(404).json({error: "Stats not found"})
+    }
+
+    userStats.gamesPlayed++;
+    switch (result){
+      case 'won': 
+        userStats.wins++
+        break
+      case 'lost':
+      case 'resigned': 
+        userStats.losses++;
+        break
+    }
+
+    userStats.winRate = userStats.gamesPlayed > 0
+      ? userStats.wins / userStats.gamesPlayed * 100
+      : 0;
+    
+    await userStats.save()
+    res.json({updated: "Stats updated", userStats});
+  } catch(err){
+    res.status(500).json({error: err.message})
+  }
+})
+
+app.get('/stats/ranking', async(req,res) => {
+  const {sortBy = 'wins'} = req.query
+
+  if(!['wins', 'winRate'].includes(sortBy)){
+    return res.status(400).json({error: 'Invalid sort method'})
+  }
+
+  try{
+    const sortOptions = sortBy === 'wins'
+            ? { wins: -1, winRate: -1 }
+            : { winRate: -1, wins: -1 }
+
+    const ranking = await Stats.find({ gamesPlayed : {$gt: 0}})
+      .sort(sortOptions)
+      .limit(10)
+      .populate('userId', 'username')
+
+    res.json(ranking)
+  } catch(err){
+    res.status(500).json({error: err.message}) 
+  }
+})
+
+app.get('/stats/:userId', async(req,res) => {
+  const {userId} = req.params
+  try{
+    if(!mongoose.Types.ObjectId.isValid(userId)){
+      return res.status(400).json({error: 'Invalid user'})
+    }
+    const userStats = await Stats.findOne({ userId })
+    if(!userStats){
+      return res.status(404).json({error: 'User has never played a game'})
+    }
+
+    res.json(userStats)
+  } catch(err){
+    res.status(500).json({error: err.message})
+  }
+})
 
 if (require.main === module) {
   connectToMongoDB()
