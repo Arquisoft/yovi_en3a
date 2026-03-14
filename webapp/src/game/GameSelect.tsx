@@ -2,6 +2,27 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameSelect.css";
 
+const useTickSound = () => {
+    const playTick = () => {
+        console.log("playTick ejecutado");
+        try {
+            const ctx = new AudioContext();
+            console.log("ctx creado, estado:", ctx.state);
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(440, ctx.currentTime);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch(e) {
+            console.error("Error:", e);
+        }
+    };
+    return playTick;
+};
+
 interface GameSelectProps {
     onBack: () => void;
 }
@@ -16,14 +37,14 @@ const VARIANTES = [
 ];
 
 const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
+    const playTick = useTickSound();
     const [loading, setLoading] = useState<string | null>(null);
     const [isStandardOpen, setIsStandardOpen] = useState(false);
-
     const [boardSize, setBoardSize] = useState(7);
     const [difficulty, setDifficulty] = useState("random_bot");
 
     const navigate = useNavigate();
-    const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+    const gatewayUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
     const handleSelect = async (gameId: string, size: number = 7, bot: string = "random_bot") => {
         setLoading(gameId);
@@ -52,24 +73,24 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
         <div className="game-select-overlay">
             <div className="game-select-container">
 
-                <header className="text-center mb-8">
-                    <button onClick={onBack} className="btn-back">← Back</button>
-                    <h1 className="text-4xl font-bold text-white mb-1">Select Mode</h1>
-                    <p className="text-gray-400 text-sm">Choose a game type to play vs Bot</p>
+                <header className="game-select-header">
+                    <button onClick={() => { playTick(); onBack(); }} className="btn-back">← Back</button>
+                    <h1 className="game-select-title">Select Mode</h1>
+                    <p className="game-select-subtitle">Choose a game type to play vs Bot</p>
                 </header>
 
                 {/* MODO STANDARD */}
-                <section className="flex flex-col mb-2">
+                <section className="standard-section">
                     <button
-                        onClick={() => setIsStandardOpen(!isStandardOpen)}
-                        className={`mode-card ${isStandardOpen ? 'mode-card-active' : ''}`}
+                        onClick={() => { playTick(); setIsStandardOpen(!isStandardOpen); }}
+                        className={`mode-card ${isStandardOpen ? "mode-card-active" : ""}`}
                     >
-                        <span className="text-2xl">🏆</span>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-lg">Standard Mode</span>
-                            <span className="text-xs text-gray-500">The classic hex experience.</span>
+                        <span className="mode-card-icon">🏆</span>
+                        <div className="mode-card-info">
+                            <span className="mode-card-label">Standard Mode</span>
+                            <span className="mode-card-desc">The classic hex experience.</span>
                         </div>
-                        <span className="ml-auto text-gray-600">{isStandardOpen ? "▲" : "▼"}</span>
+                        <span className="mode-card-arrow">{isStandardOpen ? "▲" : "▼"}</span>
                     </button>
 
                     {isStandardOpen && (
@@ -77,11 +98,11 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
                             <div>
                                 <label className="config-label">Board Size: {boardSize}x{boardSize}</label>
                                 <div className="size-selector-grid">
-                                    {[5, 7, 9, 11].map(s => (
+                                    {[5, 7, 9, 11].map((s) => (
                                         <button
                                             key={s}
-                                            onClick={() => setBoardSize(s)}
-                                            className={`size-option-btn ${boardSize === s ? 'is-selected' : ''}`}
+                                            onClick={() => { playTick(); setBoardSize(s); }}
+                                            className={`size-option-btn ${boardSize === s ? "is-selected" : ""}`}
                                         >
                                             {s}
                                         </button>
@@ -96,14 +117,14 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
                                     onChange={(e) => setDifficulty(e.target.value)}
                                     className="difficulty-dropdown"
                                 >
-                                    <option value="random_bot">Easy </option>
-                                    <option value="beginner_bot">Medium </option>
-                                    <option value="medium_bot">Hard </option>
+                                    <option value="random_bot">Easy</option>
+                                    <option value="beginner_bot">Medium</option>
+                                    <option value="medium_bot">Hard</option>
                                 </select>
                             </div>
 
                             <button
-                                onClick={() => handleSelect("standard", boardSize, difficulty)}
+                                onClick={() => { playTick(); handleSelect("standard", boardSize, difficulty); }}
                                 disabled={loading !== null}
                                 className="btn-primary-start"
                             >
@@ -120,19 +141,19 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
                 </div>
 
                 {/* LISTA DE VARIANTES */}
-                <div className="flex flex-col gap-3">
+                <div className="variants-list">
                     {VARIANTES.map((game) => (
                         <button
                             key={game.id}
-                            onClick={() => handleSelect(game.id)}
+                            onClick={() => { playTick(); handleSelect(game.id); }}
                             disabled={loading !== null}
                             className="mode-card"
                         >
-                            <div className="flex flex-col">
-                                <span className="font-bold text-gray-300">{game.label}</span>
-                                <span className="text-xs text-gray-600">{game.description}</span>
+                            <div className="mode-card-info">
+                                <span className="mode-card-label">{game.label}</span>
+                                <span className="mode-card-desc">{game.description}</span>
                             </div>
-                            <span className="ml-auto text-gray-700">→</span>
+                            <span className="mode-card-arrow">→</span>
                         </button>
                     ))}
                 </div>

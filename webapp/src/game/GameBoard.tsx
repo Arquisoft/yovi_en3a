@@ -1,4 +1,4 @@
-import React, { useRef, forwardRef, useImperativeHandle } from "react";
+import React, { useRef, forwardRef, useImperativeHandle, useEffect } from "react";
 import HexCell, { type HexCellRef } from "./HexCell";
 import { useParams } from "react-router-dom";
 
@@ -99,6 +99,18 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>((
       player === "p1" ? cellRef.selectByPlayer() : cellRef.selectByPlayer2();
     }
   };
+
+  useEffect(() => {
+      const audio = new Audio("/sounds/gameMusic.wav");      
+      audio.loop = true;
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+
+      return () => {
+          audio.pause();
+          audio.currentTime = 0;
+      };
+  }, []);
 
   return (
     <div className="board-skin flex justify-center items-start p-5">

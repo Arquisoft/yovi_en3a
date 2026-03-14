@@ -28,6 +28,12 @@ export interface HexCellRef {
   requestSelectForPlayer2: (targetCoordinates: Coordinates) => void;
 }
 
+const playCellSound = () => {
+    const audio = new Audio("/sounds/cellSound.m4a");
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+};
+
 const HexCell = forwardRef<HexCellRef, HexCellProps>(({
   name = "cell",
   size = 60,
@@ -69,15 +75,17 @@ const colors = {
   const chosen = colors[cellOwner];  
 
     function selectByPlayer() {
-    setSelected(true);
-        setCellOwner("p1");
-    return true;
+      setSelected(true);
+      setCellOwner("p1");
+      playCellSound();
+      return true;
     }   
   
     function selectByPlayer2() { // For bot moves
-        setSelected(true);
-        setCellOwner("p2");
-    return true;
+      setSelected(true);
+      setCellOwner("p2");
+      playCellSound();
+      return true;
     }
 
      function deselect() {
