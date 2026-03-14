@@ -5,7 +5,7 @@ import { afterEach, describe, expect, test, vi, beforeEach } from 'vitest'
 import '@testing-library/jest-dom'
 import { MemoryRouter } from 'react-router-dom'
 
-// Mock de useNavigate
+
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom');
@@ -18,7 +18,6 @@ vi.mock('react-router-dom', async () => {
 describe('LoginForm', () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        // Limpiamos el localStorage antes de cada test
         localStorage.clear()
         // Mock del localStorage
         vi.spyOn(Storage.prototype, 'setItem')
@@ -89,7 +88,7 @@ describe('LoginForm', () => {
             expect(localStorage.setItem).toHaveBeenCalledWith('userId', mockUserId)
         })
 
-        // Verificamos redirección (setTimeout de 1000ms)
+        // Verificamos redirección a menú después del login exitoso
         await waitFor(() => {
             expect(mockNavigate).toHaveBeenCalledWith('/menu')
         }, { timeout: 1500 })

@@ -16,8 +16,8 @@ describe('MenuView Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
-        // Espiamos el removeItem para el logout
-        vi.spyOn(Storage.prototype, 'removeItem');
+
+        vi.spyOn(Storage.prototype, 'removeItem');// Espiamos removeItem para verificar que se llame al hacer logout
     });
 
     test('renders all menu options', () => {

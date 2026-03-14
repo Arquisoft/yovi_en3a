@@ -1,41 +1,46 @@
-import React from 'react';
+import { vi, describe, it, expect, beforeEach, test } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import React from 'react';
+import '@testing-library/jest-dom'
 import { GameScreen } from '../GameScreen';
-import { describe, expect, test, vi, beforeEach } from 'vitest';
-import '@testing-library/jest-dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-/**
- * MOCKS DE COMPONENTES
- * Es vital que la ruta sea EXACTAMENTE la misma que usas en GameScreen.tsx
- */
-
-// Mock del GameBoard para evitar cargar la lógica real de hexágonos y sockets
-vi.mock('./game/GameBoard', () => ({
-    default: ({ onGameOver }: any) => (
-        <div data-testid="mock-gameboard">
-            <button onClick={() => onGameOver('p1')}>Simulate Win</button>
-            <button onClick={() => onGameOver('p2')}>Simulate Loss</button>
-        </div>
-    )
-}));
-
-// Mock del SidePanel usando forwardRef para que no falle la compilación
-vi.mock('./game/SidePanel', () => ({
-    default: React.forwardRef((_props, _ref) => (
-        <div data-testid="mock-sidepanel">Side Panel Mock</div>
-    ))
-}));
-
-// Mock de la navegación
 const mockNavigate = vi.fn();
+
+
 vi.mock('react-router-dom', async () => {
     const actual = await vi.importActual('react-router-dom');
     return {
         ...actual,
-        useNavigate: () => mockNavigate
+        useNavigate: () => mockNavigate,
     };
 });
+
+// 1. Mock GameBoard with forwardRef support
+vi.mock('../game/GameBoard', () => {
+    return {
+        default: React.forwardRef((props: any, ref: any) => {
+            // This mimics the 'useImperativeHandle' in your real component
+            // so the parent doesn't crash if it tries to access the ref.
+            React.useImperativeHandle(ref, () => ({
+                selectCellByCoordinates: vi.fn(),
+            }));
+
+            return (
+                <div data-testid="mock-gameboard">
+                    {/* We use 'p1' and 'p2' because your real component uses those strings */}
+                    <button onClick={() => props.onGameOver('p1')}>Simulate Win</button>
+                    <button onClick={() => props.onGameOver('p2')}>Simulate Loss</button>
+                </div>
+            );
+        }),
+    };
+});
+
+// 2. Mock SidePanel
+vi.mock('../game/SidePanel', () => ({
+    default: () => <div data-testid="mock-sidepanel" />,
+}));
 
 describe('GameScreen Component', () => {
 
@@ -43,9 +48,6 @@ describe('GameScreen Component', () => {
         vi.clearAllMocks();
     });
 
-    /**
-     * Helper para renderizar con parámetros de URL
-     */
     const renderWithParams = (gameId = 'test-game-123', size = '7') => {
         return render(
             <MemoryRouter initialEntries={[`/game/${gameId}/${size}`]}>
@@ -59,52 +61,46 @@ describe('GameScreen Component', () => {
     test('renders board and sidepanel mocks', () => {
         renderWithParams();
 
-        // Si estos fallan, es que los mocks no se están aplicando correctamente
         expect(screen.getByTestId('mock-gameboard')).toBeInTheDocument();
         expect(screen.getByTestId('mock-sidepanel')).toBeInTheDocument();
-        expect(screen.getByText('Game')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /game/i })).toBeInTheDocument();
     });
 
-    test('shows victory message when player 1 wins', async () => {
+    test('shows victory message when player 1 wins', () => {
         renderWithParams();
 
-        // Hacemos click en el botón de nuestro mock
-        fireEvent.click(screen.getByText(/Simulate Win/i));
+        fireEvent.click(screen.getByText('Simulate Win'));
 
-        expect(screen.getByText(/🎉 You win!/i)).toBeInTheDocument();
-        expect(screen.getByText(/Congratulations!/i)).toBeInTheDocument();
+        expect(screen.getByText(/You win/i)).toBeInTheDocument();
+        expect(screen.getByText(/Congratulations/i)).toBeInTheDocument();
     });
 
-    test('shows defeat message when player 2 wins', async () => {
+    test('shows defeat message when player 2 wins', () => {
         renderWithParams();
 
-        // Hacemos click en el botón de nuestro mock
-        fireEvent.click(screen.getByText(/Simulate Loss/i));
+        fireEvent.click(screen.getByText('Simulate Loss'));
 
-        expect(screen.getByText(/😞 You lose!/i)).toBeInTheDocument();
-        expect(screen.getByText(/Better luck next time!/i)).toBeInTheDocument();
+        expect(screen.getByText(/You lose/i)).toBeInTheDocument();
+        expect(screen.getByText(/Better luck next time/i)).toBeInTheDocument();
     });
 
-    test('exit button navigates to the previous page', async () => {
+    test('exit button navigates back', () => {
         renderWithParams();
 
         const exitBtn = screen.getByRole('button', { name: /exit game/i });
         fireEvent.click(exitBtn);
 
-        // Verifica que use navigate(-1) o la ruta que hayas definido
         expect(mockNavigate).toHaveBeenCalledWith(-1);
     });
 
     test('back to menu button works after game over', () => {
         renderWithParams();
 
-        // Simular fin de partida
-        fireEvent.click(screen.getByText(/Simulate Win/i));
+        fireEvent.click(screen.getByText('Simulate Win'));
 
         const backBtn = screen.getByRole('button', { name: /back to menu/i });
         fireEvent.click(backBtn);
 
-        // Verificamos que redirige
         expect(mockNavigate).toHaveBeenCalledWith(-1);
     });
 });

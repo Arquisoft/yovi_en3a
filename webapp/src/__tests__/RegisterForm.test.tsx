@@ -5,7 +5,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest'
 import '@testing-library/jest-dom'
 import { MemoryRouter } from 'react-router-dom'
 
-// Mock useNavigate
+
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
@@ -21,7 +21,7 @@ describe('RegisterForm', () => {
     vi.clearAllMocks()
   })
 
-  // Your existing tests...
+
   test('shows validation error when username is empty', async () => {
     render(<MemoryRouter><RegisterForm /></MemoryRouter>)
     const user = userEvent.setup()
@@ -32,7 +32,7 @@ describe('RegisterForm', () => {
     })
   })
 
-  // New Test: Password Mismatch
+
   test('shows error when passwords do not match', async () => {
     const user = userEvent.setup()
     render(<MemoryRouter><RegisterForm /></MemoryRouter>)
@@ -48,7 +48,7 @@ describe('RegisterForm', () => {
     })
   })
 
-  // New Test: Server Error (e.g., User already exists)
+
   test('displays server error message on failure', async () => {
     const user = userEvent.setup()
 
@@ -71,7 +71,7 @@ describe('RegisterForm', () => {
     })
   })
 
-  // New Test: Success and Redirection
+
   test('submits successfully and navigates to login after delay', async () => {
     const user = userEvent.setup()
 
@@ -93,7 +93,7 @@ describe('RegisterForm', () => {
       expect(screen.getByText(/registration successful!/i)).toBeInTheDocument()
     })
 
-    // Then wait for the navigate to be called (setTimeout 1500ms)
+    // Then wait for the navigate to be called after the delay
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/login')
     }, { timeout: 2000 })
