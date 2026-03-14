@@ -65,7 +65,11 @@ app.use((req, res, next) => {
   next();
 });
 //It enters from /api/xyz and it redirects to xyz
-app.use('/api/users', (req,res) => proxyRequest(USERS_SERVICE_URL, req, res))
+app.use('/api/users', (req, res, next) => {
+    if (req.path.startsWith('/stats')) return authMiddleware(req, res, next);
+    next();
+}, (req, res) => proxyRequest(USERS_SERVICE_URL, req, res))
+
 app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MANAGER_URL, req, res));
 //app.use('/api/gamey', (req,res) => proxyRequest(GAMEY_SERVICE_URL, req, res))
 
