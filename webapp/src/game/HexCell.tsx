@@ -29,9 +29,15 @@ export interface HexCellRef {
 }
 
 const playCellSound = () => {
-    const audio = new Audio("/sounds/cellSound.m4a");
-    audio.volume = 0.5;
-    audio.play().catch(() => {});
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.value = 1000;
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+    osc.start(); osc.stop(ctx.currentTime + 0.03);
 };
 
 const HexCell = forwardRef<HexCellRef, HexCellProps>(({

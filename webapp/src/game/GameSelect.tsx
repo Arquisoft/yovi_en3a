@@ -4,21 +4,16 @@ import "./GameSelect.css";
 
 const useTickSound = () => {
     const playTick = () => {
-        console.log("playTick ejecutado");
-        try {
-            const ctx = new AudioContext();
-            console.log("ctx creado, estado:", ctx.state);
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.setValueAtTime(440, ctx.currentTime);
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.3);
-        } catch(e) {
-            console.error("Error:", e);
-        }
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = 523;
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.start(); osc.stop(ctx.currentTime + 0.35);
     };
     return playTick;
 };
