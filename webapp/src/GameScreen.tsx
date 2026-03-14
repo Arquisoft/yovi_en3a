@@ -4,6 +4,7 @@ import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard from './game/GameBoard';
 import { useParams } from "react-router-dom";
+import { Button } from './components/ui/button';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -78,9 +79,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                 <SidePanel ref={sidePanelRef} />
             </div>
 
-            <button onClick={handleExit}>
-                ← Exit Game
-            </button>
+            <Button variant="destructive" onClick={handleExit}>
+            ← Exit Game
+            </Button>
         </div>
     );
 };
