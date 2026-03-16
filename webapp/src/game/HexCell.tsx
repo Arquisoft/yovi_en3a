@@ -141,6 +141,12 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
+        if (!stateRes.ok) {
+          deselect();
+          return;
+        }
+
         const stateData = await stateRes.json();
         const layoutBefore: string = stateData.yen.layout;
 
@@ -160,7 +166,10 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
         );
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) {
+          deselect();
+          throw new Error(data.error);
+        } 
 
         if (data.status === "won" || data.status === "lost") {
           onGameOver?.(data.status === "won" ? "p1" : "p2");
