@@ -33,10 +33,29 @@ const MenuView: React.FC = () => {
         }
     };
 
+    const handleViewStats = async () => {
+        try {
+            const userId = localStorage.getItem('userId');
+            if (!userId) throw new Error("No user found");
+
+            // Simulamos un pequeño retraso para que el usuario vea el feedback
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            navigate("/stats");
+        } catch (err) {
+            console.error("Error navigating to stats:", err);
+        }
+    };
+
     const options = [
         { label: "Play vs Bot", icon: "🤖", onClick: () => navigate("/select-game") },
         { label: "Multiplayer", icon: "⚔️", path: "/multiplayer" },
-        { label: "History & Stats", icon: "📊", path: "/history" },
+        {
+            label: "History & Stats",
+            icon: "📊",
+            onClick: handleViewStats, // Ahora usa la función asíncrona
+            loadingText: "Fetching stats..."
+        },
         { label: "How to Play", icon: "📖", path: "/how-to-play" },
     ];
 

@@ -6,6 +6,7 @@ import MenuView from './MenuView';
 import GameSelect from './game/GameSelect';
 import './App.css';
 import { GameScreen } from './GameScreen';
+import StatsView from './StatsView';
 
 function App() {
   return (
@@ -23,6 +24,8 @@ function App() {
           <Route path="/menu" element={<MenuView />} />
           <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
 
+          {/* Estadísticas */}
+          <Route path="/stats" element={<StatsView />} />
 
           {/*Panel de juego */}
           <Route path="/game/:gameId/:size" element={<GameScreen />} />
