@@ -90,7 +90,8 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
           <button
             onClick={() => {
               playTick();
-              onBack();
+              if (onBack) onBack();
+              navigate("/menu");
             }}
             className="btn-back"
           >
