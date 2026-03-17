@@ -253,6 +253,12 @@ app.post('/game/:id/move', async (req, res) => {
                     game.markModified('status');
                     await game.save();
                     await updateStats(userId, game.status)
+                    return res.json({
+                        message: 'Game over',
+                        gameId: game._id,
+                        yen: game.yen,
+                        status: game.status,
+                });
                 }
             }
         } else {
