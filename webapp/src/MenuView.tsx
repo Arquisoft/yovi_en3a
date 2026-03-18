@@ -37,7 +37,7 @@ const MenuView: React.FC = () => {
         { label: "Play vs Bot", icon: "🤖", onClick: () => navigate("/select-game") },
         { label: "Multiplayer", icon: "⚔️", path: "/multiplayer" },
         { label: "History & Stats", icon: "📊", path: "/history" },
-        { label: "How to Play", icon: "📖", path: "/how-to-play" },
+        { label: "How to Play", icon: "📖", onClick: () => navigate("/how-to-play") },
     ];
 
     return (

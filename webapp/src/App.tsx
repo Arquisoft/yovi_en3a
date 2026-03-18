@@ -4,6 +4,7 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import MenuView from './MenuView';
 import GameSelect from './game/GameSelect';
+import HowToPlay from "./HowToPlay";
 import './App.css';
 import { GameScreen } from './GameScreen';
 
@@ -23,6 +24,8 @@ function App() {
           <Route path="/menu" element={<MenuView />} />
           <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
 
+            {/* Cómo jugar */}
+            <Route path="/how-to-play" element={<HowToPlay />} />
 
           {/*Panel de juego */}
           <Route path="/game/:gameId/:size" element={<GameScreen />} />
