@@ -1,6 +1,7 @@
 import React, { useRef, forwardRef, useImperativeHandle, useEffect } from "react";
 import HexCell, { type HexCellRef } from "./HexCell";
 import { useParams } from "react-router-dom";
+import HexBackground from "../HexBackGround";
 
 interface Coordinates {
   x: number;
@@ -105,6 +106,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
 
     return (
       <div className="board-skin flex justify-center items-start p-5">
+        <HexBackground opacity={0.7} />
         <div
           className="board-grid"
           style={{

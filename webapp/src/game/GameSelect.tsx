@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameSelect.css";
+import HexBackground from "../HexBackGround";
 
 const useTickSound = () => {
   const playTick = () => {
@@ -85,6 +86,7 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
 
   return (
     <div className="game-select-overlay">
+      <HexBackground opacity={0.7} />
       <div className="game-select-container">
         <header className="game-select-header">
           <button
