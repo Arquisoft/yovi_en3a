@@ -1,0 +1,253 @@
+/* GameSelect.css */
+
+.game-select-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #0f172a;
+    padding: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.game-select-container {
+    width: 100%;
+    max-width: 24rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.game-select-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.game-select-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 0.25rem 0;
+}
+
+.game-select-subtitle {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Botón back */
+.btn-back {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: #9ca3af;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s;
+}
+
+.btn-back:hover {
+    color: white;
+}
+
+/* Standard section */
+.standard-section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+}
+
+/* Tarjeta de modo */
+.mode-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    text-align: left;
+    transition: all 0.2s;
+    border: 1px solid #1f2937;
+    background-color: #111827;
+    color: #9ca3af;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.mode-card:hover:not(:disabled) {
+    border-color: #4b5563;
+    background-color: #1f2937;
+}
+
+.mode-card:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.mode-card-active {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-color: #6366f1;
+    background-color: #1e293b;
+    color: white;
+}
+
+.mode-card-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.mode-card-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.mode-card-label {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #d1d5db;
+}
+
+.mode-card-active .mode-card-label {
+    color: white;
+}
+
+.mode-card-desc {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.mode-card-arrow {
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+/* Panel desplegable */
+.config-panel {
+    padding: 1.25rem;
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    border-left: 1px solid #6366f1;
+    border-right: 1px solid #6366f1;
+    border-bottom: 1px solid #6366f1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background-color: #1e293b;
+    box-sizing: border-box;
+}
+
+.config-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    font-weight: 900;
+    color: #818cf8;
+    margin-bottom: 0.5rem;
+    display: block;
+    letter-spacing: 0.1em;
+}
+
+.size-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.size-option-btn {
+    padding: 0.5rem 0;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    background-color: #0f172a;
+    color: #64748b;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.size-option-btn:hover {
+    border-color: #4b5563;
+    color: #9ca3af;
+}
+
+.size-option-btn.is-selected {
+    background-color: #6366f1;
+    color: white;
+}
+
+.difficulty-dropdown {
+    width: 100%;
+    background-color: #0f172a;
+    color: white;
+    border: 1px solid #374151;
+    padding: 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.difficulty-dropdown:focus {
+    border-color: #6366f1;
+}
+
+.btn-primary-start {
+    width: 100%;
+    background-color: #6366f1;
+    padding: 0.75rem 0;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: white;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    border: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.btn-primary-start:hover:not(:disabled) {
+    background-color: #4f46e5;
+}
+
+.btn-primary-start:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Separador */
+.variant-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    opacity: 0.5;
+}
+
+.divider-line {
+    height: 1px;
+    background-color: #374151;
+    flex: 1;
+}
+
+.divider-text {
+    font-size: 0.625rem;
+    color: #6b7280;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+}
+
+.variants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}

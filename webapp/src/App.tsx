@@ -1,42 +1,37 @@
-import {useState } from 'react';
-import './App.css'
-import RegisterForm from './RegisterForm';
-import LoginForm from './LoginForm';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './Landing';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
 import MenuView from './MenuView';
-
-type AuthScreen = 'landing' | 'login' | 'register' | 'menu';
+import GameSelect from './game/GameSelect';
+import './App.css';
+import { GameScreen } from './GameScreen';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<AuthScreen>('landing');
-  // Para probar el menu sin el login, deberia de estar comentado y la linea superior descomentada
-  //const [currentScreen, setCurrentScreen] = useState<AuthScreen>('menu');
-
   return (
-    <div className="App">
+    <BrowserRouter>
+      <div className="App">
+        <Routes>
+          {/* Ruta inicial */}
+          <Route path="/" element={<Landing />} />
 
-      {currentScreen === 'landing' && (
-        <Landing
-          onSelectLogin={() => setCurrentScreen('login')}
-          onSelectRegister={() => setCurrentScreen('register')}
-        />
-      )}
+          {/* Autenticación */}
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
 
-      {currentScreen === 'login' && (
-        <LoginForm onSwitchToRegister={() => setCurrentScreen('register')}
-          onLoginSuccess={() => setCurrentScreen('menu')}
-        />
-      )}
+          {/* Dashboard y Selección */}
+          <Route path="/menu" element={<MenuView />} />
+          <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
 
-      {currentScreen === 'register' && (
-        <RegisterForm onSwitchToLogin={() => setCurrentScreen('login')} />
-      )}
 
-      {currentScreen === 'menu' && (
-        <MenuView onLogout={() => setCurrentScreen('landing')} />
-      )}
+          {/*Panel de juego */}
+          <Route path="/game/:gameId/:size" element={<GameScreen />} />
 
-    </div>
+          {/* Redirección por defecto si la ruta no existe */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

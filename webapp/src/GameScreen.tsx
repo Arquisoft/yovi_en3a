@@ -1,17 +1,19 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './GameScreen.css';
-import { Button } from './components/ui/button';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard from './game/GameBoard';
 import { useParams } from "react-router-dom";
+import { Button } from './components/ui/button';
 
 interface GameScreenProps {
     onExit?: () => void;
 }
 
-export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {   
-    const { gameId } = useParams();
+export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
+    const { gameId, size } = useParams();
+    const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
+
     const sidePanelRef = useRef<SidePanelRef>(null);
     const [gameOver, setGameOver] = useState<"p1" | "p2" | null>(null);
     const navigate = useNavigate();
@@ -22,23 +24,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     };
 
     return (
-        <div className="game-screen">           
+        <div className="game-screen">
             <header className="game-header">
                 <h1>Game</h1>
             </header>
 
-            {/* Mensaje de fin de juego */}
             {gameOver && (
-                <div style={{
-                    position: "fixed", inset: 0, zIndex: 50,
-                    background: "rgba(0,0,0,0.7)",
-                    display: "flex", flexDirection: "column",
-                    alignItems: "center", justifyContent: "center", gap: "1rem"
-                }}>
-                    <div style={{
-                        background: "#161b22", border: "1px solid #30363d",
-                        borderRadius: "12px", padding: "2rem 3rem", textAlign: "center"
-                    }}>
+                <div
+                    style={{
+                        position: "fixed", inset: 0, zIndex: 50,
+                        background: "rgba(0,0,0,0.7)",
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center", gap: "1rem"
+                    }}
+                >
+                    <div
+                        style={{
+                            background: "#161b22", border: "1px solid #30363d",
+                            borderRadius: "12px", padding: "2rem 3rem", textAlign: "center"
+                        }}
+                    >
                         <h2 style={{ color: "#fff", fontSize: "2rem", marginBottom: "0.5rem" }}>
                             {gameOver === "p1" ? "🎉 You win!" : "😞 You lose!"}
                         </h2>
@@ -62,7 +67,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             <div className="game-container">
                 <main className="game-board-section">
                     <GameBoard
-                        gameId={gameId}
+                        gameIdProp={gameId}
+                        boardSize={boardSize}
                         onCellPlayed={(player, playerName, coordinate) => {
                             sidePanelRef.current?.addMove(player, playerName, coordinate);
                             if (player === "p1") sidePanelRef.current?.incrementTurn();
@@ -74,7 +80,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             </div>
 
             <Button variant="destructive" onClick={handleExit}>
-                ← Exit Game
+            ← Exit Game
             </Button>
         </div>
     );

@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useNavigate } from 'react-router-dom';
 
 
-interface LoginFormProps {
-  onSwitchToRegister: () => void;
-  onLoginSuccess: () => void; // Optional callback for successful login
-}
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSuccess }) => {
+const LoginForm: React.FC = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
@@ -25,14 +23,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSucces
       const loginData = { username: usernameToLogin, password: passwordToLogin };
 
       const res = await fetch(`${gatewayUrl}/api/users/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginData)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData)
       });
 
       const data = await res.json();
       if (res.ok) {
-        
+
         localStorage.setItem('token', data.token);
         localStorage.setItem('userId', data.userId);
 
@@ -42,7 +40,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSucces
 
         // Esperamos un segundo para que el usuario vea el mensaje de éxito y luego saltamos
         setTimeout(() => {
-          onLoginSuccess();
+          navigate('/menu');
         }, 1000);
       } else {
         setError(data.error || 'Server error');
@@ -120,7 +118,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onLoginSucces
           Don't have an account?{' '}
           <button
             type="button"
-            onClick={onSwitchToRegister}
+            onClick={() => navigate('/register')}
             className="link-button"
 
           >

@@ -18,6 +18,8 @@ const MockStats = vi.fn().mockImplementation(function() {
   this.save = vi.fn().mockResolvedValue(true)
 })
 globalThis.MockStats = MockStats
+MockStats.findOne = vi.fn()
+MockStats.find = vi.fn()
 
 const userPath = require.resolve('./models/user.js')
 require.cache[userPath] = { id: userPath, filename: userPath, loaded: true, exports: MockUser }

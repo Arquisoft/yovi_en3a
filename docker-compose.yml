@@ -26,8 +26,6 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-    ports:
-      - "3000:3000"
     networks:
       - monitor-net
 
@@ -38,6 +36,7 @@ services:
     environment:
       - MONGODB_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/gamesdb?authSource=admin
       - GAMEY_SERVICE_URL=http://gamey:4000
+      - USERS_SERVICE_URL=http://users:3000
     depends_on:
       mongodb:
         condition: service_healthy
