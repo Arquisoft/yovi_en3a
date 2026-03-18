@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HexBackground from "./HexBackGround";
 import "./game/GameSelect.css";
+import { motion } from "framer-motion";
 
 
 const MenuView: React.FC = () => {

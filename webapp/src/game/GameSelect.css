@@ -68,7 +68,8 @@
     align-items: center;
     gap: 1rem;
     width: 100%;
-    padding: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
+    min-height: 4rem;
     border-radius: 0.75rem;
     text-align: left;
     transition: all 0.2s;

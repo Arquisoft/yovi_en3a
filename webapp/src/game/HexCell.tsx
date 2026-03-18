@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
 interface Coordinates {
   x: number;
@@ -82,6 +82,14 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
     const [selected, setSelected] = useState(initialSelected);
     const [cellOwner, setCellOwner] = useState<"none" | "p1" | "p2">(owner);
 
+    // Actualiza el color cuando cambia de dueño, si no al recargar las casillas no se colorean
+    useEffect(() => {
+      if (owner !== "none") {
+        setCellOwner(owner);
+        setSelected(true);
+      }
+    }, [owner]);
+
     const chosen = colors[cellOwner];
 
     function selectByPlayer() {
@@ -141,6 +149,12 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
             headers: { Authorization: `Bearer ${token}` },
           }
         );
+
+        if (!stateRes.ok) {
+          deselect();
+          return;
+        }
+
         const stateData = await stateRes.json();
         const layoutBefore: string = stateData.yen.layout;
 
@@ -160,7 +174,10 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
         );
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        if (!res.ok) {
+          deselect();
+          throw new Error(data.error);
+        }
 
         if (data.status === "won" || data.status === "lost") {
           onGameOver?.(data.status === "won" ? "p1" : "p2");

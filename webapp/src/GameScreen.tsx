@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard from './game/GameBoard';
 import { useParams } from "react-router-dom";
 import { Button } from './components/ui/button';
+import { gatewayUrl } from './lib/config';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -17,6 +18,42 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const sidePanelRef = useRef<SidePanelRef>(null);
     const [gameOver, setGameOver] = useState<"p1" | "p2" | null>(null);
     const navigate = useNavigate();
+
+    // Antes que nada se comprueba si gamemanager devuelve error 401 o 403, de ser así se vuelve al menu
+    useEffect(() => {
+        if (!gameId) return;
+        const token = localStorage.getItem('token');
+        fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        }).then(res => {
+            // 401: usuarios sin authenticar
+            // 403: usuario registrado, pero no es su partida
+            if (res.status === 401 || res.status === 403) {
+                navigate('/menu');
+            }
+        }).catch(() => {
+            navigate('/menu');
+        });
+    }, [gameId, navigate]);
+
+    useEffect(() => {
+        let audio: HTMLAudioElement | null = null;
+        try {
+            audio = new Audio("/sounds/gameMusic.wav");
+            audio.loop = true;
+            audio.volume = 0.4;
+            audio.play().catch(() => {});
+        } catch {
+            // Audio not available in test environment
+        }
+
+        return () => {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        };
+    }, []);
 
     const handleExit = () => {
         if (onExit) onExit();
@@ -57,7 +94,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             </div>
 
             <Button variant="destructive" onClick={handleExit}>
-            ← Exit Game
+                ← Exit Game
             </Button>
         </div>
     );
