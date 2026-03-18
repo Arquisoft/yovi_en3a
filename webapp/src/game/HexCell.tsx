@@ -1,4 +1,4 @@
-import React, { useState, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
 interface Coordinates {
   x: number;
@@ -81,6 +81,14 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
   ) => {
     const [selected, setSelected] = useState(initialSelected);
     const [cellOwner, setCellOwner] = useState<"none" | "p1" | "p2">(owner);
+
+    // Actualiza el color cuando cambia de dueño, si no al recargar las casillas no se colorean
+    useEffect(() => {
+      if (owner !== "none") {
+        setCellOwner(owner);
+        setSelected(true);
+      }
+    }, [owner]);
 
     const chosen = colors[cellOwner];
 
