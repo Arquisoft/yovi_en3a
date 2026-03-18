@@ -141,10 +141,20 @@ app.post('/create/:gameName', async (req, res) => {
 
 // Get game state
 app.get('/state/:id', async (req, res) => {
+     const userId = req.headers['x-user-id'];
+    
     try {
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });  
+        }   
+
         const game = await Game.findById(req.params.id);
         if (!game) {
             return res.status(404).json({ error: 'Game not found' });
+        }
+
+        if (game.userId.toString() !== userId) {
+            return res.status(403).json({ error: 'Forbidden' });
         }
 
         res.json({

@@ -176,8 +176,11 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
         const data = await res.json();
         if (!res.ok) {
           deselect();
+          {
+          deselect();
           throw new Error(data.error);
         }
+        } 
 
         if (data.status === "won" || data.status === "lost") {
           onGameOver?.(data.status === "won" ? "p1" : "p2");
