@@ -2,6 +2,7 @@ import React, { useRef, forwardRef, useImperativeHandle, useEffect, useState } f
 import HexCell, { type HexCellRef } from "./HexCell";
 import { useParams } from "react-router-dom";
 import { gatewayUrl } from "../lib/config";
+import HexBackground from "../HexBackGround";
 
 interface Coordinates {
   x: number;
@@ -72,8 +73,8 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
 
     // Almacena el dueño de cada casilla cuando se carga desde el backend
     const [initialOwners, setInitialOwners] = useState<Map<string, "p1" | "p2">>(new Map());
- 
-    // Obtiene el estado de la partidadel backend y lo restaura
+
+    // Obtiene el estado de la partida del backend y lo restaura
     useEffect(() => {
       if (!gameId) return;
       const token = localStorage.getItem("token");
@@ -128,27 +129,9 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
       }
     };
 
-    useEffect(() => {
-      let audio: HTMLAudioElement | null = null;
-      try {
-        audio = new Audio("/sounds/gameMusic.wav");
-        audio.loop = true;
-        audio.volume = 0.4;
-        audio.play().catch(() => {});
-      } catch {
-        // Audio not available in test environment
-      }
-
-      return () => {
-        if (audio) {
-          audio.pause();
-          audio.currentTime = 0;
-        }
-      };
-    }, []);
-
     return (
       <div className="board-skin flex justify-center items-start p-5">
+        <HexBackground opacity={0.7} />
         <div
           className="board-grid"
           style={{
@@ -162,7 +145,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
             const col = coord.y;
             const pos = getHexPosition(row, col);
             const key = `${coord.x}-${coord.y}-${coord.z}`;
-            const savedOwner = initialOwners.get(key) ?? "none";  // Si la casilla ha sido activada (para volver a pintarla)
+            const savedOwner = initialOwners.get(key) ?? "none";
 
             return (
               <div
@@ -177,7 +160,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
                 <HexCell
                   ref={(el) => {
                     if (el) {
-                       cellRefs.current.set(key, el); 
+                      cellRefs.current.set(key, el);
                     }
                   }}
                   size={cellSize}

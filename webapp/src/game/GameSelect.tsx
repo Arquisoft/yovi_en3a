@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GameSelect.css";
+import HexBackground from "../HexBackGround";
+import { gatewayUrl } from "../lib/config";
+import { motion } from "framer-motion";
 
 const useTickSound = () => {
   const playTick = () => {
@@ -45,10 +48,6 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
   const [difficulty, setDifficulty] = useState("random_bot");
 
   const navigate = useNavigate();
-  const gatewayUrl =
-    typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL
-      ? import.meta.env.VITE_API_URL
-      : "http://localhost:8000";
 
   const handleSelect = async (
     gameId: string,
@@ -85,7 +84,14 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
 
   return (
     <div className="game-select-overlay">
-      <div className="game-select-container">
+      <HexBackground opacity={0.7} />
+      <motion.div
+          className="game-select-container"
+          initial={{ opacity: 0, x: 80 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -80 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+      >
         <header className="game-select-header">
           <button
             onClick={() => {
@@ -194,7 +200,7 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

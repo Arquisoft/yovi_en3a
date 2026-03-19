@@ -36,6 +36,25 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         });
     }, [gameId, navigate]);
 
+    useEffect(() => {
+        let audio: HTMLAudioElement | null = null;
+        try {
+            audio = new Audio("/sounds/gameMusic.wav");
+            audio.loop = true;
+            audio.volume = 0.4;
+            audio.play().catch(() => {});
+        } catch {
+            // Audio not available in test environment
+        }
+
+        return () => {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        };
+    }, []);
+
     const handleExit = () => {
         if (onExit) onExit();
         else navigate(-1);
@@ -48,34 +67,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             </header>
 
             {gameOver && (
-                <div
-                    style={{
-                        position: "fixed", inset: 0, zIndex: 50,
-                        background: "rgba(0,0,0,0.7)",
-                        display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center", gap: "1rem"
-                    }}
-                >
-                    <div
-                        style={{
-                            background: "#161b22", border: "1px solid #30363d",
-                            borderRadius: "12px", padding: "2rem 3rem", textAlign: "center"
-                        }}
-                    >
-                        <h2 style={{ color: "#fff", fontSize: "2rem", marginBottom: "0.5rem" }}>
-                            {gameOver === "p1" ? "🎉 You win!" : "😞 You lose!"}
-                        </h2>
-                        <p style={{ color: "#8b949e", marginBottom: "1.5rem" }}>
-                            {gameOver === "p1" ? "Congratulations!" : "Better luck next time!"}
-                        </p>
-                        <button
-                            onClick={handleExit}
-                            style={{
-                                background: "#238636", color: "#fff", border: "none",
-                                borderRadius: "8px", padding: "0.75rem 2rem",
-                                fontSize: "1rem", cursor: "pointer"
-                            }}
-                        >
+                <div className="game-over-overlay">
+                    <div className="game-over-card">
+                        <h2>{gameOver === "p1" ? "🎉 You win!" : "😞 You lose!"}</h2>
+                        <p>{gameOver === "p1" ? "Congratulations!" : "Better luck next time!"}</p>
+                        <button className="game-over-btn" onClick={handleExit}>
                             Back to Menu
                         </button>
                     </div>
@@ -98,7 +94,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             </div>
 
             <Button variant="destructive" onClick={handleExit}>
-            ← Exit Game
+                ← Exit Game
             </Button>
         </div>
     );
