@@ -21,8 +21,8 @@ import {
 interface UserStats {
     userId: string;
     gamesPlayed: number;
-    wins: number;      // Antes era gamesWon
-    losses: number;    // Antes era gamesLost
+    wins: number;
+    losses: number;
     winRate: number;
 }
 
