@@ -15,7 +15,6 @@ app.use(metricsMiddleware);
 const mongoose = require("mongoose")
 const User = require("./models/user")
 const Stats = require("./models/stats");
-const stats = require('./models/stats');
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/userdb"
 const connectToMongoDB = async () => {
@@ -185,12 +184,12 @@ app.post('/stats/update', async(req,res) => {
   }
 
   if(!['won', 'lost', 'resigned'].includes(result)){
-    return res.status(401).json({error: "result is not valid"})
+    return res.status(400).json({error: "result is not valid"})
   }
 
   try{
     if(!mongoose.Types.ObjectId.isValid(userId)){
-      return res.status(401).json({error: "Invalid userId"})
+      return res.status(400).json({error: "Invalid userId"})
     }
 
     const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
