@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import App from "./App";
 import { GameScreen } from "./GameScreen";
 import GameSelect from "./game/GameSelect";
+import HowToPlay from "./HowToPlay";
+
 
 function GameSelectWrapper() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export default function RoutesWrapper() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
+        <Route path="/how-to-play" element={<HowToPlay />} />
         <Route path="/select-game" element={<GameSelectWrapper />} />
         <Route path="/game/:gameId" element={<GameScreen />} />
       </Routes>

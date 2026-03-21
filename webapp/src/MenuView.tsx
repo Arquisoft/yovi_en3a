@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import HexBackground from "./HexBackGround";
+import "./game/GameSelect.css";
+import { motion } from "framer-motion";
 
 
 const MenuView: React.FC = () => {
@@ -60,57 +63,51 @@ const MenuView: React.FC = () => {
     ];
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
-            <div className="w-full max-w-sm">
-                <div className="text-center mb-8">
-                    <h1 className="text-5xl font-bold text-white mb-1">Game Y</h1>
-                    <p className="text-gray-400 text-sm">Choose an option to continue</p>
+        <div className="game-select-overlay">
+            <HexBackground opacity={0.7} />
+            <div className="game-select-container" style={{ maxWidth: "20rem" }}>
+                <div className="game-select-header">
+                    <h1 className="game-select-title">Game Y</h1>
+                    <p className="game-select-subtitle">Choose an option to continue</p>
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="variants-list">
                     {options.map((item) => (
                         <button
                             key={item.label}
-                            onMouseEnter={() => setHovered(item.label)}
-                            onMouseLeave={() => setHovered(null)}
                             onClick={() => item.onClick ? item.onClick() : navigate(item.path!)}
                             disabled={loading && item.label === "Play vs Bot"}
-                            className="flex items-center gap-3 w-full px-5 py-4 rounded-lg text-left transition-all duration-150"
-                            style={{
-                                background: hovered === item.label ? "#1e293b" : "#111827",
-                                border: `1px solid ${hovered === item.label ? "#6366f1" : "#1f2937"}`,
-                                color: hovered === item.label ? "#fff" : "#9ca3af",
-                                opacity: loading && item.label === "Play vs Bot" ? 0.6 : 1,
-                            }}
+                            className="mode-card"
                         >
-                            <span className="text-xl">{item.icon}</span>
-                            <span className="font-medium text-base">
-                                {loading && item.label === "Play vs Bot" ? "Creating game..." : item.label}
-                            </span>
+                            <span className="mode-card-icon">{item.icon}</span>
+                            <div className="mode-card-info">
+                                <span className="mode-card-label">
+                                    {loading && item.label === "Play vs Bot" ? "Creating game..." : item.label}
+                                </span>
+                            </div>
+                            <span className="mode-card-arrow">→</span>
                         </button>
                     ))}
 
-                    <div className="border-t border-gray-800 my-1" />
+                    <div className="variant-divider">
+                        <div className="divider-line" />
+                    </div>
 
                     <button
-                        onMouseEnter={() => setHovered("logout")}
-                        onMouseLeave={() => setHovered(null)}
+                        className="mode-card"
                         onClick={() => {
-
                             localStorage.removeItem('token');
                             localStorage.removeItem('userId');
-
-
                             navigate('/');
                         }}
-                        className="w-full py-3 rounded-lg font-medium text-sm transition-all duration-150"
-                        style={{
-                            background: "transparent",
-                            border: `1px solid ${hovered === "logout" ? "#ef4444" : "#374151"}`,
-                            color: hovered === "logout" ? "#ef4444" : "#6b7280",
-                        }}
+                        style={{ borderColor: "rgba(239,68,68,0.2)", color: "#ef4444" }}
+                        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)")}
+                        onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)")}
                     >
-                        Log Out
+                        <span className="mode-card-icon">⏻</span>
+                        <div className="mode-card-info">
+                            <span className="mode-card-label" style={{ color: "#ef4444" }}>Log Out</span>
+                        </div>
                     </button>
                 </div>
             </div>

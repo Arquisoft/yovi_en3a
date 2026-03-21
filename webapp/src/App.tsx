@@ -4,6 +4,7 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import MenuView from './MenuView';
 import GameSelect from './game/GameSelect';
+import HowToPlay from "./HowToPlay";
 import './App.css';
 import { GameScreen } from './GameScreen';
 import StatsView from './StatsView';
@@ -23,6 +24,9 @@ function App() {
           {/* Dashboard y Selección */}
           <Route path="/menu" element={<MenuView />} />
           <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
+
+          {/* Cómo jugar */}
+          <Route path="/how-to-play" element={<HowToPlay />} />
 
           {/* Estadísticas */}
           <Route path="/stats" element={<StatsView />} />
