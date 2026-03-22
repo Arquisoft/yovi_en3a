@@ -7,6 +7,8 @@ import GameSelect from './game/GameSelect';
 import HowToPlay from "./HowToPlay";
 import './App.css';
 import { GameScreen } from './GameScreen';
+import StatsView from './StatsView';
+import RankingView from './RankingView';
 
 function App() {
   return (
@@ -24,8 +26,14 @@ function App() {
           <Route path="/menu" element={<MenuView />} />
           <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
 
-            {/* Cómo jugar */}
-            <Route path="/how-to-play" element={<HowToPlay />} />
+          {/* Cómo jugar */}
+          <Route path="/how-to-play" element={<HowToPlay />} />
+
+          {/* Estadísticas */}
+          <Route path="/stats" element={<StatsView />} />
+
+          {/* Ranking */}
+          <Route path="/ranking" element={<RankingView />} />
 
           {/*Panel de juego */}
           <Route path="/game/:gameId/:size" element={<GameScreen />} />

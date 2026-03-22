@@ -86,17 +86,18 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
     <div className="game-select-overlay">
       <HexBackground opacity={0.7} />
       <motion.div
-          className="game-select-container"
-          initial={{ opacity: 0, x: 80 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -80 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+        className="game-select-container"
+        initial={{ opacity: 0, x: 80 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -80 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
       >
         <header className="game-select-header">
           <button
             onClick={() => {
               playTick();
-              onBack();
+              if (onBack) onBack();
+              navigate("/menu");
             }}
             className="btn-back"
           >
