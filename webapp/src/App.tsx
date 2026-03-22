@@ -8,6 +8,7 @@ import HowToPlay from "./HowToPlay";
 import './App.css';
 import { GameScreen } from './GameScreen';
 import StatsView from './StatsView';
+import RankingView from './RankingView';
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
 
           {/* Estadísticas */}
           <Route path="/stats" element={<StatsView />} />
+
+          {/* Ranking */}
+          <Route path="/ranking" element={<RankingView />} />
 
           {/*Panel de juego */}
           <Route path="/game/:gameId/:size" element={<GameScreen />} />

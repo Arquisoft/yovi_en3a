@@ -59,6 +59,11 @@ const MenuView: React.FC = () => {
             onClick: handleViewStats, // Ahora usa la función asíncrona
             loadingText: "Fetching stats..."
         },
+        {
+            label: "Global Ranking",
+            icon: "🏆",
+            path: "/ranking"
+        },
         { label: "How to Play", icon: "📖", path: "/how-to-play" },
     ];
 
