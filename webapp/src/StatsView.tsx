@@ -18,6 +18,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { motion } from "framer-motion";
+import HexBackground from './HexBackGround';
 
 interface UserStats {
     userId: string;
@@ -115,7 +116,9 @@ const StatsView: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#0d1117] text-white p-4 md:p-8">
 
-            <div className="max-w-5xl mx-auto">
+            <HexBackground />
+
+            <div className="max-w-5xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
 
                 {/* Header Navigation */}
                 <div className="flex items-center gap-4 mb-10">
