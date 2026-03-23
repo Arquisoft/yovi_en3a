@@ -275,43 +275,6 @@ impl MediumBot {
     }
 
     /*
-        Groups the cells owned by `player` into connected components (islets).
-        Uses BFS so each cell is visited at most once — O(n) overall.
-        The result is used by player_score to collect all owned cells in one slice.
-    */
-    fn separate_into_islets(&self, board: &GameY, player: PlayerId) -> Vec<Vec<Coordinates>> {
-        let player_cells: HashSet<Coordinates> = (0..board.total_cells())
-            .map(|idx| Coordinates::from_index(idx, board.board_size()))
-            .filter(|coord| board.get_cell_owner(coord) == Some(player))
-            .collect();
-
-        let mut visited: HashSet<Coordinates> = HashSet::new();
-        let mut islets: Vec<Vec<Coordinates>> = Vec::new();
-
-        for &cell in &player_cells {
-            if visited.contains(&cell) {
-                continue;
-            }
-            let mut islet = Vec::new();
-            let mut queue = VecDeque::new();
-            queue.push_back(cell);
-            visited.insert(cell);
-
-            while let Some(current) = queue.pop_front() {
-                islet.push(current);
-                for neighbor in board.get_neighbors(&current) {
-                    if player_cells.contains(&neighbor) && visited.insert(neighbor) {
-                        queue.push_back(neighbor);
-                    }
-                }
-            }
-            islets.push(islet);
-        }
-
-        islets
-    }
-
-    /*
         Returns the set of all cells that `player` can traverse:
         cells that are either empty or already owned by `player`.
         Opponent-owned cells are excluded since they block the player's paths.
