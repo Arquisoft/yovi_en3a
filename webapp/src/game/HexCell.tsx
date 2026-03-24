@@ -127,6 +127,7 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
 
     const handleClick = async () => {
       if (selected || cellOwner !== "none" || !gameId || !coordinates) return;
+      if (disabled) return;  
 
       selectByPlayer();
       onCellPlayed?.("p1", "Player 1", name);

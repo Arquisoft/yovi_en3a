@@ -129,6 +129,16 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
       }
     };
 
+    //Board locked when a player makes a move and the bot hasn't responded yet.
+    const [locked, setLocked] = useState(false);
+
+    // Wrap onCellPlayed to control locking
+    const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
+       if (player === "p1") setLocked(true); // Lock board after player move
+       if (player === "p2") setLocked(false); // Unlock board after bot move
+       onCellPlayed?.(player, playerName, coordinate);
+    };
+
     return (
       <div className="board-skin flex justify-center items-start p-5">
         <HexBackground opacity={0.7} />
@@ -170,7 +180,7 @@ const GameBoard = forwardRef<GameBoardRef, GameBoardProps>(
                   disabled={false}
                   coordinates={coord}
                   onRequestSelectCell={handleRequestSelectCell}
-                  onCellPlayed={onCellPlayed}
+                  onCellPlayed={handleCellPlayed}
                   gameId={gameId}
                   onGameOver={onGameOver}
                 />
