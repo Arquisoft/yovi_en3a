@@ -15,6 +15,7 @@ app.use(metricsMiddleware);
 const mongoose = require("mongoose")
 const User = require("./models/user")
 const Stats = require("./models/stats");
+const History = require("./models/history");
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/userdb"
 const connectToMongoDB = async () => {
@@ -280,6 +281,68 @@ app.get('/stats/:userId', async(req,res) => {
     res.status(500).json({error: err.message})
   }
 })
+
+// Adds a history to the user for a completed match
+app.post('/history/add', async (req, res) => {
+  const { userId, result, botId, boardSize, gameType } = req.body;
+ 
+  if (!userId) {
+    return res.status(400).json({ error: "userId is mandatory" });
+  }
+  if (!result || !['won', 'lost', 'resigned'].includes(result)) {
+    return res.status(400).json({ error: "result must be 'won', 'lost' or 'resigned'" });
+  }
+  if (!botId || !['random_bot', 'beginner_bot', 'medium_bot'].includes(botId)) {
+    return res.status(400).json({ error: "botId must be 'random_bot', 'beginner_bot' or 'medium_bot'" });
+  }
+  if (boardSize === undefined || boardSize === null) {
+    return res.status(400).json({ error: "boardSize is mandatory" });
+  }
+  if (!gameType) {
+    return res.status(400).json({ error: "gameType is mandatory" });
+  }
+ 
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+ 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+ 
+    const entry = new History({ userId, result, botId, boardSize, gameType });
+    await entry.save();
+ 
+    res.status(201).json({ message: "History entry created successful", entry });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Returrs the match history of a user given its ID
+app.get('/history/:userId', async (req, res) => {
+  const userId = req.params.userId;
+ 
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+ 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+ 
+    const history = await History.find({ userId: new mongoose.Types.ObjectId(userId) })
+      .sort({ playedAt: -1 });  // Sorts them by most recent first
+ 
+    res.json({ history });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 if (require.main === module) {
   connectToMongoDB()
