@@ -74,7 +74,7 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      navigate(`/game/${data.gameId}/${size}`);
+      navigate(`/game/${data.gameId}/${size}/${gameId}`);
     } catch (err) {
       console.error("Error creating game:", err);
     } finally {

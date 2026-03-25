@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+/*import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import App from "./App";
 import { GameScreen } from "./GameScreen";
 import GameSelect from "./game/GameSelect";
@@ -23,8 +23,8 @@ export default function RoutesWrapper() {
         <Route path="/menu" element={<App />} />
         <Route path="/how-to-play" element={<HowToPlay />} />
         <Route path="/select-game" element={<GameSelectWrapper />} />
-        <Route path="/game/:gameId" element={<GameScreen />} />
+        <Route path="/game/:gameId/:size/:gameType" element={<GameScreen />} />
       </Routes>
     </BrowserRouter>
   );
-}
+}*/

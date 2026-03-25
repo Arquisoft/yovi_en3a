@@ -10,32 +10,6 @@ const MenuView: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-
-    const handlePlayVsBot = async () => {
-        setLoading(true);
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${gatewayUrl}/api/game-manager/create/standard`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ botId: 'random_bot', boardSize: 7 })
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-
-            navigate(`/game/${data.gameId}`); // pasamos el gameId por la URL
-        } catch (err) {
-            console.error("Error creating game:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const options = [
         { label: "Play vs Bot", icon: "🤖", onClick: () => navigate("/select-game") },
         { label: "Multiplayer", icon: "⚔️", path: "/multiplayer" },

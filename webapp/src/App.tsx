@@ -24,11 +24,11 @@ function App() {
           <Route path="/menu" element={<MenuView />} />
           <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
 
-            {/* Cómo jugar */}
-            <Route path="/how-to-play" element={<HowToPlay />} />
+          {/* Cómo jugar */}
+          <Route path="/how-to-play" element={<HowToPlay />} />
 
           {/*Panel de juego */}
-          <Route path="/game/:gameId/:size" element={<GameScreen />} />
+          <Route path="/game/:gameId/:size/:gameType" element={<GameScreen />} />
 
           {/* Redirección por defecto si la ruta no existe */}
           <Route path="*" element={<Navigate to="/" />} />
