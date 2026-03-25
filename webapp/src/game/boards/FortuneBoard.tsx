@@ -73,7 +73,7 @@ const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
     const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
        if (player === "p1") setLocked(true); // Lock board after player move
        if (player === "p2") setLocked(false); // Unlock board after bot move
-       onCellPlayed?.(player, playerName, coordinate);
+       if(!locked) onCellPlayed?.(player, playerName, coordinate);
     };
 
     return (
