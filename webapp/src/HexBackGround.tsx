@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 interface HexBackgroundProps {
-  opacity?: number; // multiplicador global de opacidad (default 1)
+  opacity?: number;
 }
 
 const HexBackground: React.FC<HexBackgroundProps> = ({ opacity = 1 }) => {
@@ -56,7 +56,9 @@ const HexBackground: React.FC<HexBackgroundProps> = ({ opacity = 1 }) => {
               Math.pow((cy - canvas.height * 0.5) / canvas.height, 2)
           );
           const pulse = Math.sin(t - dist * 6) * 0.5 + 0.5;
-          const alpha = pulse * 0.12 + 0.03;
+          // base alpha sube de 0.03 a 0.07, y el pulso de 0.12 a 0.15
+          // sin fade por distancia → bordes igual de visibles que el centro
+          const alpha = pulse * 0.15 + 0.07;
           drawHex(cx, cy, hexR * 0.88, alpha);
         }
       }
@@ -73,28 +75,27 @@ const HexBackground: React.FC<HexBackgroundProps> = ({ opacity = 1 }) => {
 
   return (
     <>
-      {/* Canvas hex grid */}
       <canvas
-    ref={canvasRef}
-    style={{
-        position: "fixed",  // ← cambia absolute por fixed
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none",
-        zIndex: 0,
-    }}
-    />
-    <div
-    style={{
-        position: "fixed",  // ← también este
-        inset: 0,
-        pointerEvents: "none",
-        zIndex: 0,
-        background:
-        "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(30,20,80,0.6) 0%, transparent 70%)",
-    }}
-    />
+        ref={canvasRef}
+        style={{
+          position: "fixed",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 0,
+          background:
+            "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(30,20,80,0.45) 0%, transparent 100%)",
+        }}
+      />
     </>
   );
 };
