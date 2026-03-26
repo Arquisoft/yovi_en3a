@@ -137,7 +137,7 @@ const LoginForm: React.FC = () => {
             marginTop: '0.5rem',
           }}
         >
-          {loading ? 'Logging in…' : 'Log In'}
+          {loading ? 'Logging in…' : 'Login'}
         </Button>
 
         {responseMessage && (
