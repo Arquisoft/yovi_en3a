@@ -32,7 +32,7 @@ pub use version::*;
 use tower_http::cors::{CorsLayer, Any};
 use axum::http::{HeaderValue, Method};
 
-use crate::{GameYError, RandomBot, BeginnerBot, MediumBot, YBotRegistry, state::AppState, game};
+use crate::{GameYError, RandomBot, BeginnerBot, MediumBot, YBotRegistry, state::AppState};
 
 /// Creates the Axum router with the given state.
 ///
