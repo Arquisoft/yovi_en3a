@@ -99,7 +99,7 @@ describe('LoginForm', () => {
         render(<MemoryRouter><LoginForm /></MemoryRouter>)
 
         await waitFor(async () => {
-            await user.click(screen.getByRole('button', { name: /register here/i }))
+            await user.click(screen.getByRole('button', { name: /sign up/i }))
             expect(mockNavigate).toHaveBeenCalledWith('/register')
         })
     })
