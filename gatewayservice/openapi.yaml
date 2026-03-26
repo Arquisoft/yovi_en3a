@@ -11,9 +11,17 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+tags:
+  - name: Users
+    description: User management and authentication
+  - name: Gamey
+    description: Bot and game logic implemented in Rust
+
 paths:
   /api/users/register:
     post:
+      tags:
+        - Users
       summary: Register a new user
       requestBody:
         required: true
@@ -48,6 +56,8 @@ paths:
 
   /api/users/login:
     post:
+      tags:
+        - Users
       summary: Login
       requestBody:
         required: true
@@ -82,6 +92,8 @@ paths:
 
   /api/users/stats/{userId}:
     get:
+      tags:
+        - Users
       summary: Get personal stats
       security:
         - bearerAuth: []
@@ -101,6 +113,8 @@ paths:
 
   /api/users/stats/ranking:
     get:
+      tags:
+        - Users
       summary: Get global ranking
       security:
         - bearerAuth: []
@@ -120,6 +134,8 @@ paths:
 
   /api/game-manager/create/{gameName}:
     post:
+      tags:
+        - Users
       summary: Create a new game
       security:
         - bearerAuth: []
@@ -151,6 +167,8 @@ paths:
 
   /api/game-manager/state/{id}:
     get:
+      tags:
+        - Users
       summary: Get game state
       security:
         - bearerAuth: []
@@ -172,6 +190,8 @@ paths:
 
   /api/game-manager/list:
     get:
+      tags:
+        - Users
       summary: List user games
       security:
         - bearerAuth: []
@@ -183,6 +203,8 @@ paths:
 
   /api/game-manager/game/{id}/move:
     post:
+      tags:
+        - Users
       summary: Make a move
       security:
         - bearerAuth: []
@@ -221,6 +243,8 @@ paths:
 
   /api/game-manager/game/{id}/resign:
     post:
+      tags:
+        - Users
       summary: Resign a game
       security:
         - bearerAuth: []
@@ -241,3 +265,56 @@ paths:
           description: Forbidden
         '404':
           description: Game not found
+
+  /api/gamey/play:
+    post:
+      tags:
+        - Gamey
+      summary: Get bot move
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [size, turn, players, layout, botId]
+              properties:
+                botId:
+                  type: string
+                  enum: [random_bot, beginner_bot, medium_bot]
+                  default: random_bot
+                size:
+                  type: integer
+                  example: 7
+                turn:
+                  type: integer
+                  example: 0
+                  description: Index of the player to move (0 or 1)
+                players:
+                  type: array
+                  items:
+                    type: string
+                  example: ["B", "R"]
+                layout:
+                  type: string
+                  example: "B/BR/.R."
+                  description: Rows separated by '/', cells as player symbols or '.' for empty
+      responses:
+        '200':
+          description: Bot move coordinates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coords:
+                    type: object
+                    properties:
+                      x:
+                        type: integer
+                      y:
+                        type: integer
+        '400':
+          description: Missing layout or size
+        '500':
+          description: Gamey service error

@@ -75,7 +75,7 @@ app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MAN
 
 // Used for playing against the desired bot of our game
 app.post('/api/gamey/play', async (req, res) => {
-    const { botId = 'random_bot', ...yen } = req.body;
+    const { botId = 'medium_bot', ...yen } = req.body;
 
     if (!yen.layout || !yen.size) {
         return res.status(400).json({ error: 'yen (layout, size) is required' });
