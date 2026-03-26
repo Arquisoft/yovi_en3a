@@ -16,6 +16,12 @@ export interface GameBoardRef {
   selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => boolean;
 }
 
+export interface GameLogicOptions {
+  onBeforeMove?: () => boolean;
+  onAfterPlayerMove?: (coord: Coordinates) => void;
+  onAfterBotMove?: (coord: Coordinates) => void;
+}
+
 export const parseLayout = (layout: string, boardSize: number): Map<string, "p1" | "p2"> => {
   const occupied = new Map<string, "p1" | "p2">();
   const rows = layout.split("/");
