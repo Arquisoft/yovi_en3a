@@ -1,4 +1,4 @@
-import { useState } from "react";
+/*import { useState } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 
@@ -29,4 +29,4 @@ export const usePolyLogic = (
   });
 
   return { ...logic, corners };
-};
+};*/

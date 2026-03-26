@@ -1,4 +1,4 @@
-import { useState } from "react";
+/*import { useState } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps, type Coordinates } from "../boards/Types";
 
@@ -28,4 +28,4 @@ export const useTabuLogic = (
   tabuCells.forEach((key) => highlightCells.set(key, "#ef4444"));
 
   return { ...logic, tabuCells, highlightCells };
-};
+};*/

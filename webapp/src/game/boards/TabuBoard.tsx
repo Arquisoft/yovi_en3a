@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+/*import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
 import { useTabuLogic } from "../hooks/useTabuLogic";
 import HexGrid from "../HexGrid";
@@ -47,4 +47,4 @@ const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
 );
 
 TabuBoard.displayName = "TabuBoard";
-export default TabuBoard;
+export default TabuBoard;*/

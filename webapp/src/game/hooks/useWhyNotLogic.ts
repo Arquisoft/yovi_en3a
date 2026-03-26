@@ -1,4 +1,4 @@
-import { useGameLogic } from "./useGameLogic";
+/*import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 
 // WhyNot: el primero que conecta las tres aristas PIERDE
@@ -18,4 +18,4 @@ export const useWhyNotLogic = (
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, invertedOnGameOver);
 
   return { ...logic };
-};
+};*/

@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+/*import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
 import { useFortuneLogic } from "../hooks/useFortuneLogic";
 import HexGrid from "../HexGrid";
@@ -47,4 +47,4 @@ const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
 );
 
 FortuneBoard.displayName = "FortuneBoard";
-export default FortuneBoard;
+export default FortuneBoard;*/

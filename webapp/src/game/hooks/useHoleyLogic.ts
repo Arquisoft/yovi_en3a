@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+/*import { useState, useEffect } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 import { gatewayUrl } from "../../lib/config";
@@ -38,4 +38,4 @@ export const useHoleyLogic = (
   holeCells.forEach((key) => highlightCells.set(key, "#6b7280"));
 
   return { ...logic, holeCells, highlightCells };
-};
+};*/
