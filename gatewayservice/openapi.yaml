@@ -1,110 +1,320 @@
 openapi: 3.0.0
 info:
-  title: Gateway Service API
+  title: YOVI API
   version: 1.0.0
   description: API gateway that routes requests to the corresponding microservices
 
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+tags:
+  - name: Users
+    description: User management and authentication
+  - name: Gamey
+    description: Bot and game logic implemented in Rust
+
 paths:
-  /health:
-    get:
-      summary: Health check
-      description: Returns the health status of the gateway service
+  /api/users/register:
+    post:
+      tags:
+        - Users
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  example: user1
+                email:
+                  type: string
+                  example: user1@test.com
+                password:
+                  type: string
+                  example: User1234
+                age:
+                  type: integer
+                  example: 25
+                country:
+                  type: string
+                  example: Spain
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Validation error
+        '409':
+          description: Username or email already in use
+
+  /api/users/login:
+    post:
+      tags:
+        - Users
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: user1
+                password:
+                  type: string
+                  example: User1234
       responses:
         '200':
-          description: Gateway is running
+          description: Login successful
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  status:
+                  token:
                     type: string
-                    example: "ok"
-                  service:
+                  userId:
                     type: string
-                    example: "gatewayservice"
+        '400':
+          description: Validation error
+        '401':
+          description: Wrong credentials
 
-  /api/users/{path}:
-    x-summary: Users service proxy
+  /api/users/stats/{userId}:
     get:
-      summary: Proxy GET request to users service
+      tags:
+        - Users
+      summary: Get personal stats
+      security:
+        - bearerAuth: []
       parameters:
-        - name: path
+        - name: userId
           in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Response from users service
-        '500':
-          description: Internal gateway error
-    post:
-      summary: Proxy POST request to users service
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Response from users service
-        '500':
-          description: Internal gateway error
+          description: User stats
+        '400':
+          description: Invalid userId
+        '404':
+          description: Stats not found
 
-  /api/game-manager/{path}:
+  /api/users/stats/ranking:
     get:
-      summary: Proxy GET request to game-manager service
+      tags:
+        - Users
+      summary: Get global ranking
+      security:
+        - bearerAuth: []
       parameters:
-        - name: path
-          in: path
-          required: true
+        - name: sortBy
+          in: query
+          required: false
           schema:
             type: string
+            enum: [wins, winRate]
+            default: wins
       responses:
         '200':
-          description: Response from game-manager service
-        '500':
-          description: Internal gateway error
-    post:
-      summary: Proxy POST request to game-manager service
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Response from game-manager service
-        '500':
-          description: Internal gateway error
+          description: Ranking
+        '400':
+          description: Invalid sort method
 
-  /api/gamey/{path}:
-    get:
-      summary: Proxy GET request to gamey service
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Response from gamey service
-        '500':
-          description: Internal gateway error
+  /api/game-manager/create/{gameName}:
     post:
-      summary: Proxy POST request to gamey service
+      tags:
+        - Users
+      summary: Create a new game
+      security:
+        - bearerAuth: []
       parameters:
-        - name: path
+        - name: gameName
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [standard, master, fortune, tabu, holey, whynot, poly]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                botId:
+                  type: string
+                  enum: [random_bot, beginner_bot, medium_bot]
+                  default: random_bot
+                boardSize:
+                  type: integer
+                  default: 5
+      responses:
+        '201':
+          description: Game created
+        '400':
+          description: Invalid game type or missing userId
+
+  /api/game-manager/state/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get game state
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
           in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Response from gamey service
+          description: Game state
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Game not found
+
+  /api/game-manager/list:
+    get:
+      tags:
+        - Users
+      summary: List user games
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of games
+        '401':
+          description: Unauthorized
+
+  /api/game-manager/game/{id}/move:
+    post:
+      tags:
+        - Users
+      summary: Make a move
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [coords]
+              properties:
+                coords:
+                  type: object
+                  properties:
+                    x:
+                      type: integer
+                    y:
+                      type: integer
+      responses:
+        '200':
+          description: Move applied
+        '400':
+          description: Invalid move
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Game not found
+
+  /api/game-manager/game/{id}/resign:
+    post:
+      tags:
+        - Users
+      summary: Resign a game
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game resigned
+        '400':
+          description: Game already resigned
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Game not found
+
+  /api/gamey/play:
+    post:
+      tags:
+        - Gamey
+      summary: Get bot move
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [size, turn, players, layout, botId]
+              properties:
+                botId:
+                  type: string
+                  enum: [random_bot, beginner_bot, medium_bot]
+                  default: random_bot
+                size:
+                  type: integer
+                  example: 7
+                turn:
+                  type: integer
+                  example: 0
+                  description: Index of the player to move (0 or 1)
+                players:
+                  type: array
+                  items:
+                    type: string
+                  example: ["B", "R"]
+                layout:
+                  type: string
+                  example: "B/BR/.R."
+                  description: Rows separated by '/', cells as player symbols or '.' for empty
+      responses:
+        '200':
+          description: Bot move coordinates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coords:
+                    type: object
+                    properties:
+                      x:
+                        type: integer
+                      y:
+                        type: integer
+        '400':
+          description: Missing layout or size
         '500':
-          description: Internal gateway error
+          description: Gamey service error

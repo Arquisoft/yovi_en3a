@@ -62,7 +62,7 @@ describe('GameSelect Component', () => {
                     body: JSON.stringify({ botId: 'medium_bot', boardSize: 9 })
                 })
             )
-            expect(mockNavigate).toHaveBeenCalledWith('/game/123/9')
+            expect(mockNavigate).toHaveBeenCalledWith('/game/123/9/standard')
         })
     })
 

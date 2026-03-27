@@ -166,13 +166,13 @@ describe('POST /stats/update', () => {
 
   it('returns 401 if result is invalid', async () => {
       const res = await request(app).post('/stats/update').send({ userId: validUserId, result: 'draw' })
-      expect(res.status).toBe(401)
+      expect(res.status).toBe(400)
       expect(res.body).toHaveProperty('error', 'result is not valid')
   })
 
   it('returns 401 if userId is invalid', async () => {
       const res = await request(app).post('/stats/update').send({ userId: 'invalid', result: 'won' })
-      expect(res.status).toBe(401)
+      expect(res.status).toBe(400)
       expect(res.body).toHaveProperty('error', 'Invalid userId')
   })
 
