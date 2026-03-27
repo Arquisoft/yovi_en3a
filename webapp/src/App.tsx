@@ -36,8 +36,7 @@ function App() {
           <Route path="/ranking" element={<RankingView />} />
 
           {/*Panel de juego */}
-          <Route path="/game/:gameId/:size" element={<GameScreen />} />
-
+          <Route path="/game/:gameId/:size/:gameType" element={<GameScreen />} />
           {/* Redirección por defecto si la ruta no existe */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
