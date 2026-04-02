@@ -478,7 +478,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_whitebox_overall_system">5.1. Whitebox Overall System</a></li>
 <li><a href="#_level_2">5.2. Level 2</a></li>
-<li><a href="#_level_3">5.3. Level 3</a></li>
 </ul>
 </li>
 <li><a href="#section-runtime-view">6. Runtime View</a>
@@ -944,9 +943,23 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 <div class="sect2">
 <h3 id="_business_context">3.1. Business Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Business%20context.png" alt="Business context" width="246" height="441">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+skinparam linetype ortho
+
+actor User
+actor "External Bots" as Bots
+
+rectangle YOVI as YOVI
+
+User -[hidden]-&gt; YOVI
+YOVI -[hidden]-&gt; Bots
+
+User ---&gt; YOVI : Login credentials \n Game decisions
+YOVI ---&gt; User : Game state \n Statistics/History
+
+Bots &lt;---&gt; YOVI : API requests \n Game data \n Movements</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1005,9 +1018,38 @@ The title of the table is the name of your system, the three columns contain the
 </div>
 <div class="sect2">
 <h3 id="_technical_context">3.2. Technical Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Technical%20context.png" alt="Technical context" width="576" height="661">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+actor User
+actor ExternalBots as Bots
+
+node "YOVI" {
+
+    rectangle "Web Frontend" as Frontend
+
+    rectangle "API" as API
+
+    rectangle "User Registration" as Registration
+    rectangle "User Service" as Service
+
+    rectangle "GameY" as Game {
+        rectangle "Bot"
+    }
+
+    database "MongoDB" as DB
+}
+
+User --&gt; Frontend : HTTPS
+Bots --&gt; API : HTTPS
+
+Frontend --&gt; API : HTTPS
+
+API --&gt; Registration
+API --&gt; Service
+API --&gt; Game
+
+Service &lt;--&gt; DB : MongoDB</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1351,54 +1393,90 @@ In the best case you will get away with examples or simple signatures.</p>
 </div>
 </div>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login " width="303" height="370">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "User" as user
+
+rectangle "YOVI System" {
+
+  node "WebApp" as Web
+  node [Gateway Service] as gateway
+  node "Game Manager" as GameSvc
+  node "User Service" as UserSvc
+  node "Gamey Engine" as GameEngine
+  database "MongoDB" as db
+
+
+}
+
+user --&gt; Web : Browser (HTTP)
+
+Web --&gt; gateway: HTTP REST\nall requests\nport 8000
+gateway--&gt; UserSvc : HTTP REST\nuser auth &amp; registration\nport 3000
+gateway--&gt; GameSvc: HTTP REST\ngame management\nport 5000
+GameSvc--&gt; GameEngine: HTTP POST\nfetch bot move &amp; check win\nport 4000
+GameSvc--&gt; UserSvc: HTTP POST\nupdate user stats\nport 3000
+UserSvc --&gt; db: user data persistence\nport 27017
+GameSvc--&gt; db: game state persistence\nport 27017</pre>
 </div>
 </div>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Motivation</dt>
 <dd>
-<p>This is a high-level view of the project, with the three main components that make it up.</p>
+<p>This is a high-level view of the project which follows a microservices architecture consisting of a frontend application, an API Gateway, and specialized backend services that communicate through HTTP REST APIs. The system persists data in a shared MongoDB database.</p>
 </dd>
 <dt class="hdlist1">Contained Building Blocks</dt>
 </dl>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 66.6667%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+<col style="width: 25%;">
 </colgroup>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top"><strong>Name</strong></th>
 <th class="tableblock halign-left valign-top"><strong>Responsibility</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Technology</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">WebApp</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> Web visual interface for the player to interact with the program</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend user interface providing player interactions (login, game selection, gameplay, statistics)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">React, TypeScript, Vite</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Users</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">   REST API to manage registration and storage of players</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway that routes all client requests to appropriate microservices, manages JWT authentication and CORS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gamey</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">  Main game logic and bots for the player to play against</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Manages user registration, authentication, storage of player profiles, statistics, and game history</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js, MongoDB, JWT, bcrypt</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Game Manager</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Orchestrates game sessions, coordinates with Gamey for bot moves</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js, MongoDB</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implements core game logic, bot strategies , and coordinate calculations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rust</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MongoDB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persistent data storage for user accounts and game sessions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MongoDB</p></td>
 </tr>
 </tbody>
 </table>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Important Interfaces</dt>
-<dd>
-<p><em>&lt;Description of important interfaces&gt;</em></p>
-</dd>
-</dl>
-</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -1483,9 +1561,32 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_gamey">5.2.1. White Box Gamey</h4>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login " width="659" height="469">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+node "Game Manager" as game_mgr
+rectangle "Gamey" as gamey {
+  'component [Yen Notation] as yen
+
+  component [Bot Registry] as bots
+  port "CLI" as cli
+  component "Bot Server\n(HTTP)" as api
+  component [Core Game Logic] as core
+
+
+
+}
+
+"Developer" as dev
+
+
+'yen --- core
+core --&gt; bots
+api --&gt; core
+api --&gt; bots
+api -u0)- game_mgr: HTTP POST\n /choose \n /checkWin
+cli --&gt; core: local play \n(not for regular users)
+cli -u0)- dev: terminal</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1506,19 +1607,60 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Core</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> Core of the game, including the main game logic,coordinates,game_state , &#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot Server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes RESTful endpoints for bot move selection and win detection. Accepts game state in YEN format and returns move coordinates or game status</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bot</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">   Registry of bots that the player can play against, can be accessed by the core to get the next move of a bot and through the Bot Server API.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Core Logic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Internal game engine: implements rules, board state, move validation</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CLI</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">  The gamme can also be played through a command line interface, this is omly used for testing and debugging purposes.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot Registry</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Internal bot manager: maintains random/beginner/medium bot implementations</p></td>
 </tr>
 </tbody>
 </table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Important Interfaces</dt>
+<dd>
+<p><strong>API Endpoints:</strong></p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>GET /status</code> - Health check, returns service status</p>
+</li>
+<li>
+<p><code>POST /v1/ybot/choose/{bot_id}</code> - Request bot move</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Input: YEN game state (JSON)</p>
+</li>
+<li>
+<p>Output: <code>{api_version, bot_id, coords: {x, y, z}}</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>POST /v1/ybot/checkWin</code> - Check game status</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Input: YEN game state (JSON)</p>
+</li>
+<li>
+<p>Output: <code>{api_version, game_over: boolean, winner: number|null}</code></p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</dd>
+</dl>
+</div>
 <div class="sidebarblock arc42help">
 <div class="content">
 <div class="paragraph">
@@ -1529,9 +1671,48 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_webapp">5.2.2. White Box WebApp</h4>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login " width="397" height="584">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+
+actor "Player" as player
+
+rectangle "WebApp" as webapp {
+  [Landing Page] as Landing
+  [Login Form] as Login
+  [Register Form] as Register
+  [Menu View] as Menu
+  [How To Play] as HTP
+  [Game Selection] as GameSelect
+  [Game UI] as GameUI
+  [Stats View] as Stats
+  [Ranking View] as Ranking
+}
+
+node "User Service" as UserSvc
+node "Game Manager" as GameMgr
+
+player --&gt; Landing
+Landing --&gt; Login
+Landing --&gt; Register
+
+Login --&gt; UserSvc: HTTP POST /login\nAuthenticate user\nport 3000
+Register --&gt; UserSvc: HTTP POST /register\nCreate new account\nport 3000
+
+Login --&gt; Menu
+Menu --&gt; HTP
+Menu --&gt; GameSelect
+Menu --&gt; Stats
+Menu --&gt; Ranking
+
+Stats --&gt; UserSvc: HTTP GET /stats\nFetch user statistics\nport 3000
+Ranking --&gt; UserSvc: HTTP GET /ranking\nFetch leaderboard\nport 3000
+
+GameSelect --&gt; GameMgr: HTTP POST /create\nInitialize game session\nport 5000
+GameSelect --&gt; GameUI
+
+GameUI --&gt; GameMgr: HTTP POST /move\nSubmit player move\n(authentication required)\nport 5000</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1552,64 +1733,43 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Login Page</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> Web page for user authentication and login, accesses the Users API to store users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Landing Page</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Initial entry point providing game overview and navigation options to login or register</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Login Form</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User authentication interface, validates credentials and obtains JWT token for session</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Register Form</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User registration interface for creating new player accounts with profile information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Menu View</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Main dashboard after authentication, serves as navigation hub to other features</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">How To Play</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Instructions and tutorials explaining game rules, mechanics, and strategies</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Game Selection</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">   After login, the user can customize his game settings, sucha as the bot he wants to play against, the board size, &#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Customization interface for game parameters (bot difficulty, board size) before game start</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Game UI</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">  The user can see the board and click on cells to make a move.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Main game interface displaying board state, accepting player moves, and showing bot responses</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stats View</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Displays individual player statistics, win/loss records, and performance metrics</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ranking View</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shows leaderboard with top players and their current rankings</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="sect3">
-<h4 id="_white_box_building_block_m">5.2.3. White Box <em>&lt;building block m&gt;</em></h4>
-<div class="paragraph">
-<p><em>&lt;white box template&gt;</em></p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_level_3">5.3. Level 3</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Here you can specify the inner structure of (some) building blocks from level 2 as white boxes.</p>
-</div>
-<div class="paragraph">
-<p>When you need more detailed levels of your architecture please copy this
-part of arc42 for additional levels.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_white_box_building_block_x_1">5.3.1. White Box &lt;_building block x.1_&gt;</h4>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Specifies the internal structure of <em>building block x.1</em>.</p>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p><em>&lt;white box template&gt;</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_white_box_building_block_x_2">5.3.2. White Box &lt;_building block x.2_&gt;</h4>
-<div class="paragraph">
-<p><em>&lt;white box template&gt;</em></p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_white_box_building_block_y_1">5.3.3. White Box &lt;_building block y.1_&gt;</h4>
-<div class="paragraph">
-<p><em>&lt;white box template&gt;</em></p>
-</div>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
@@ -1688,9 +1848,30 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user registers in the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login " width="697" height="475">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -&gt; Webapp : Fill form
+Webapp -&gt; Gateway : Forward request
+Gateway -&gt; Service : POST /createuser\n{ username, password, email ... }
+Service --&gt; Service : { Validate input }
+
+alt Success
+    Service --&gt; Webapp : { message }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show welcome message
+else Error
+    Service --&gt; Webapp : { error }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show error message
+end</pre>
 </div>
 </div>
 </div>
@@ -1699,9 +1880,29 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user logs into the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login%20.png" alt="Sequence diagram   Login " width="760" height="432">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -&gt; Webapp : Fill form
+Webapp -&gt; Gateway : Forward request
+Gateway -&gt; Service : POST /login\n{ username, password }
+
+alt Success
+    Service --&gt; Webapp : { message }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show welcome message and redirect to main menu
+else Error
+    Service --&gt; Webapp : { error }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show error message
+end</pre>
 </div>
 </div>
 </div>
@@ -1710,9 +1911,49 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user plays a game, including interactions with the web app, game core, and bot service.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop " width="543" height="704">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "Player" as User
+participant "WebApp" as Web
+participant "Game Core" as GameCore
+
+participant "Bot Service" as Bot
+
+User -&gt; Web : Start Game
+
+
+Web --&gt; User : Game started
+
+
+loop until game over
+
+    User -&gt; Web : make move
+    Web -&gt; GameCore : process player move
+    GameCore -&gt; GameCore : updated state
+
+    GameCore -&gt; GameCore : check if game over
+        GameCore --&gt; Web : update state
+        Web --&gt; User : show state
+
+
+
+    GameCore -&gt; Bot : send current board state
+    Bot --&gt; GameCore : bot's next move
+    GameCore -&gt; GameCore : update state
+
+    GameCore -&gt; GameCore : check if game over
+
+
+    GameCore --&gt; Web : updated state
+    deactivate GameCore
+
+    Web --&gt; User : show state
+end
+
+
+Web --&gt; User : Game Over</pre>
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1769,9 +2010,21 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 <div class="paragraph">
 <p>This level zooms into the internal structure of the production environment hosted on Azure.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/deployment-lv1.png" alt="deployment lv1" width="796" height="146">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startuml
+!theme plain
+
+node "Developer Machine" as dev
+cloud "GitHub (yovi_en3a)" as ghcr
+node "Azure VM" as azure
+actor "User" as user
+
+dev -&gt; ghcr : push image
+ghcr -&gt; azure : pull image
+user -&gt; azure : access webapp
+@enduml</pre>
 </div>
 </div>
 <div class="sect3">
@@ -1859,9 +2112,79 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="paragraph">
 <p><strong>Azure connections</strong></p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="901" height="411">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startuml
+' =========================
+' Configuración de estilo
+' =========================
+skinparam backgroundColor white
+skinparam roundcorner 5
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam DefaultFontName "Arial"
+skinparam nodesep 50
+skinparam ranksep 40
+
+' =========================
+' Estilo de contenedores
+' =========================
+skinparam node {
+    BackgroundColor #fdfdfd
+    BorderColor black
+    FontColor black
+    FontSize 12
+    StereotypeAlignment center
+}
+
+' =========================
+' Estilo de actores (cabeza pintada)
+' =========================
+skinparam actor {
+    BackgroundColor #3399FF  ' Azul oscuro
+    BorderColor #1F4E79
+    FontColor black
+    FontStyle bold
+    FontSize 12
+}
+skinparam actorStyle classic  ' Para que la cabeza sea visible y uniforme
+
+' =========================
+' Actores externos
+' =========================
+actor "User" as user
+actor "External Bot" as bot
+
+' =========================
+' Contenedor Azure VM con fondo azul claro
+' =========================
+node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
+
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;webapp&lt;/b&gt;&lt;/size&gt;\nPort 80" as webapp
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;gatewayservice&lt;/b&gt;&lt;/size&gt;\nPort 8000" as gateway
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;users API&lt;/b&gt;&lt;/size&gt;\nPort 3000" as users
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;game-manager&lt;/b&gt;&lt;/size&gt;\nPort 5000" as manager
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;gamey API&lt;/b&gt;&lt;/size&gt;\nPort 4000" as gamey
+
+    database "«container»\n&lt;size:14&gt;&lt;b&gt;MongoDB&lt;/b&gt;&lt;/size&gt;\nPort 27017" as mongodb
+}
+
+' =========================
+' Flujos
+' =========================
+user -right-&gt; webapp : HTTP / REST
+bot -right-&gt; gateway : REST / JSON (Bot)
+webapp -right-&gt; gateway : REST / JSON
+gateway -down-&gt; users : REST / JSON
+gateway -down-&gt; manager : REST / JSON
+gateway -[bold]-&gt; gamey : REST / JSON (Bot)
+manager -right-&gt; gamey : REST / JSON (YEN)
+manager -left-&gt; users : REST / JSON (Stats)
+users -down-&gt; mongodb : MongoDB Driver
+manager -down-&gt; mongodb : MongoDB Driver
+
+@enduml</pre>
 </div>
 </div>
 </div>
@@ -2275,9 +2598,33 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/quality-tree.png" alt="quality tree" width="603" height="811">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startmindmap
+* Quality
+** Performance
+*** Low-latency bot computation (Q1)
+*** Fast API response time (Q2)
+** Usability
+*** Intuitive board interaction (Q3)
+*** Seamless authentication flow (Q4)
+** Scalability
+*** Concurrent bot requests (Q5)
+*** Growing number of players (Q6)
+** Interoperability
+*** External bot API (Q7)
+*** YEN notation as common language (Q8)
+** Maintainability
+*** Modular microservice structure (Q9)
+*** Independent deployability (Q10)
+** Security
+*** JWT authentication (Q11)
+*** Secure password storage (Q12)
+** Testability
+*** Unit and integration tests (Q13)
+*** CI/CD pipeline (Q14)
+@endmindmap</pre>
 </div>
 </div>
 <hr>
@@ -3074,7 +3421,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-06 19:04:45 +0100
+Last updated 2026-04-01 13:05:05 +0200
 </div>
 </div>
 </body>
