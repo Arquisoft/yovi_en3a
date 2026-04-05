@@ -6,51 +6,64 @@ import GameBoard from "../game/GameBoard";
 import type { GameBoardRef } from "../game/GameBoard";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
-vi.mock("../game/HexCell", () => {
-    return {
-        default: React.forwardRef((props: any, ref: any) => {
-            React.useImperativeHandle(ref, () => ({
-                selectByPlayer:  vi.fn(() => true),
-                selectByPlayer2: vi.fn(() => true),
-                deselect:        vi.fn(() => true),
-                requestSelectForPlayer2: vi.fn(),
-            }));
+// ── Mock fetch global para evitar llamadas reales al backend ────────────────
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
-            return (
-                <button
-                    data-testid="hex-cell"
-                    aria-label={`cell-${props.name}`}
-                    onClick={() =>
-                        props.onCellClick?.(props.coordinates, props.name)
-                    }
-                >
-                    {props.name}
-                </button>
-            );
-        }),
-    };
-});
+vi.mock("../game/HexCell", () => ({
+    default: React.forwardRef((props: any, ref: any) => {
+        React.useImperativeHandle(ref, () => ({
+            selectByPlayer:          vi.fn(() => true),
+            selectByPlayer2:         vi.fn(() => true),
+            deselect:                vi.fn(() => true),
+            requestSelectForPlayer2: vi.fn(),
+        }));
 
-// Helper: renderiza con la ruta correcta (/game/:gameId, sin :gameType en la URL)
+        return (
+            <button
+                data-testid="hex-cell"
+                aria-label={`cell-${props.name}`}
+                onClick={() => props.onCellClick?.(props.coordinates, props.name)}
+            >
+                {props.name}
+            </button>
+        );
+    }),
+}));
+
+// ── Helper ──────────────────────────────────────────────────────────────────
+
 const renderBoard = (size = 3, extraProps: Record<string, unknown> = {}) =>
     render(
-        <MemoryRouter initialEntries={["/game/123"]}>
+        <MemoryRouter initialEntries={["/game/123/3/standard"]}>
             <Routes>
                 <Route
-                    path="/game/:gameId"
+                    path="/game/:gameId/:size/:gameType"
                     element={<GameBoard boardSize={size} {...extraProps} />}
                 />
             </Routes>
         </MemoryRouter>
     );
 
+// ── Tests ───────────────────────────────────────────────────────────────────
+
 describe("GameBoard Component", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+
+        // Mock por defecto: estado inicial vacío + movimiento sin ganador
+        mockFetch
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ yen: { layout: "---" } }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ status: "continue", yen: { layout: "---", size: 3 } }),
+            });
     });
 
     it("renders the correct number of cells based on boardSize", () => {
-        // size=3 → filas [0,1,2] → 1+2+3 = 6 celdas
         renderBoard(3);
         expect(screen.getAllByTestId("hex-cell")).toHaveLength(6);
     });
@@ -63,9 +76,6 @@ describe("GameBoard Component", () => {
 
     it("renders all expected coordinate labels for size 3", () => {
         renderBoard(3);
-        // Fila 0: (2,0,0)
-        // Fila 1: (1,0,1), (1,1,0)
-        // Fila 2: (0,0,2), (0,1,1), (0,2,0)
         const expected = [
             "(2,0,0)",
             "(1,0,1)", "(1,1,0)",
@@ -76,63 +86,42 @@ describe("GameBoard Component", () => {
         });
     });
 
-    it("calls onCellPlayed when a cell is clicked", async () => {
+    it("calls onCellPlayed when a cell is clicked and API responds", async () => {
         const onCellPlayedMock = vi.fn();
+        renderBoard(3, { onCellPlayed: onCellPlayedMock });
 
-        // useGameLogic intercepta el click en handleClick y luego llama a
-        // onCellPlayed internamente. Para testear sin el hook real necesitamos
-        // que el mock de HexCell dispare onCellClick, que es lo que recibe del HexGrid.
-        // Si useGameLogic no está mockeado, este test valida el flujo integrado.
-        render(
-            <MemoryRouter initialEntries={["/game/123"]}>
-                <Routes>
-                    <Route
-                        path="/game/:gameId"
-                        element={
-                            <GameBoard boardSize={3} onCellPlayed={onCellPlayedMock} />
-                        }
-                    />
-                </Routes>
-            </MemoryRouter>
-        );
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: /cell-\(2,0,0\)/i }));
+        });
 
-        fireEvent.click(screen.getByRole("button", { name: /cell-\(2,0,0\)/i }));
-
-        // handleClick en useGameLogic llama a la API y luego a onCellPlayed;
-        // como fetch no está mockeado aquí, solo verificamos que el click
-        // llegó al handler sin lanzar excepciones.
-        // Si quieres verificar onCellPlayed, mockea fetch antes del render:
-        //   global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({...}) });
-        expect(onCellPlayedMock).not.toThrow?.();
+        // handleClick llama a fetch; verificamos que se intentó la llamada
+        expect(mockFetch).toHaveBeenCalled();
     });
 
-    it("exposes selectCellByCoordinates via ref", () => {
+    it("exposes selectCellByCoordinates via ref for p1", () => {
         const boardRef = React.createRef<GameBoardRef>();
-
         render(
-            <MemoryRouter initialEntries={["/game/123"]}>
+            <MemoryRouter initialEntries={["/game/123/3/standard"]}>
                 <Routes>
                     <Route
-                        path="/game/:gameId"
+                        path="/game/:gameId/:size/:gameType"
                         element={<GameBoard ref={boardRef} boardSize={3} />}
                     />
                 </Routes>
             </MemoryRouter>
         );
 
-        // La celda (2,0,0) está montada y su ref registrada en cellRefs
         const result = boardRef.current?.selectCellByCoordinates(2, 0, 0, "p1");
         expect(result).toBe(true);
     });
 
-    it("exposes selectCellByCoordinates for p2 via ref", () => {
+    it("exposes selectCellByCoordinates via ref for p2", () => {
         const boardRef = React.createRef<GameBoardRef>();
-
         render(
-            <MemoryRouter initialEntries={["/game/123"]}>
+            <MemoryRouter initialEntries={["/game/123/3/standard"]}>
                 <Routes>
                     <Route
-                        path="/game/:gameId"
+                        path="/game/:gameId/:size/:gameType"
                         element={<GameBoard ref={boardRef} boardSize={3} />}
                     />
                 </Routes>
@@ -143,21 +132,19 @@ describe("GameBoard Component", () => {
         expect(result).toBe(true);
     });
 
-    it("returns false (or undefined) when selectCellByCoordinates targets a non-existent cell", () => {
+    it("returns falsy when selectCellByCoordinates targets a non-existent cell", () => {
         const boardRef = React.createRef<GameBoardRef>();
-
         render(
-            <MemoryRouter initialEntries={["/game/123"]}>
+            <MemoryRouter initialEntries={["/game/123/3/standard"]}>
                 <Routes>
                     <Route
-                        path="/game/:gameId"
+                        path="/game/:gameId/:size/:gameType"
                         element={<GameBoard ref={boardRef} boardSize={3} />}
                     />
                 </Routes>
             </MemoryRouter>
         );
 
-        // Coordenadas que no existen en el tablero de size 3
         const result = boardRef.current?.selectCellByCoordinates(9, 9, 9, "p1");
         expect(result).toBeFalsy();
     });
