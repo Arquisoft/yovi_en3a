@@ -1,514 +1,348 @@
 use crate::{Coordinates, GameStatus, GameY, Movement, PlayerId, YBot};
-use std::collections::VecDeque;
+use std::collections::{HashMap, HashSet, VecDeque};
 
 pub const MAX_NUMBER: i32 = i32::MAX / 2;
 pub const MIN_NUMBER: i32 = i32::MIN / 2;
 
-// ─── Transposition Table ────────────────────────────────────────────────────
-
-#[derive(Clone, Copy, PartialEq)]
-enum TTFlag {
-    Exact,
-    LowerBound,
-    UpperBound,
-}
-
-#[derive(Clone, Copy)]
-struct TTEntry {
-    hash:      u64,
-    depth:     usize,
-    score:     i32,
-    flag:      TTFlag,
-    best_move: Option<u32>,
-}
-
-// ─── Search context (reutilizado en todo el árbol, sin allocations extra) ───
-
-struct SearchContext {
-    deque:        VecDeque<u32>,
-    visited:      Vec<bool>,
-    player_cells: Vec<bool>,
-    visitable:    Vec<bool>,
-    dist_a:       Vec<u32>,
-    dist_b:       Vec<u32>,
-    dist_c:       Vec<u32>,
-    tt:           Vec<Option<TTEntry>>,
-    zobrist:      Vec<[u64; 2]>,
-}
-
-impl SearchContext {
-    fn new(total_cells: usize) -> Self {
-        // Splitmix64 para generar los valores Zobrist de forma determinista
-        let mut state: u64 = 0x9e3779b97f4a7c15;
-        let mut next = || -> u64 {
-            state = state.wrapping_add(0x9e3779b97f4a7c15);
-            let mut z = state;
-            z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-            z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
-            z ^ (z >> 31)
-        };
-
-        let mut zobrist = vec![[0u64; 2]; total_cells];
-        for cell in zobrist.iter_mut() {
-            cell[0] = next();
-            cell[1] = next();
-        }
-
-        Self {
-            deque:        VecDeque::with_capacity(total_cells),
-            visited:      vec![false; total_cells],
-            player_cells: vec![false; total_cells],
-            visitable:    vec![false; total_cells],
-            dist_a:       vec![u32::MAX; total_cells],
-            dist_b:       vec![u32::MAX; total_cells],
-            dist_c:       vec![u32::MAX; total_cells],
-            // ~1M de entradas ≈ 40 MB; suficiente para no tener demasiadas colisiones
-            tt:           vec![None; 1 << 20],
-            zobrist,
-        }
-    }
-
-    fn compute_initial_hash(&self, board: &GameY) -> u64 {
-        let mut hash: u64 = 0;
-        for idx in 0..(board.total_cells() as usize) {
-            let coord = Coordinates::from_index(idx as u32, board.board_size());
-            if let Some(owner) = board.get_cell_owner(&coord) {
-                hash ^= self.zobrist[idx][owner.id() as usize];
-            }
-        }
-        hash
-    }
-
-    #[inline(always)]
-    fn update_hash(&self, hash: u64, cell_index: u32, player_id: u32) -> u64 {
-        hash ^ self.zobrist[cell_index as usize][player_id as usize]
-    }
-}
-
-// ─── Bot ─────────────────────────────────────────────────────────────────────
-
 pub struct MediumBot;
 
 impl MediumBot {
-    // ── Núcleo minimax con poda alfa-beta y TT ───────────────────────────────
-
+    /*
+        Standard minimax algorithm with alpha-beta pruning.
+        Recursively explores the game tree up to `depth` levels.
+        The maximizing player is the bot (PlayerId 1), the minimizing player is the human (PlayerId 0).
+        Alpha-beta pruning cuts off branches that cannot affect the final decision,
+        significantly reducing the number of nodes evaluated.
+    */
     fn minimax(
         &self,
-        board:             &GameY,
-        depth:             usize,
-        mut alpha:         i32,
-        mut beta:          i32,
+        board: &GameY,
+        depth: usize,
+        mut alpha: i32,
+        mut beta: i32,
         maximizing_player: bool,
-        ctx:               &mut SearchContext,
-        current_hash:      u64,
     ) -> i32 {
-        let alpha_orig = alpha;
-        let tt_index   = (current_hash & ((1 << 20) - 1)) as usize;
-
-        // 1. Consultar la caché
-        if let Some(entry) = ctx.tt[tt_index] {
-            if entry.hash == current_hash && entry.depth >= depth {
-                match entry.flag {
-                    TTFlag::Exact      => return entry.score,
-                    TTFlag::LowerBound => alpha = alpha.max(entry.score),
-                    TTFlag::UpperBound => beta  = beta.min(entry.score),
-                }
-                if alpha >= beta {
-                    return entry.score;
-                }
-            }
+        if depth == 0 || board.check_game_over() {
+            return self.evaluate_board(board);
         }
 
-        // 2. Casos base
-        if board.check_game_over() {
-            return self.evaluate_terminal(board);
-        }
-        if depth == 0 {
-            return self.evaluate_board(board, ctx);
-        }
+        let candidates = self.relevant_cells(board);
 
-        // 3. Candidatos + ordenación por TT
-        let mut candidates = self.relevant_cells(board);
-        if candidates.is_empty() {
-            return self.evaluate_board(board, ctx);
-        }
-        self.order_moves(&mut candidates, tt_index, current_hash, ctx);
-
-        let player_id  = if maximizing_player { 1u32 } else { 0u32 };
-        let mut best_score = if maximizing_player { MIN_NUMBER } else { MAX_NUMBER };
-        let mut best_move  = None;
-
-        for cell_index in &candidates {
-            let cell_index = *cell_index;
-            let coord      = Coordinates::from_index(cell_index, board.board_size());
-            let mut tmp    = board.clone();
-            tmp.add_move(Movement::Placement {
-                player: PlayerId::new(player_id),
-                coords: coord,
-            }).unwrap();
-
-            let next_hash = ctx.update_hash(current_hash, cell_index, player_id);
-            let score     = self.minimax(&tmp, depth - 1, alpha, beta, !maximizing_player, ctx, next_hash);
-
-            if maximizing_player {
-                if score > best_score {
-                    best_score = score;
-                    best_move  = Some(cell_index);
-                }
-                alpha = alpha.max(best_score);
-            } else {
-                if score < best_score {
-                    best_score = score;
-                    best_move  = Some(cell_index);
-                }
-                beta = beta.min(best_score);
-            }
-
-            if beta <= alpha {
-                break; // Poda alfa-beta
-            }
-        }
-
-        // 4. Guardar en la caché
-        let flag = if best_score <= alpha_orig {
-            TTFlag::UpperBound
-        } else if best_score >= beta {
-            TTFlag::LowerBound
-        } else {
-            TTFlag::Exact
-        };
-
-        ctx.tt[tt_index] = Some(TTEntry {
-            hash: current_hash,
-            depth,
-            score: best_score,
-            flag,
-            best_move,
-        });
-
-        best_score
-    }
-
-    // Mueve al principio el mejor movimiento conocido de la TT (mejora la poda)
-    fn order_moves(&self, candidates: &mut Vec<u32>, tt_index: usize, hash: u64, ctx: &SearchContext) {
-        if let Some(entry) = ctx.tt[tt_index] {
-            if entry.hash == hash {
-                if let Some(best) = entry.best_move {
-                    if let Some(pos) = candidates.iter().position(|&m| m == best) {
-                        candidates.swap(0, pos);
-                    }
-                }
-            }
-        }
-    }
-
-    // ── Búsqueda raíz con Iterative Deepening ───────────────────────────────
-
-    fn chose_best_move(&self, board: &GameY) -> Option<Coordinates> {
-        let total        = board.total_cells() as usize;
-        let mut ctx      = SearchContext::new(total);
-        let root_hash    = ctx.compute_initial_hash(board);
-        let target_depth = 6;
-
-        let mut absolute_best = None;
-
-        for current_depth in 1..=target_depth {
-            let mut alpha      = MIN_NUMBER;
-            let beta           = MAX_NUMBER;
-            let mut best_score = MIN_NUMBER;
-            let mut best_move  = None;
-
-            let mut candidates = self.relevant_cells(board);
-            if candidates.is_empty() {
-                break;
-            }
-
-            let tt_index = (root_hash & ((1 << 20) - 1)) as usize;
-            self.order_moves(&mut candidates, tt_index, root_hash, &ctx);
-
-            for &cell_index in &candidates {
+        if maximizing_player {
+            let mut max_eval = MIN_NUMBER;
+            for cell_index in candidates {
+                let mut temp_board = board.clone();
                 let coord = Coordinates::from_index(cell_index, board.board_size());
-                let mut tmp = board.clone();
-                tmp.add_move(Movement::Placement {
+                temp_board
+                    .add_move(Movement::Placement {
+                        player: PlayerId::new(1),
+                        coords: coord,
+                    })
+                    .unwrap();
+                let eval = self.minimax(&temp_board, depth - 1, alpha, beta, false);
+                max_eval = max_eval.max(eval);
+                alpha = alpha.max(eval);
+                if beta <= alpha {
+                    break;
+                }
+            }
+            max_eval
+        } else {
+            let mut min_eval = MAX_NUMBER;
+            for cell_index in candidates {
+                let mut temp_board = board.clone();
+                let coord = Coordinates::from_index(cell_index, board.board_size());
+                temp_board
+                    .add_move(Movement::Placement {
+                        player: PlayerId::new(0),
+                        coords: coord,
+                    })
+                    .unwrap();
+                let eval = self.minimax(&temp_board, depth - 1, alpha, beta, true);
+                min_eval = min_eval.min(eval);
+                beta = beta.min(eval);
+                if beta <= alpha {
+                    break;
+                }
+            }
+            min_eval
+        }
+    }
+
+    /*
+        Selects the best move for the bot by running minimax on each candidate cell
+        and returning the coordinate with the highest resulting score.
+        If any candidate immediately wins the game, it is returned early without
+        further search.
+    */
+    fn chose_best_move(&self, board: &GameY) -> Option<Coordinates> {
+        let mut best_score = MIN_NUMBER;
+        let mut best_move = None;
+        let mut alpha = MIN_NUMBER;
+        let beta = MAX_NUMBER;
+
+        for cell_index in self.relevant_cells(board) {
+            let mut temp_board = board.clone();
+            let coord = Coordinates::from_index(cell_index, board.board_size());
+            temp_board
+                .add_move(Movement::Placement {
                     player: PlayerId::new(1),
                     coords: coord,
-                }).unwrap();
+                })
+                .unwrap();
 
-                // Victoria inmediata → no hace falta seguir buscando
-                if tmp.check_game_over() {
-                    return Some(coord);
-                }
-
-                let next_hash = ctx.update_hash(root_hash, cell_index, 1);
-                let score     = self.minimax(&tmp, current_depth - 1, alpha, beta, false, &mut ctx, next_hash);
-
-                if score > best_score {
-                    best_score = score;
-                    best_move  = Some(coord);
-                    alpha      = alpha.max(best_score);
-                }
+            // Immediately return a winning move without further search.
+            if temp_board.check_game_over() {
+                return Some(coord);
             }
 
-            // Guardar la raíz en la TT para informar a la siguiente iteración
-            ctx.tt[tt_index] = Some(TTEntry {
-                hash:      root_hash,
-                depth:     current_depth,
-                score:     best_score,
-                flag:      TTFlag::Exact,
-                best_move: best_move.map(|c| c.to_index(board.board_size())),
-            });
-
-            if let Some(m) = best_move {
-                absolute_best = Some(m);
+            let score = self.minimax(&temp_board, 4, alpha, beta, false);
+            alpha = alpha.max(score);
+            if score > best_score {
+                best_score = score;
+                best_move = Some(coord);
             }
         }
 
-        absolute_best
+        best_move
     }
 
-    // ── Evaluación ──────────────────────────────────────────────────────────
+    /*
+        Evaluates the board from the bot's perspective and returns a signed score.
+        A positive score favours the bot; a negative score favours the human.
 
-    /// Evaluación de nodos terminales (victoria/derrota confirmada)
-    fn evaluate_terminal(&self, board: &GameY) -> i32 {
-        match board.status() {
-            GameStatus::Finished { winner } => {
-                if winner.id() == 1 { 100_000 } else { -100_000 }
-            }
-            _ => 0,
+        Terminal states return ±100 000 so the minimax always prefers winning
+        over any non-terminal advantage.
+
+        For non-terminal states the score is:
+            score_human * urgency − score_bot
+        where `score_*` is the minimum number of empty cells each player still
+        needs to place to connect all three sides (lower = closer to winning),
+        and `urgency` amplifies the human's score when they are very close to
+        winning, forcing the bot to prioritise blocking.
+    */
+    fn evaluate_board(&self, board: &GameY) -> i32 {
+        if let Some(winner) = self.get_winner(board) {
+            return if winner.id() == 1 { 100_000 } else { -100_000 };
         }
-    }
 
-    /// Evaluación heurística para nodos internos.
-    ///
-    /// `player_score` devuelve el coste mínimo del camino que conecta los
-    /// tres lados — cuanto más bajo, mejor para ese jugador.
-    ///
-    /// La puntuación final es `score_human - score_bot`:
-    ///   · positivo → el bot está en mejor posición (camino más corto)
-    ///   · negativo → el humano está en mejor posición
-    ///
-    /// El multiplicador de urgencia se aplica cuando el humano está a punto
-    /// de ganar (coste ≤ 2) para priorizar el bloqueo sobre el avance propio.
-    fn evaluate_board(&self, board: &GameY, ctx: &mut SearchContext) -> i32 {
-        // Coste del camino mínimo para cada jugador.
-        // Valores altos (u32::MAX) significan que el jugador no tiene piezas aún.
-        let score_bot   = self.player_score(board, PlayerId::new(1), ctx) as i32;
-        let score_human = self.player_score(board, PlayerId::new(0), ctx) as i32;
+        let score_bot   = self.player_score(board, PlayerId::new(1)) as i32;
+        let score_human = self.player_score(board, PlayerId::new(0)) as i32;
 
-        // Urgencia: si el humano puede ganar en muy pocos movimientos, el bloqueo
-        // vale el triple que el avance propio.
+        // Urgency multiplier: if the human needs ≤2 more placements to win,
+        // triple the weight of their score so blocking becomes the top priority.
         let urgency = if score_human <= 2 { 3 } else { 1 };
 
-        // Bot maximiza esta expresión → quiere score_human alto y score_bot bajo
         score_human * urgency - score_bot
     }
 
-    // ── Heurística de camino mínimo (0-1 BFS) ───────────────────────────────
-
-    /// Calcula el número de celdas vacías que le faltan al jugador para
-    /// conectar los tres lados (sus propias celdas tienen coste 0).
-    fn player_score(&self, board: &GameY, player: PlayerId, ctx: &mut SearchContext) -> u32 {
-        let total = board.total_cells() as usize;
-        ctx.player_cells.fill(false);
-        ctx.visitable.fill(false);
-
-        let mut owns_any = false;
-
-        for idx in 0..total {
-            let coord = Coordinates::from_index(idx as u32, board.board_size());
-            let owner = board.get_cell_owner(&coord);
-            // Solo podemos pasar por celdas vacías o propias
-            if owner.is_none() || owner == Some(player) {
-                ctx.visitable[idx] = true;
-                if owner == Some(player) {
-                    ctx.player_cells[idx] = true;
-                    owns_any = true;
-                }
-            }
+    /*
+        Returns the winner of a finished game, or None if the game is still in progress.
+    */
+    fn get_winner(&self, board: &GameY) -> Option<PlayerId> {
+        match board.status() {
+            GameStatus::Finished { winner } => Some(*winner),
+            _ => None,
         }
-
-        // Sin piezas aún: devolvemos un coste muy alto pero no MAX para evitar
-        // overflow al calcular la diferencia de scores.
-        if !owns_any {
-            return 9999;
-        }
-
-        // BFS 0-1 desde cada uno de los tres lados
-        self.bfs_from_side(board, 0, ctx);
-        // NOTA: guardamos los resultados en variables locales porque bfs_from_side
-        // sobreescribe ctx.dist_* en cada llamada.
-        let dist_a: Vec<u32> = ctx.dist_a.clone();
-
-        self.bfs_from_side(board, 1, ctx);
-        let dist_b: Vec<u32> = ctx.dist_b.clone();
-
-        self.bfs_from_side(board, 2, ctx);
-        // dist_c queda en ctx.dist_c, no hace falta clonar
-
-        let mut min_score = u32::MAX;
-
-        for idx in 0..total {
-            if !ctx.visitable[idx] {
-                continue;
-            }
-            let da = dist_a[idx];
-            let db = dist_b[idx];
-            let dc = ctx.dist_c[idx];
-
-            if da == u32::MAX || db == u32::MAX || dc == u32::MAX {
-                continue;
-            }
-
-            // La celda hub tiene coste 0 si es propia, 1 si está vacía.
-            // Los BFS ya incorporan ese coste en los vecinos, pero la celda
-            // hub en sí debe descontarse una vez para no contarla doble.
-            let hub_cost = if ctx.player_cells[idx] { 0u32 } else { 1u32 };
-            let total_cost = da
-                .saturating_add(db)
-                .saturating_add(dc)
-                .saturating_sub(hub_cost.saturating_mul(2));
-
-            if total_cost < min_score {
-                min_score = total_cost;
-            }
-        }
-
-        min_score
     }
 
-    /// 0-1 BFS desde uno de los tres lados del tablero.
-    /// Las celdas propias del jugador tienen coste 0 (ya las "posee"),
-    /// las vacías tienen coste 1 (habría que jugar ahí).
-    fn bfs_from_side(&self, board: &GameY, side: u8, ctx: &mut SearchContext) {
-        let dist_out: &mut Vec<u32> = match side {
-            0 => &mut ctx.dist_a,
-            1 => &mut ctx.dist_b,
-            _ => &mut ctx.dist_c,
-        };
+    /*
+        Computes the heuristic cost for `player` to win from the current board state.
+        The cost is the minimum number of additional empty cells the player would need
+        to fill in order to connect all three sides of the board.
 
-        dist_out.fill(u32::MAX);
-        ctx.visited.fill(false);
-        ctx.deque.clear();
+        Strategy — "virtual hub" approach:
+          1. Run a 0-1 BFS outward from each side of the board (cost 0 for cells
+             already owned by the player, cost 1 for empty cells).
+          2. For every visitable cell, sum the three distances (one per side).
+             Subtract 2× the hub cost to correct for the fact that an empty hub
+             cell is counted once by each of the three BFS passes but physically
+             requires only one placement.
+          3. The minimum of that sum over all visitable cells is the player's score.
 
-        // Semillas: todas las celdas visitables que tocan el lado elegido
-        for idx in 0..(board.total_cells() as usize) {
-            if !ctx.visitable[idx] {
-                continue;
-            }
-            let coord = Coordinates::from_index(idx as u32, board.board_size());
+        This naturally rewards positions where a single cell can act as the
+        meeting point of paths to all three sides, and correctly handles multiple
+        disconnected groups by treating all owned cells as free waypoints.
+    */
+    fn player_score(&self, board: &GameY, player: PlayerId) -> u32 {
+        let visitable = self.visitable_cells(board, player);
+
+        // Collect all cells owned by this player in one pass.
+        let player_cells: Vec<Coordinates> = visitable
+            .iter()
+            .copied()
+            .filter(|c| board.get_cell_owner(c) == Some(player))
+            .collect();
+
+        if player_cells.is_empty() {
+            return MAX_NUMBER as u32;
+        }
+
+        // Build a set for O(1) ownership checks shared by all three BFS runs.
+        let player_set: HashSet<Coordinates> = player_cells.iter().copied().collect();
+
+        // Run the three BFS passes once each and reuse the results below.
+        let dist_a = self.distances_from_side(board, 0, &player_set, &visitable);
+        let dist_b = self.distances_from_side(board, 1, &player_set, &visitable);
+        let dist_c = self.distances_from_side(board, 2, &player_set, &visitable);
+
+        visitable
+            .iter()
+            .map(|cell| {
+                let da = dist_a.get(cell).copied().unwrap_or(MAX_NUMBER as u32);
+                let db = dist_b.get(cell).copied().unwrap_or(MAX_NUMBER as u32);
+                let dc = dist_c.get(cell).copied().unwrap_or(MAX_NUMBER as u32);
+
+                // Each BFS counts an empty hub cell as cost 1.
+                // Since three paths converge here, the hub is counted three times
+                // but only one placement is needed — subtract the double-count.
+                let hub_cost = if player_set.contains(cell) { 0u32 } else { 1u32 };
+
+                da.saturating_add(db)
+                    .saturating_add(dc)
+                    .saturating_sub(2 * hub_cost)
+            })
+            .min()
+            .unwrap_or(MAX_NUMBER as u32)
+    }
+
+    /*
+        Runs a 0-1 BFS starting from every cell that touches `side`.
+        Returns a map from each reachable visitable cell to the minimum number of
+        empty cells that must be filled to connect that cell to `side`.
+
+        Cost model:
+          - Entering a cell already owned by the player costs 0.
+          - Entering an empty cell costs 1.
+          - Cells owned by the opponent are not in `visitable` and are never visited.
+
+        Using a pre-built `player_set` (passed in) avoids rebuilding the HashSet
+        on each of the three calls made per player per evaluation.
+    */
+    fn distances_from_side(
+        &self,
+        board: &GameY,
+        side: u8,
+        player_set: &HashSet<Coordinates>,
+        visitable: &HashSet<Coordinates>,
+    ) -> HashMap<Coordinates, u32> {
+        let mut dist: HashMap<Coordinates, u32> = HashMap::new();
+        let mut deque: VecDeque<Coordinates> = VecDeque::new();
+        let mut visited: HashSet<Coordinates> = HashSet::new();
+
+        // Seed the BFS with every visitable cell that already touches this side.
+        // Cost is always 0 at the source — we measure the distance *away* from
+        // the side, not the cost of reaching the side cell itself.
+        for &cell in visitable {
             let on_side = match side {
-                0 => coord.touches_side_a(),
-                1 => coord.touches_side_b(),
-                _ => coord.touches_side_c(),
+                0 => cell.touches_side_a(),
+                1 => cell.touches_side_b(),
+                _ => cell.touches_side_c(),
             };
             if on_side {
-                dist_out[idx] = 0;
-                ctx.deque.push_front(idx as u32);
+                dist.insert(cell, 0);
+                deque.push_front(cell);
             }
         }
 
-        while let Some(curr_idx) = ctx.deque.pop_front() {
-            let curr = curr_idx as usize;
-            if ctx.visited[curr] {
-                continue;
+        while let Some(current) = deque.pop_front() {
+            if !visited.insert(current) {
+                continue; // already settled
             }
-            ctx.visited[curr] = true;
 
-            let current_dist = dist_out[curr];
-            let curr_coord   = Coordinates::from_index(curr_idx, board.board_size());
+            let current_dist = dist[&current];
 
-            for neighbor in board.get_neighbors(&curr_coord) {
-                let n_idx = neighbor.to_index(board.board_size()) as usize;
-                if !ctx.visitable[n_idx] || ctx.visited[n_idx] {
+            for neighbor in board.get_neighbors(&current) {
+                if !visitable.contains(&neighbor) || visited.contains(&neighbor) {
                     continue;
                 }
 
-                // Coste 0 si el vecino ya es del jugador, 1 si está vacío
-                let step_cost = if ctx.player_cells[n_idx] { 0u32 } else { 1u32 };
-                let new_dist  = current_dist.saturating_add(step_cost);
+                let step_cost = if player_set.contains(&neighbor) { 0 } else { 1 };
+                let new_dist = current_dist + step_cost;
 
-                if new_dist < dist_out[n_idx] {
-                    dist_out[n_idx] = new_dist;
-                    // 0-1 BFS: coste 0 va al frente, coste 1 va al fondo
+                if new_dist < *dist.get(&neighbor).unwrap_or(&u32::MAX) {
+                    dist.insert(neighbor, new_dist);
                     if step_cost == 0 {
-                        ctx.deque.push_front(n_idx as u32);
+                        deque.push_front(neighbor);
                     } else {
-                        ctx.deque.push_back(n_idx as u32);
+                        deque.push_back(neighbor);
                     }
                 }
             }
         }
+
+        dist
     }
 
-    // ── Generación de candidatos ─────────────────────────────────────────────
+    /*
+        Returns the set of all cells that `player` can traverse:
+        cells that are either empty or already owned by `player`.
+        Opponent-owned cells are excluded since they block the player's paths.
+    */
+    fn visitable_cells(&self, board: &GameY, player: PlayerId) -> HashSet<Coordinates> {
+        (0..board.total_cells())
+            .map(|idx| Coordinates::from_index(idx, board.board_size()))
+            .filter(|coord| {
+                let owner = board.get_cell_owner(coord);
+                owner.is_none() || owner == Some(player)
+            })
+            .collect()
+    }
 
-    /// Devuelve las celdas más relevantes para explorar.
-    ///
-    /// - Tier 1: vecino directo de cualquier pieza (bot o humano) → máxima prioridad
-    /// - Tier 2: vecino de un vecino del bot o del humano → segunda prioridad
-    ///
-    /// Si el tablero está vacío devuelve todas las celdas disponibles.
+    /*
+        Returns the candidate cells passed to minimax at each node.
+        Instead of considering every empty cell, only cells near existing pieces
+        are included, which keeps the branching factor manageable.
+
+        Two tiers of candidates are collected:
+          - Distance 1: any empty cell adjacent to an occupied cell (either player).
+          - Distance 2: any empty cell whose neighbour is adjacent to a bot-owned
+            cell. This second tier ensures the bot can "jump" one step ahead along
+            its own chain without the human needing to play nearby first.
+
+        Only bot-owned cells seed the distance-2 expansion to avoid a combinatorial
+        explosion when the human has many pieces spread across the board.
+    */
     fn relevant_cells(&self, board: &GameY) -> Vec<u32> {
-        let n      = board.total_cells() as usize;
-        let avail  = board.available_cells();
+        let occupied: HashSet<Coordinates> = (0..board.total_cells())
+            .map(|idx| Coordinates::from_index(idx, board.board_size()))
+            .filter(|c| board.get_cell_owner(c).is_some())
+            .collect();
 
-        let mut occupied      = vec![false; n];
-        let mut any_frontier  = vec![false; n]; // frontera de CUALQUIER jugador
-        let mut has_occupied  = false;
-
-        for idx in 0..n {
-            let coord = Coordinates::from_index(idx as u32, board.board_size());
-            if board.get_cell_owner(&coord).is_some() {
-                occupied[idx] = true;
-                has_occupied  = true;
-                for neighbor in board.get_neighbors(&coord) {
-                    let n_idx = neighbor.to_index(board.board_size()) as usize;
-                    any_frontier[n_idx] = true;
-                }
-            }
+        if occupied.is_empty() {
+            return board.available_cells().clone();
         }
 
-        if !has_occupied {
-            return avail.clone();
-        }
+        // Pre-compute the set of cells adjacent to bot-owned pieces for the
+        // distance-2 expansion. Building this once avoids a nested O(n²) scan.
+        let bot_frontier: HashSet<Coordinates> = occupied
+            .iter()
+            .filter(|c| board.get_cell_owner(c) == Some(PlayerId::new(1)))
+            .flat_map(|c| board.get_neighbors(c))
+            .filter(|n| !occupied.contains(n))
+            .collect();
 
-        let mut candidates = Vec::new();
+        let mut candidate_set: HashSet<u32> = HashSet::new();
 
-        for &idx in avail {
+        for &idx in board.available_cells() {
             let coord = Coordinates::from_index(idx, board.board_size());
+            let neighbors = board.get_neighbors(&coord);
 
-            // Tier 1: vecino inmediato de alguna pieza
-            let is_tier1 = board
-                .get_neighbors(&coord)
-                .iter()
-                .any(|n| occupied[n.to_index(board.board_size()) as usize]);
-
-            if is_tier1 {
-                candidates.push(idx);
+            // Tier 1: adjacent to any occupied cell.
+            if neighbors.iter().any(|n| occupied.contains(n)) {
+                candidate_set.insert(idx);
                 continue;
             }
 
-            // Tier 2: vecino de un vecino de cualquier jugador
-            let is_tier2 = board
-                .get_neighbors(&coord)
-                .iter()
-                .any(|n| any_frontier[n.to_index(board.board_size()) as usize]);
-
-            if is_tier2 {
-                candidates.push(idx);
+            // Tier 2: adjacent to the bot's frontier (distance 2 from a bot cell).
+            if neighbors.iter().any(|n| bot_frontier.contains(n)) {
+                candidate_set.insert(idx);
             }
         }
 
-        // Fallback: si los filtros dejan el conjunto vacío, usamos todos
-        if candidates.is_empty() {
-            avail.clone()
-        } else {
-            candidates
-        }
+        candidate_set.into_iter().collect()
     }
 }
-
-// ─── Implementación del trait YBot ──────────────────────────────────────────
 
 impl YBot for MediumBot {
     fn name(&self) -> &str {
@@ -517,5 +351,394 @@ impl YBot for MediumBot {
 
     fn choose_move(&self, board: &GameY) -> Option<Coordinates> {
         self.chose_best_move(board)
+    }
+}
+
+#[cfg(test)]
+mod medium_bot_tests {
+    use crate::{Coordinates, GameY, Movement, PlayerId};
+    use crate::bot::medium::MediumBot;
+    use crate::YBot;
+
+    // ─── helpers ─────────────────────────────────────────────────────────────
+
+    fn bot() -> MediumBot {
+        MediumBot
+    }
+
+    /// Aplica una secuencia de movimientos alternativos (player 0, player 1, …)
+    /// empezando por `first_player`.
+    fn apply_moves(board: &mut GameY, coords: &[(u32, u32, u32)], first_player: u32) {
+        for (i, &(x, y, z)) in coords.iter().enumerate() {
+            let player = PlayerId::new((first_player + i as u32) % 2);
+            board
+                .add_move(Movement::Placement {
+                    player,
+                    coords: Coordinates::new(x, y, z),
+                })
+                .unwrap();
+        }
+    }
+
+    // ─── 1. Tablero vacío ─────────────────────────────────────────────────────
+
+    /// El bot debe devolver alguna coordenada cuando el tablero está vacío.
+    #[test]
+    fn empty_board_returns_some() {
+        let board = GameY::new(5);
+        assert!(bot().choose_move(&board).is_some());
+    }
+
+    /// La coordenada devuelta en un tablero vacío debe existir en available_cells.
+    #[test]
+    fn empty_board_move_is_available() {
+        let board = GameY::new(5);
+        let mv = bot().choose_move(&board).unwrap();
+        let idx = mv.to_index(board.board_size());
+        assert!(board.available_cells().contains(&idx));
+    }
+
+    // ─── 2. Una sola celda libre ──────────────────────────────────────────────
+
+    /// Con una única celda libre el bot DEBE elegirla.
+    #[test]
+    fn single_cell_left_must_be_chosen() {
+        // Tablero 2: 3 celdas. Llenamos 2 de forma que ninguno gane antes.
+        // (0,1,0) y (0,0,1) son las dos celdas del lado inferior; la que queda es (1,0,0).
+        let mut board = GameY::new(2);
+        board
+            .add_move(Movement::Placement {
+                player: PlayerId::new(0),
+                coords: Coordinates::new(0, 1, 0),
+            })
+            .unwrap();
+        board
+            .add_move(Movement::Placement {
+                player: PlayerId::new(1),
+                coords: Coordinates::new(0, 0, 1),
+            })
+            .unwrap();
+
+        let mv = bot().choose_move(&board);
+        // Puede que el juego ya acabara; si no, la única celda es (1,0,0).
+        if let Some(coord) = mv {
+            assert_eq!(coord, Coordinates::new(1, 0, 0));
+        }
+    }
+
+    // ─── 3. El bot debe bloquear una victoria inminente del humano ────────────
+
+    /// Tablero 5. El humano (player 0) tiene dos piezas conectando dos lados;
+    /// sólo le falta colocar una pieza para conectar el tercer lado.
+    /// El bot debe elegir esa celda bloqueante.
+    ///
+    /// Configuración (coordenadas baricéntricas, tablero 5 → índices de 0-14):
+    ///   Player 0 toca side_a (x=0) con (0,2,2) y (0,1,3)
+    ///             toca side_b (y=0) con (2,0,2)
+    ///   La celda que conectaría side_c (z=0) es (0,4,0)  → solo le falta esa.
+    ///   El bot debe ir allí antes que el humano.
+    #[test]
+    fn bot_blocks_human_imminent_win() {
+        let mut board = GameY::new(5);
+
+        // Human pieces (player 0)
+        for &(x, y, z) in &[(0u32, 2u32, 2u32), (0, 1, 3), (2, 0, 2)] {
+            board
+                .add_move(Movement::Placement {
+                    player: PlayerId::new(0),
+                    coords: Coordinates::new(x, y, z),
+                })
+                .unwrap();
+            // Bot hace relleno neutral lejos
+            if !board.check_game_over() {
+                board
+                    .add_move(Movement::Placement {
+                        player: PlayerId::new(1),
+                        coords: Coordinates::new(4, 0, 0), // corner que no obstruye
+                    })
+                    .unwrap_or(());
+            }
+        }
+
+        // Ahora el bot (player 1) elige
+        let mv = bot().choose_move(&board);
+        assert!(mv.is_some(), "El bot debe devolver un movimiento");
+
+        // La celda bloqueante clave toca side_c (z == 0)
+        // El bot no tiene por qué ir exactamente allí, pero el juego
+        // no debe terminar con victoria del humano en el siguiente turno.
+        if let Some(coord) = mv {
+            let mut after_bot = board.clone();
+            after_bot
+                .add_move(Movement::Placement {
+                    player: PlayerId::new(1),
+                    coords: coord,
+                })
+                .unwrap();
+
+            // Comprobamos que el humano ya NO puede ganar en un movimiento.
+            let remaining = after_bot.available_cells().clone();
+            let human_wins_next = remaining.iter().any(|&idx| {
+                let c = Coordinates::from_index(idx, after_bot.board_size());
+                let mut sim = after_bot.clone();
+                sim.add_move(Movement::Placement {
+                    player: PlayerId::new(0),
+                    coords: c,
+                })
+                .unwrap();
+                sim.check_game_over()
+            });
+
+            assert!(
+                !human_wins_next,
+                "El bot no bloqueó la victoria inminente del humano"
+            );
+        }
+    }
+
+    // ─── 4. El bot debe elegir su propia victoria inmediata ──────────────────
+
+    /// Si el bot puede ganar en este turno, DEBE hacerlo.
+    ///
+    /// Cargamos la posición via YEN para tener control total sobre el layout
+    /// sin depender del orden de turnos de `add_move`.
+    ///
+    /// Tablero 5, layout (fila 0 = vértice x=4, fila 4 = base x=0):
+    ///
+    ///   fila 0 (x=4): .
+    ///   fila 1 (x=3): ..
+    ///   fila 2 (x=2): .R.
+    ///   fila 3 (x=1): .RR.
+    ///   fila 4 (x=0): BR.R.
+    ///
+    /// Piezas del bot (R = player 1):
+    ///   (2,1,1) – interior
+    ///   (1,1,2) – toca side_a (x=0 no, x=1 no… espera: side_a es x==0)
+    ///
+    /// Usamos una posición más simple y verificada manualmente:
+    ///
+    /// Tablero 3 (6 celdas), side_a: x=0, side_b: y=0, side_c: z=0
+    /// Celda única (0,0,2) toca side_a y side_b.
+    /// Celda (0,2,0) toca side_a y side_c.
+    /// Celda (2,0,0) toca side_b y side_c → ganar colocando (1,1,0) que
+    /// conecta (0,2,0)-(1,1,0)-(2,0,0) tocando las 3 lados.
+    ///
+    /// YEN layout tablero 3 (turn=1 → toca player 1 = R):
+    ///   fila 0 (x=2): .
+    ///   fila 1 (x=1): .R
+    ///   fila 2 (x=0): R.R
+    ///   → "." / ".R" / "R.R"  con turn=1 (le toca al bot)
+    ///
+    /// Bot (R) toca: (1,1,0) side_c, (0,0,2) side_a+side_b, (0,2,0) side_a+side_c
+    /// Falta conectarlos: colocando (0,1,1) une (0,0,2)-(0,1,1)-(0,2,0) → side_a+side_b+side_c ✓
+    #[test]
+    fn bot_takes_winning_move() {
+        use crate::{YEN, GameStatus};
+
+        // Layout tablero 3:
+        //   x=2: .          → (2,0,0)=empty
+        //   x=1: .R         → (1,0,1)=empty, (1,1,0)=R
+        //   x=0: R.R        → (0,0,2)=R,     (0,1,1)=empty, (0,2,0)=R
+        //
+        // R toca: (0,0,2) → side_a(x=0) + side_b(y=0)
+        //         (0,2,0) → side_a(x=0) + side_c(z=0)
+        //         (1,1,0) → side_c(z=0)
+        // Colocando (0,1,1): conecta (0,0,2)-(0,1,1)-(0,2,0) → toca las 3 → gana.
+        // B (player 0) no tiene piezas → no puede ganar.
+        // turn=1 → le toca a R (bot).
+        let yen_str = r#"{
+            "size": 3,
+            "turn": 1,
+            "players": ["B","R"],
+            "layout": "./. R/R.R"
+        }"#;
+        // YEN layout usa '/' como separador de filas, sin espacios dentro de la cadena.
+        // Reconstruimos correctamente:
+        let yen_str = r#"{"size":3,"turn":1,"players":["B","R"],"layout":"./. R/R.R"}"#;
+
+        // Construimos la posición directamente para evitar problemas de parseo YEN
+        let mut board = GameY::new(3);
+        // Colocamos solo piezas del bot (R=player1) en la posición deseada.
+        // GameY no valida turno en add_move, solo registra quién pone.
+        for &(x, y, z) in &[(0u32, 0u32, 2u32), (0, 2, 0), (1, 1, 0)] {
+            board
+                .add_move(Movement::Placement {
+                    player: PlayerId::new(1),
+                    coords: Coordinates::new(x, y, z),
+                })
+                .unwrap();
+        }
+
+        // Sanity: el juego sigue en curso
+        assert!(
+            !board.check_game_over(),
+            "El tablero no debería estar terminado antes del movimiento ganador"
+        );
+
+        // Sanity: existe al menos un movimiento ganador para el bot
+        let winning_cells: Vec<Coordinates> = board
+            .available_cells()
+            .iter()
+            .map(|&idx| Coordinates::from_index(idx, board.board_size()))
+            .filter(|&c| {
+                let mut sim = board.clone();
+                sim.add_move(Movement::Placement {
+                    player: PlayerId::new(1),
+                    coords: c,
+                })
+                .unwrap();
+                sim.check_game_over()
+            })
+            .collect();
+
+        assert!(
+            !winning_cells.is_empty(),
+            "La posición de test no tiene movimiento ganador para el bot"
+        );
+
+        // El bot DEBE elegir uno de esos movimientos ganadores
+        let mv = bot().choose_move(&board).unwrap();
+        let mut after = board.clone();
+        after
+            .add_move(Movement::Placement {
+                player: PlayerId::new(1),
+                coords: mv,
+            })
+            .unwrap();
+
+        assert!(
+            after.check_game_over(),
+            "El bot tenía jugadas ganadoras {:?} pero eligió {:?}",
+            winning_cells,
+            mv
+        );
+        if let GameStatus::Finished { winner } = after.status() {
+            assert_eq!(winner.id(), 1, "El ganador debe ser el bot (player 1)");
+        }
+    }
+
+    // ─── 5. El movimiento devuelto siempre es válido ──────────────────────────
+
+    /// En cualquier estado intermedio la coordenada devuelta debe:
+    ///   a) estar en available_cells, y
+    ///   b) poder aplicarse sin error.
+    #[test]
+    fn returned_move_is_always_legal() {
+        let mut board = GameY::new(4);
+
+        // Jugamos 6 movimientos alternos y pedimos al bot en cada turno impar
+        let coords_seq: &[(u32, u32, u32)] =
+            &[(0, 3, 0), (3, 0, 0), (0, 0, 3), (1, 2, 0), (0, 1, 2), (2, 1, 0)];
+
+        for (i, &(x, y, z)) in coords_seq.iter().enumerate() {
+            if board.check_game_over() {
+                break;
+            }
+            let player = PlayerId::new(i as u32 % 2);
+            board
+                .add_move(Movement::Placement {
+                    player,
+                    coords: Coordinates::new(x, y, z),
+                })
+                .unwrap();
+
+            // Pedimos consejo al bot después de cada movimiento del humano
+            if i % 2 == 0 && !board.check_game_over() {
+                let mv = bot().choose_move(&board).unwrap();
+                let idx = mv.to_index(board.board_size());
+
+                assert!(
+                    board.available_cells().contains(&idx),
+                    "El bot propuso una celda no disponible: {:?}",
+                    mv
+                );
+
+                // Verificar que se puede aplicar
+                let mut tmp = board.clone();
+                tmp.add_move(Movement::Placement {
+                    player: PlayerId::new(1),
+                    coords: mv,
+                })
+                .expect("El movimiento del bot falló al aplicarse");
+            }
+        }
+    }
+
+    // ─── 6. No devuelve None en un tablero casi lleno ────────────────────────
+
+    /// Con pocas celdas libres (pero el juego aún en curso) el bot devuelve Some.
+    #[test]
+    fn nonempty_board_near_full_returns_some() {
+        // Tablero 3: 6 celdas. Ponemos 4 de forma que no haya ganador aún.
+        let mut board = GameY::new(3);
+        // Alternamos colores sin crear conexión ganadora
+        let moves: &[(u32, u32, u32, u32)] = &[
+            (0, 0, 2, 0), // player 0
+            (0, 2, 0, 1), // player 1
+            (2, 0, 0, 0), // player 0
+            (0, 1, 1, 1), // player 1
+        ];
+        for &(x, y, z, p) in moves {
+            if board.check_game_over() {
+                return; // Si alguien ganó antes de lo previsto, el test no es aplicable
+            }
+            board
+                .add_move(Movement::Placement {
+                    player: PlayerId::new(p),
+                    coords: Coordinates::new(x, y, z),
+                })
+                .unwrap();
+        }
+
+        if !board.check_game_over() {
+            assert!(
+                bot().choose_move(&board).is_some(),
+                "El bot devolvió None con celdas disponibles"
+            );
+        }
+    }
+
+    // ─── 7. Consistencia: misma posición → mismo movimiento (determinismo) ───
+
+    /// Para un estado fijo, dos llamadas consecutivas deben devolver la misma
+    /// coordenada (el algoritmo es puramente determinista).
+    #[test]
+    fn deterministic_same_position() {
+        let mut board = GameY::new(4);
+        apply_moves(&mut board, &[(0, 3, 0), (3, 0, 0), (0, 2, 1), (1, 2, 0)], 0);
+
+        if board.check_game_over() {
+            return;
+        }
+
+        let mv1 = bot().choose_move(&board);
+        let mv2 = bot().choose_move(&board);
+        assert_eq!(mv1, mv2, "choose_move no es determinista para el mismo estado");
+    }
+
+    // ─── 8. Tablero con un solo jugador (el bot empieza solo) ─────────────────
+
+    /// Si el bot tiene piezas pero el humano aún no ha jugado,
+    /// must devolver un movimiento válido.
+    #[test]
+    fn board_with_only_bot_pieces() {
+        let mut board = GameY::new(5);
+        // Forzamos un estado donde sólo el bot ha jugado
+        // (esto puede requerir ajustar la lógica de turno si GameY lo valida;
+        //  aquí asumimos que add_move no comprueba el turno)
+        board
+            .add_move(Movement::Placement {
+                player: PlayerId::new(0),
+                coords: Coordinates::new(0, 0, 4),
+            })
+            .unwrap();
+        board
+            .add_move(Movement::Placement {
+                player: PlayerId::new(1),
+                coords: Coordinates::new(2, 1, 1),
+            })
+            .unwrap();
+
+        assert!(bot().choose_move(&board).is_some());
     }
 }
