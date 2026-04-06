@@ -75,6 +75,10 @@ jobs:
         run: |
           cd users
           npm ci
+      - name: Install gatewayservice dependencies
+        run: |
+          cd gatewayservice
+          npm ci
       - name: Install webapp dependencies
         run: |
           cd webapp
@@ -83,9 +87,10 @@ jobs:
         run: |
           cd webapp
           npm run test:e2e:install-browsers
-      - name: Run E2E tests (start servers and run cucumber)
+      - name: Run E2E tests
         env:
           MONGODB_URI: mongodb://admin:password@localhost:27017/usersdb?authSource=admin
+          JWT_SECRET: test-secret-for-e2e
         run: |
           cd webapp
           npm run test:e2e

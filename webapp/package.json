@@ -14,7 +14,7 @@
     "test:e2e:run": "cucumber-js --import test/e2e/support/setup.mjs --import test/e2e/steps/**/*.mjs test/e2e/features --format progress",
     "test:e2e": "start-server-and-test start:all http://localhost:5173 test:e2e:run",
     "test:e2e:install-browsers": "npx playwright install",
-    "start:all": "concurrently \"npm run dev\" \"npm --prefix ../users start\""
+    "start:all": "concurrently \"npm run dev\" \"npm --prefix ../users start\" \"npm --prefix ../gatewayservice start\""
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
@@ -29,7 +29,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.13.1",
-    "recharts": "^3.8.0",
+    "recharts": "^3.8.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "tailwindcss-animate": "^1.0.7"
