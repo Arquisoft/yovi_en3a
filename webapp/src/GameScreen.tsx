@@ -1,11 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard from './game/GameBoard';
-import { useParams } from "react-router-dom";
 import { Button } from './components/ui/button';
+import { Badge } from './components/ui/badge';
+import { Separator } from './components/ui/separator';
 import { gatewayUrl } from './lib/config';
+import { PlayerCard } from './game/PlayerCard';
+import { MoveHistory, type Move } from './game/MoveHistory';
+import { GameTimer } from './game/GameTimer';
+import { Trophy, LogOut, Gamepad2 } from 'lucide-react';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -17,25 +22,25 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
     const sidePanelRef = useRef<SidePanelRef>(null);
     const [gameOver, setGameOver] = useState<"p1" | "p2" | null>(null);
+    const [moves, setMoves] = useState<Move[]>([]);
+    const [currentTurn, setCurrentTurn] = useState<"p1" | "p2">("p1");
+    const [piecesP1, setPiecesP1] = useState(0);
+    const [piecesP2, setPiecesP2] = useState(0);
+    const [turnNumber, setTurnNumber] = useState(1);
     const navigate = useNavigate();
 
-    // Antes que nada se comprueba si gamemanager devuelve error 401 o 403, de ser así se vuelve al menu
+    // Auth check
     useEffect(() => {
         if (!gameId) return;
         const token = localStorage.getItem('token');
         fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
             headers: { Authorization: `Bearer ${token}` },
         }).then(res => {
-            // 401: usuarios sin authenticar
-            // 403: usuario registrado, pero no es su partida
-            if (res.status === 401 || res.status === 403) {
-                navigate('/menu');
-            }
-        }).catch(() => {
-            navigate('/menu');
-        });
+            if (res.status === 401 || res.status === 403) navigate('/menu');
+        }).catch(() => navigate('/menu'));
     }, [gameId, navigate]);
 
+    // Background music
     useEffect(() => {
         let audio: HTMLAudioElement | null = null;
         try {
@@ -43,17 +48,26 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             audio.loop = true;
             audio.volume = 0.4;
             audio.play().catch(() => {});
-        } catch {
-            // Audio not available in test environment
-        }
-
-        return () => {
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
-            }
-        };
+        } catch {}
+        return () => { if (audio) { audio.pause(); audio.currentTime = 0; } };
     }, []);
+
+    const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
+        sidePanelRef.current?.addMove(player, playerName, coordinate);
+
+        const newMove: Move = { player, playerName, coordinate, timestamp: new Date() };
+        setMoves(prev => [...prev, newMove]);
+
+        if (player === "p1") {
+            setPiecesP1(p => p + 1);
+            sidePanelRef.current?.incrementTurn();
+            setTurnNumber(t => t + 1);
+            setCurrentTurn("p2");
+        } else {
+            setPiecesP2(p => p + 1);
+            setCurrentTurn("p1");
+        }
+    };
 
     const handleExit = () => {
         if (onExit) onExit();
@@ -61,42 +75,137 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     };
 
     return (
-        <div className="game-screen">
-            <header className="game-header">
-                <h1>Game</h1>
+        <div className="min-h-screen bg-[#0d1117] flex flex-col" style={{
+            backgroundImage: `
+                radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(29,78,216,0.07) 0%, transparent 50%)
+            `,
+            fontFamily: "'Courier New', monospace"
+        }}>
+
+            {/* ── Header ── */}
+            <header className="w-full flex items-center justify-between px-6 py-3 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                    <Gamepad2 className="h-4 w-4 text-indigo-400 opacity-60" />
+                    <span className="text-[0.65rem] font-bold tracking-[0.25em] uppercase text-white/20">
+                        Y-Game
+                    </span>
+                    {gameType && (
+                        <Badge variant="outline" className="text-[0.6rem] border-white/10 text-white/30 ml-2">
+                            {gameType}
+                        </Badge>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <span className="text-[0.65rem] tracking-widest uppercase text-white/20">
+                        Turn <span className="text-indigo-400 font-bold">{turnNumber}</span>
+                    </span>
+                    <Separator orientation="vertical" className="h-4 bg-white/10" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleExit}
+                        className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-7 px-2 text-xs gap-1 transition-colors"
+                    >
+                        <LogOut className="h-3 w-3" />
+                        Exit
+                    </Button>
+                </div>
             </header>
 
+            {/* ── Game Over Overlay ── */}
             {gameOver && (
-                <div className="game-over-overlay">
-                    <div className="game-over-card">
-                        <h2>{gameOver === "p1" ? "🎉 You win!" : "😞 You lose!"}</h2>
-                        <p>{gameOver === "p1" ? "Congratulations!" : "Better luck next time!"}</p>
-                        <button className="game-over-btn" onClick={handleExit}>
+                <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center">
+                    <div
+                        className="bg-[#0d1117] border border-white/10 rounded-2xl p-10 text-center shadow-2xl"
+                        style={{ animation: 'fadeInUp 0.25s ease' }}
+                    >
+                        <div className="flex justify-center mb-4">
+                            <Trophy className={`h-12 w-12 ${gameOver === "p1" ? "text-yellow-400" : "text-white/20"}`} />
+                        </div>
+                        <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Courier New', monospace" }}>
+                            {gameOver === "p1" ? "You Win!" : "You Lose!"}
+                        </h2>
+                        <p className="text-white/30 text-sm mb-6">
+                            {gameOver === "p1" ? "Congratulations, well played!" : "Better luck next time."}
+                        </p>
+                        <Button
+                            onClick={handleExit}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-mono tracking-wide px-8"
+                        >
                             Back to Menu
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
 
-            <div className="game-container">
-                <main className="game-board-section">
+            {/* ── Main layout ── */}
+            <div className="flex flex-1 gap-5 px-6 py-4 items-start justify-center">
+
+                {/* Left sidebar */}
+                <aside className="flex flex-col gap-3 w-52 shrink-0 pt-1">
+                    <PlayerCard
+                        name="Player 1"
+                        playerNumber={1}
+                        isCurrentTurn={currentTurn === "p1" && !gameOver}
+                        piecesPlaced={piecesP1}
+                        isWinner={gameOver === "p1"}
+                    />
+                    <PlayerCard
+                        name="Player 2"
+                        playerNumber={2}
+                        isCurrentTurn={currentTurn === "p2" && !gameOver}
+                        piecesPlaced={piecesP2}
+                        isWinner={gameOver === "p2"}
+                    />
+
+                    <Separator className="bg-white/5" />
+
+                    {/* Timer — se para cuando termina la partida */}
+                    <GameTimer isRunning={!gameOver} />
+
+                    <Separator className="bg-white/5" />
+
+                    {/* Game info */}
+                    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2">
+                        <p className="text-[0.6rem] uppercase tracking-widest text-white/20 font-bold">Info</p>
+                        <div className="flex justify-between text-xs">
+                            <span className="text-white/30">Board</span>
+                            <span className="text-white/60 font-mono">{boardSize}×{boardSize}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                            <span className="text-white/30">Mode</span>
+                            <span className="text-white/60 font-mono">{gameType ?? 'local'}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                            <span className="text-white/30">Moves</span>
+                            <span className="text-indigo-400 font-mono font-bold">{moves.length}</span>
+                        </div>
+                    </div>
+                </aside>
+
+                {/* Center: board */}
+                <main className="game-board-section flex-shrink-0">
                     <GameBoard
                         gameIdProp={gameId}
                         boardSize={boardSize}
                         gameType={gameType}
-                        onCellPlayed={(player, playerName, coordinate) => {
-                            sidePanelRef.current?.addMove(player, playerName, coordinate);
-                            if (player === "p1") sidePanelRef.current?.incrementTurn();
-                        }}
+                        onCellPlayed={(player, playerName, coordinate) =>
+                            handleCellPlayed(player as "p1" | "p2", playerName, coordinate)
+                        }
                         onGameOver={(winner) => setGameOver(winner)}
                     />
                 </main>
-                <SidePanel ref={sidePanelRef} />
-            </div>
 
-            <Button variant="destructive" onClick={handleExit}>
-                ← Exit Game
-            </Button>
+                {/* Right sidebar: move history */}
+                <aside className="flex flex-col gap-3 w-56 shrink-0 pt-1">
+                    <MoveHistory moves={moves} maxHeight={420} />
+                    <div className="hidden">
+                        <SidePanel ref={sidePanelRef} />
+                    </div>
+                </aside>
+            </div>
         </div>
     );
 };

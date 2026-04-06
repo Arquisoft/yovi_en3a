@@ -29,6 +29,8 @@ function App() {
           {/* Cómo jugar */}
           <Route path="/how-to-play" element={<HowToPlay />} />
 
+          {/*Panel de juego */}
+          <Route path="/game/:gameId/:size/:gameType" element={<GameScreen />} />
           {/* Estadísticas */}
           <Route path="/stats" element={<StatsView />} />
 
