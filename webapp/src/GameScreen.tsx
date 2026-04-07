@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
-import GameBoard from './game/GameBoard';
+import GameBoard, { type GameBoardRef } from './game/GameBoard';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
@@ -10,7 +10,7 @@ import { gatewayUrl } from './lib/config';
 import { PlayerCard } from './game/PlayerCard';
 import { MoveHistory, type Move } from './game/MoveHistory';
 import { GameTimer } from './game/GameTimer';
-import { Trophy, LogOut, Gamepad2 } from 'lucide-react';
+import { Trophy, LogOut, Gamepad2, Lightbulb } from 'lucide-react';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -19,7 +19,7 @@ interface GameScreenProps {
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const { gameId, size, gameType } = useParams();
     const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
-
+    const boardRef = useRef<GameBoardRef>(null);
     const sidePanelRef = useRef<SidePanelRef>(null);
     const [gameOver, setGameOver] = useState<"p1" | "p2" | null>(null);
     const [moves, setMoves] = useState<Move[]>([]);
@@ -27,6 +27,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [piecesP1, setPiecesP1] = useState(0);
     const [piecesP2, setPiecesP2] = useState(0);
     const [turnNumber, setTurnNumber] = useState(1);
+     const [hintUsed, setHintUsed] = useState(() =>
+        gameId ? localStorage.getItem(`hint_${gameId}`) === 'true' : false
+    );
+    const [hintLoading, setHintLoading] = useState(false);
     const navigate = useNavigate();
 
     // Auth check
@@ -69,6 +73,52 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         }
     };
 
+    const handleHint = async () => {
+        if (!gameId || hintUsed || hintLoading || gameOver || currentTurn !== 'p1') {
+            return;
+        }
+
+        setHintLoading(true);
+        
+        try {
+            const token = localStorage.getItem('token');
+ 
+            const stateRes = await fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!stateRes.ok) {
+                return;
+            }
+            const { yen } = await stateRes.json();
+ 
+            const hintRes = await fetch(`${gatewayUrl}/api/gamey/play`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ botId: 'beginner_bot', ...yen }),
+            });
+            if (!hintRes.ok) {
+                return;
+            } 
+            const { coords } = await hintRes.json();
+ 
+            const z = (boardSize - 1 - coords.x) - coords.y;
+            boardRef.current?.showHint(coords.x, coords.y, z);
+            console.log('HINT DEBUG', {
+                boardRefCurrent: boardRef.current,
+                coords,
+                z,
+                cellKey: `${coords.x}-${coords.y}-${z}`
+            });
+            boardRef.current?.showHint(coords.x, coords.y, z);
+            setHintUsed(true);
+            localStorage.setItem(`hint_${gameId}`, 'true');
+        } catch (err) {
+            console.error('Hint error:', err);
+        } finally {
+            setHintLoading(false);
+        }
+    };
+
     const handleExit = () => {
         if (onExit) onExit();
         else navigate(-1);
@@ -102,6 +152,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         Turn <span className="text-indigo-400 font-bold">{turnNumber}</span>
                     </span>
                     <Separator orientation="vertical" className="h-4 bg-white/10" />
+                     <Separator orientation="vertical" className="h-4 bg-white/10" />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleHint}
+                        disabled={hintUsed || hintLoading || !!gameOver || currentTurn !== 'p1'}
+                        title={hintUsed ? "Hint already used" : "Get a hint for your next move (once per game)"}
+                        className="text-white/30 hover:text-yellow-400 hover:bg-yellow-500/10 h-7 px-2 text-xs gap-1 transition-colors disabled:opacity-30"
+                    >
+                        <Lightbulb className="h-3 w-3" />
+                        {hintLoading ? "…" : hintUsed ? "Hint used" : "Hint"}
+                    </Button>
+                     <Separator orientation="vertical" className="h-4 bg-white/10" />
                     <Button
                         variant="ghost"
                         size="sm"
@@ -188,6 +251,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                 {/* Center: board */}
                 <main className="game-board-section flex-shrink-0">
                     <GameBoard
+                        ref={boardRef} 
                         gameIdProp={gameId}
                         boardSize={boardSize}
                         gameType={gameType}

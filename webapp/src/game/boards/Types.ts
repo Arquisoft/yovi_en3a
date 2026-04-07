@@ -14,6 +14,7 @@ export interface BoardProps {
 
 export interface GameBoardRef {
   selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => boolean;
+  showHint: (x: number, y: number, z: number) => void;
 }
 
 export interface GameLogicOptions {

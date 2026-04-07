@@ -25,6 +25,8 @@ export interface HexCellRef {
   selectByPlayer2: () => boolean;
   deselect: () => boolean;
   requestSelectForPlayer2: (targetCoordinates: Coordinates) => void;
+  showHint: () => void;
+  clearHint: () => void;
 }
 
 const playCellSound = () => {
@@ -55,6 +57,7 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
 
     const [selected, setSelected] = useState(initialSelected);
     const [cellOwner, setCellOwner] = useState<"none" | "p1" | "p2">(owner);
+    const [isHint, setIsHint] = useState(false);
 
     useEffect(() => {
       if (owner !== "none") {
@@ -68,6 +71,7 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
     function selectByPlayer() {
       setSelected(true);
       setCellOwner("p1");
+      setIsHint(false);
       playCellSound();
       return true;
     }
@@ -91,23 +95,29 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
 
     useImperativeHandle(ref, () => ({
       selectByPlayer, selectByPlayer2, deselect, requestSelectForPlayer2,
+      showHint: () => setIsHint(true),
+      clearHint: () => setIsHint(false),
     }));
 
     const handleClick = () => {
-      if (selected || cellOwner !== "none" || disabled || !coordinates) return;
+      if (selected || cellOwner !== "none" || disabled || !coordinates) {
+        return;
+      } 
+      setIsHint(false);
       onCellClick?.(coordinates, name);
     };
 
     return (
       <div
         onClick={handleClick}
-        className={`hex transition-all select-none cursor-pointer${disabled ? " cursor-not-allowed opacity-50" : ""}`}
+        className={`hex transition-all select-none cursor-pointer${disabled ? " cursor-not-allowed opacity-50" : ""}${isHint ? " is-hint" : ""}`}
         style={{
           width: size,
           height: size,
-          backgroundColor: selected ? chosen.sel : chosen.bg,
+          backgroundColor: isHint ? undefined : (selected ? chosen.sel : chosen.bg),
           color: chosen.fg,
-          transform: selected ? "scale(1.08)" : "scale(1.0)",
+          transform: isHint ? undefined : (selected ? "scale(1.08)" : "scale(1.0)"),
+          zIndex: isHint ? 100 : undefined,
         }}
       >
         {name}

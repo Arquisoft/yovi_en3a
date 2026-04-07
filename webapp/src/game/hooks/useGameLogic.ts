@@ -103,6 +103,13 @@ export const useGameLogic = (
 
   const gameBoardRef: GameBoardRef = {
     selectCellByCoordinates: (x, y, z, player) => selectCell(x, y, z, player),
+    showHint: (x, y, z) => {
+      const cellId = `${x}-${y}-${z}`;
+      const cell = cellRefs.current.get(cellId);
+      if (cell) {
+        cell.showHint();
+      }
+    }
   };
 
   return { gameId, cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef };

@@ -189,6 +189,26 @@
   animation: fadeInUp 0.25s ease;
 }
 
+@keyframes hint-pulse-color {
+  0%, 100% { 
+    background-color: #f59e0b; 
+    transform: scale(1); 
+    box-shadow: 0 0 10px #f59e0b;
+  }
+  50% { 
+    background-color: #fbbf24; 
+    transform: scale(1.15); 
+    box-shadow: 0 0 25px #fbbf24;
+  }
+}
+
+.hex.is-hint {
+  animation: hint-pulse-color 1s infinite ease-in-out !important;
+  z-index: 100;
+  color: black !important;
+  position: relative;
+}
+
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
