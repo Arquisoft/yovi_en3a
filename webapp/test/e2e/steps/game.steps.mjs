@@ -40,7 +40,7 @@ Given('I am logged in and in a game', async function () {
 
 When('I click resign', async function () {
     const page = this.page
-    await page.click('button:has-text("← Exit Game")')
+    await page.click('button:has-text("Exit")')
 })
 
 Then('I should be redirected to the game selection menu', async function () {
