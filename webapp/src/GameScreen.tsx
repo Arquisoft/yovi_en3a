@@ -10,7 +10,7 @@ import { gatewayUrl } from './lib/config';
 import { PlayerCard } from './game/PlayerCard';
 import { MoveHistory, type Move } from './game/MoveHistory';
 import { GameTimer } from './game/GameTimer';
-import { Trophy, LogOut, Gamepad2 } from 'lucide-react';
+import { Trophy, LogOut, Gamepad2, Eye, EyeOff } from 'lucide-react';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -106,15 +106,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setShowCellNames(!showCellNames)}
-                        className="text-white/30 hover:text-indigo-400 hover:bg-indigo-500/10 h-7 px-2 text-xs gap-1 transition-colors"
-                    >
-                        {showCellNames ? "Hide" : "Show"} Coords
-                    </Button>
-                    <Separator orientation="vertical" className="h-4 bg-white/10" />
-                    <Button
-                        variant="ghost"
-                        size="sm"
                         onClick={handleExit}
                         className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-7 px-2 text-xs gap-1 transition-colors"
                     >
@@ -193,6 +184,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             <span className="text-indigo-400 font-mono font-bold">{moves.length}</span>
                         </div>
                     </div>
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCellNames(!showCellNames)}
+                        className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors"
+                        title={showCellNames ? "Hide coordinates" : "Show coordinates"}
+                    >
+                        {showCellNames ? <Eye className="h-7 w-7" /> : <EyeOff className="h-7 w-7" />}
+                    </Button>
 
                   
                 </aside>
