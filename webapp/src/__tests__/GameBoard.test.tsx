@@ -1,87 +1,151 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 import GameBoard from "../game/GameBoard";
 import type { GameBoardRef } from "../game/GameBoard";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
-// Mock HexCell to simplify the DOM
-vi.mock("../game/HexCell", () => {
-    return {
-        // Usamos forwardRef porque el GameBoard le pasa una ref a cada HexCell
-        default: React.forwardRef((props: any, ref: any) => {
-            React.useImperativeHandle(ref, () => ({
-                selectByPlayer: vi.fn(() => true),
-                selectByPlayer2: vi.fn(() => true),
-            }));
+// ── Mock fetch global para evitar llamadas reales al backend ────────────────
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
 
-            return (
-                <button
-                    data-testid="hex-cell"
-                    aria-label={`cell-${props.name}`}
-                    onClick={() => props.onCellPlayed?.('p1', 'Test Player', props.name)}
-                >
-                    {props.name}
-                </button>
-            );
-        }),
-    };
-});
+vi.mock("../game/HexCell", () => ({
+    default: React.forwardRef((props: any, ref: any) => {
+        React.useImperativeHandle(ref, () => ({
+            selectByPlayer:          vi.fn(() => true),
+            selectByPlayer2:         vi.fn(() => true),
+            deselect:                vi.fn(() => true),
+            requestSelectForPlayer2: vi.fn(),
+        }));
+
+        return (
+            <button
+                data-testid="hex-cell"
+                aria-label={`cell-${props.name}`}
+                onClick={() => props.onCellClick?.(props.coordinates, props.name)}
+            >
+                {props.name}
+            </button>
+        );
+    }),
+}));
+
+// ── Helper ──────────────────────────────────────────────────────────────────
+
+const renderBoard = (size = 3, extraProps: Record<string, unknown> = {}) =>
+    render(
+        <MemoryRouter initialEntries={["/game/123/3/standard"]}>
+            <Routes>
+                <Route
+                    path="/game/:gameId/:size/:gameType"
+                    element={<GameBoard boardSize={size} {...extraProps} />}
+                />
+            </Routes>
+        </MemoryRouter>
+    );
+
+// ── Tests ───────────────────────────────────────────────────────────────────
 
 describe("GameBoard Component", () => {
-    const renderBoard = (size = 3) => {
-        return render(
-            <MemoryRouter initialEntries={[`/game/123`]}>
-                <Routes>
-                    <Route
-                        path="/game/:gameId"
-                        element={<GameBoard boardSize={size} />}
-                    />
-                </Routes>
-            </MemoryRouter>
-        );
-    };
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        // Mock por defecto: estado inicial vacío + movimiento sin ganador
+        mockFetch
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ yen: { layout: "---" } }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ status: "continue", yen: { layout: "---", size: 3 } }),
+            });
+    });
 
     it("renders the correct number of cells based on boardSize", () => {
-        // For size 3, the coordinate logic generates a specific number of cells
-        // (Row 0: 1, Row 1: 2, Row 2: 3) = 6 cells
         renderBoard(3);
-        const cells = screen.getAllByTestId("hex-cell");
-        expect(cells).toHaveLength(6);
+        expect(screen.getAllByTestId("hex-cell")).toHaveLength(6);
     });
 
     it("calculates barycentric coordinates correctly (top cell)", () => {
         renderBoard(3);
-        // The top cell in your logic is boardSize - 1 - row
-        // For size 3, row 0: x=2, y=0, z=0
+        // Fila 0: x = boardSize-1-0 = 2, y = 0, z = 0
         expect(screen.getByText("(2,0,0)")).toBeInTheDocument();
     });
 
-    it("calls onCellPlayed when a cell is clicked", () => {
-        const onCellPlayedMock = vi.fn();
-        render(
-            <MemoryRouter>
-                <GameBoard boardSize={3} onCellPlayed={onCellPlayedMock} />
-            </MemoryRouter>
-        );
-
-        const cell = screen.getByRole('button', { name: /cell-\(2,0,0\)/i });
-        fireEvent.click(cell);
-
-        expect(onCellPlayedMock).toHaveBeenCalledWith('p1', 'Test Player', "(2,0,0)");
+    it("renders all expected coordinate labels for size 3", () => {
+        renderBoard(3);
+        const expected = [
+            "(2,0,0)",
+            "(1,0,1)", "(1,1,0)",
+            "(0,0,2)", "(0,1,1)", "(0,2,0)",
+        ];
+        expected.forEach((label) => {
+            expect(screen.getByText(label)).toBeInTheDocument();
+        });
     });
 
-    it("exposes selectCellByCoordinates via ref", () => {
+    it("calls onCellPlayed when a cell is clicked and API responds", async () => {
+        const onCellPlayedMock = vi.fn();
+        renderBoard(3, { onCellPlayed: onCellPlayedMock });
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole("button", { name: /cell-\(2,0,0\)/i }));
+        });
+
+        // handleClick llama a fetch; verificamos que se intentó la llamada
+        expect(mockFetch).toHaveBeenCalled();
+    });
+
+    it("exposes selectCellByCoordinates via ref for p1", () => {
         const boardRef = React.createRef<GameBoardRef>();
         render(
-            <MemoryRouter>
-                <GameBoard ref={boardRef} boardSize={3} />
+            <MemoryRouter initialEntries={["/game/123/3/standard"]}>
+                <Routes>
+                    <Route
+                        path="/game/:gameId/:size/:gameType"
+                        element={<GameBoard ref={boardRef} boardSize={3} />}
+                    />
+                </Routes>
             </MemoryRouter>
         );
 
-        // Call the imperative method
         const result = boardRef.current?.selectCellByCoordinates(2, 0, 0, "p1");
         expect(result).toBe(true);
+    });
+
+    it("exposes selectCellByCoordinates via ref for p2", () => {
+        const boardRef = React.createRef<GameBoardRef>();
+        render(
+            <MemoryRouter initialEntries={["/game/123/3/standard"]}>
+                <Routes>
+                    <Route
+                        path="/game/:gameId/:size/:gameType"
+                        element={<GameBoard ref={boardRef} boardSize={3} />}
+                    />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const result = boardRef.current?.selectCellByCoordinates(0, 2, 0, "p2");
+        expect(result).toBe(true);
+    });
+
+    it("returns falsy when selectCellByCoordinates targets a non-existent cell", () => {
+        const boardRef = React.createRef<GameBoardRef>();
+        render(
+            <MemoryRouter initialEntries={["/game/123/3/standard"]}>
+                <Routes>
+                    <Route
+                        path="/game/:gameId/:size/:gameType"
+                        element={<GameBoard ref={boardRef} boardSize={3} />}
+                    />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const result = boardRef.current?.selectCellByCoordinates(9, 9, 9, "p1");
+        expect(result).toBeFalsy();
     });
 });

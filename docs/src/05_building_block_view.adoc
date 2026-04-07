@@ -69,41 +69,53 @@ endif::arc42help[]
 
 
 
-[plantuml,"Sequence diagram - Login ",png]
+[plantuml,"YOVI System Architecture - Level 1",png]
 ----
 
 actor "User" as user
 
-rectangle "YOVI" {
+rectangle "YOVI System" {
 
-  node WebApp as Web
-  node [User Service] as UserSvc
-  [Gamey] as GameEngine
+  node "WebApp" as Web
+  node [Gateway Service] as gateway
+  node "Game Manager" as GameSvc
+  node "User Service" as UserSvc
+  node "Gamey Engine" as GameEngine
+  database "MongoDB" as db
+
 
 }
 
-user --> Web :  Browser
-Web --> UserSvc : Login, Create User 
-Web --> GameEngine : Play Game
+user --> Web : Browser (HTTP)
+
+Web --> gateway: HTTP REST\nall requests\nport 8000
+gateway--> UserSvc : HTTP REST\nuser auth & registration\nport 3000
+gateway--> GameSvc: HTTP REST\ngame management\nport 5000
+GameSvc--> GameEngine: HTTP POST\nfetch bot move & check win\nport 4000
+GameSvc--> UserSvc: HTTP POST\nupdate user stats\nport 3000
+UserSvc --> db: user data persistence\nport 27017
+GameSvc--> db: game state persistence\nport 27017
+
 ----
 
 
 Motivation::
 
-This is a high-level view of the project, with the three main components that make it up.
+This is a high-level view of the project which follows a microservices architecture consisting of a frontend application, an API Gateway, and specialized backend services that communicate through HTTP REST APIs. The system persists data in a shared MongoDB database. 
 
 
 Contained Building Blocks::
-[cols="1,2" options="header"]
+[cols="1,2,1" options="header"]
 |===
-| **Name** | **Responsibility**
-| WebApp | Web visual interface for the player to interact with the program
-| Users |   REST API to manage registration and storage of players
-| Gamey |  Main game logic and bots for the player to play against
+| **Name** | **Responsibility** | **Technology**
+| WebApp | Frontend user interface providing player interactions (login, game selection, gameplay, statistics) | React, TypeScript, Vite
+| Gateway Service | API Gateway that routes all client requests to appropriate microservices, manages JWT authentication and CORS | Node.js
+| User Service | Manages user registration, authentication, storage of player profiles, statistics, and game history | Node.js, MongoDB, JWT, bcrypt
+| Game Manager | Orchestrates game sessions, coordinates with Gamey for bot moves | Node.js, MongoDB
+| Gamey Engine | Implements core game logic, bot strategies , and coordinate calculations | Rust
+| MongoDB | Persistent data storage for user accounts and game sessions | MongoDB
 |===
 
-Important Interfaces::
-_<Description of important interfaces>_
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -162,56 +174,56 @@ endif::arc42help[]
 
 ==== White Box Gamey
 
-
-
-[plantuml,"Sequence diagram - Login ",png]
+[plantuml,"Gamey Engine - Internal Structure",png]
 ----
-actor "Player " as player
-actor "Developer" as dev
+node "Game Manager" as game_mgr
+rectangle "Gamey" as gamey {
+  'component [Yen Notation] as yen
 
-node WebApp as Web
-
-
-rectangle "GameY" as gamey{
-
- component "CLI" as cli
- component "Bot" as bot
-
-
-package "Core" as core{
-  component [Game Logic] as game_logic
-  component [Coordinates] as coords
-  component [Actions] as acts
-  component [Game State] as state
- 
-}
-
-component "Bot Server" as api
+  component [Bot Registry] as bots
+  port "CLI" as cli
+  component "Bot Server\n(HTTP)" as api
+  component [Core Game Logic] as core
 
 
 
 }
 
+"Developer" as dev
 
-bot --> core 
-player-->Web
-Web --> core
-dev --> cli
-cli --> core
-bot --> api
+
+'yen --- core
+core --> bots
+api --> core
+api --> bots
+api -u0)- game_mgr: HTTP POST\n /choose \n /checkWin
+cli --> core: local play \n(not for regular users)
+cli -u0)- dev: terminal
+
 
 ----
-
-
 
 Contained Building Blocks::
 [cols="1,2" options="header"]
 |===
 | **Name** | **Responsibility**
-| Core | Core of the game, including the main game logic,coordinates,game_state , ... 
-| Bot |   Registry of bots that the player can play against, can be accessed by the core to get the next move of a bot and through the Bot Server API.  
-| CLI |  The gamme can also be played through a command line interface, this is omly used for testing and debugging purposes.
+| Bot Server | Exposes RESTful endpoints for bot move selection and win detection. Accepts game state in YEN format and returns move coordinates or game status
+| Core Logic | Internal game engine: implements rules, board state, move validation
+| Bot Registry | Internal bot manager: maintains random/beginner/medium bot implementations
 |===
+
+Important Interfaces::
+
+**API Endpoints:**
+
+. `GET /status` - Health check, returns service status
+. `POST /v1/ybot/choose/{bot_id}` - Request bot move
+  - Input: YEN game state (JSON)
+  - Output: `{api_version, bot_id, coords: {x, y, z}}`
+
+. `POST /v1/ybot/checkWin` - Check game status
+  - Input: YEN game state (JSON)
+  - Output: `{api_version, game_over: boolean, winner: number|null}`
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -226,31 +238,47 @@ endif::arc42help[]
 
 
 
-[plantuml,"Sequence diagram - Login ",png]
+[plantuml,"WebApp - Internal Structure and Navigation",png]
 ----
 
-actor "Player " as player
 
+actor "Player" as player
 
-rectangle "WebApp                                   " {
-
-  [Login Page] as Login
+rectangle "WebApp" as webapp {
+  [Landing Page] as Landing
+  [Login Form] as Login
+  [Register Form] as Register
+  [Menu View] as Menu
+  [How To Play] as HTP
+  [Game Selection] as GameSelect
   [Game UI] as GameUI
-  [Game Selection] as gameSelect
-
+  [Stats View] as Stats
+  [Ranking View] as Ranking
 }
 
-
 node "User Service" as UserSvc
-node "Gamey" as Gamey
+node "Game Manager" as GameMgr
 
+player --> Landing
+Landing --> Login
+Landing --> Register
 
-player--> Login
-Login--->UserSvc
-GameUI--->Gamey
-gameSelect-->GameUI
-Login-->gameSelect
+Login --> UserSvc: HTTP POST /login\nAuthenticate user\nport 3000
+Register --> UserSvc: HTTP POST /register\nCreate new account\nport 3000
 
+Login --> Menu
+Menu --> HTP
+Menu --> GameSelect
+Menu --> Stats
+Menu --> Ranking
+
+Stats --> UserSvc: HTTP GET /stats\nFetch user statistics\nport 3000
+Ranking --> UserSvc: HTTP GET /ranking\nFetch leaderboard\nport 3000
+
+GameSelect --> GameMgr: HTTP POST /create\nInitialize game session\nport 5000
+GameSelect --> GameUI 
+
+GameUI --> GameMgr: HTTP POST /move\nSubmit player move\n(authentication required)\nport 5000
 ----
 
 
@@ -258,11 +286,18 @@ Login-->gameSelect
 Contained Building Blocks::
 [cols="1,2" options="header"]
 |===
-| **Name** | **Responsibility**
-| Login Page | Web page for user authentication and login, accesses the Users API to store users 
-| Game Selection |   After login, the user can customize his game settings, sucha as the bot he wants to play against, the board size, ...  
-| Game UI |  The user can see the board and click on cells to make a move.
+| **Name** | **Responsibility** 
+| Landing Page | Initial entry point providing game overview and navigation options to login or register 
+| Login Form | User authentication interface, validates credentials and obtains JWT token for session 
+| Register Form | User registration interface for creating new player accounts with profile information 
+| Menu View | Main dashboard after authentication, serves as navigation hub to other features
+| How To Play | Instructions and tutorials explaining game rules, mechanics, and strategies 
+| Game Selection | Customization interface for game parameters (bot difficulty, board size) before game start 
+| Game UI | Main game interface displaying board state, accepting player moves, and showing bot responses 
+| Stats View | Displays individual player statistics, win/loss records, and performance metrics 
+| Ranking View | Shows leaderboard with top players and their current rankings 
 |===
+////
 
 ==== White Box _<building block m>_
 
@@ -304,3 +339,4 @@ _<white box template>_
 ==== White Box <_building block y.1_>
 
 _<white box template>_
+////

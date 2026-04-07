@@ -1,0 +1,26 @@
+<testsuite name="BotAPISimulation" tests="8" errors="0" failures="0" time="0">
+  <testcase name="POST /api/gamey/play [random_bot 5 early]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [random_bot 5 early]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="POST /api/gamey/play [medium_bot 5 early]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [medium_bot 5 early]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="POST /api/gamey/play [beginner_bot 5 early]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [beginner_bot 5 early]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="POST /api/gamey/play [beginner_bot 7 late]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [beginner_bot 7 late]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="POST /api/gamey/play [random_bot 7 mid]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [random_bot 7 mid]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="POST /api/gamey/play [medium_bot 7 mid]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [medium_bot 7 mid]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="POST /api/gamey/play [medium_bot 7 late]: 95th percentile of response time is less than 1000.0" status="true" time="0">
+  <system-out>POST /api/gamey/play [medium_bot 7 late]: 95th percentile of response time is less than 1000.0</system-out>
+</testcase>
+<testcase name="Global: percentage of successful events is greater than 99.0" status="true" time="0">
+  <system-out>Global: percentage of successful events is greater than 99.0</system-out>
+</testcase>
+</testsuite>
