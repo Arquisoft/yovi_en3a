@@ -4,7 +4,7 @@ import { useGameLogic } from "../hooks/useGameLogic";
 import HexGrid from "../HexGrid";
 
 const StandardBoard = forwardRef<GameBoardRef, BoardProps>(
-  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver }, ref) => {
+  ({ boardSize = 7, cellSize = 60, gameIdProp, showNames = true, onCellPlayed, onGameOver }, ref) => {
     const { cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef } =
       useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver);
 
@@ -17,6 +17,7 @@ const StandardBoard = forwardRef<GameBoardRef, BoardProps>(
         cellRefs={cellRefs}
         initialOwners={initialOwners}
         gameId={gameIdProp}
+        showNames={showNames}
         onCellClick={handleClick}
         onRequestSelectCell={handleRequestSelectCell}
         onCellPlayed={onCellPlayed}

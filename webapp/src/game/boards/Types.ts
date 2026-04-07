@@ -8,6 +8,7 @@ export interface BoardProps {
   boardSize?: number;
   cellSize?: number;
   gameIdProp?: string;
+  showNames?: boolean;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
   onGameOver?: (winner: "p1" | "p2") => void;
 }
