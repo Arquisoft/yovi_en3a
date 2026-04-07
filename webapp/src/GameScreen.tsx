@@ -10,7 +10,7 @@ import { gatewayUrl } from './lib/config';
 import { PlayerCard } from './game/PlayerCard';
 import { MoveHistory, type Move } from './game/MoveHistory';
 import { GameTimer } from './game/GameTimer';
-import { Trophy, LogOut, Gamepad2 } from 'lucide-react';
+import { Trophy, LogOut, Gamepad2, Eye, EyeOff } from 'lucide-react';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -27,6 +27,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [piecesP1, setPiecesP1] = useState(0);
     const [piecesP2, setPiecesP2] = useState(0);
     const [turnNumber, setTurnNumber] = useState(1);
+    const [showCellNames, setShowCellNames] = useState(false);
     const navigate = useNavigate();
 
     // Auth check
@@ -183,6 +184,18 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             <span className="text-indigo-400 font-mono font-bold">{moves.length}</span>
                         </div>
                     </div>
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCellNames(!showCellNames)}
+                        className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors"
+                        title={showCellNames ? "Hide coordinates" : "Show coordinates"}
+                    >
+                        {showCellNames ? <Eye className="h-7 w-7" /> : <EyeOff className="h-7 w-7" />}
+                    </Button>
+
+                  
                 </aside>
 
                 {/* Center: board */}
@@ -191,6 +204,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         gameIdProp={gameId}
                         boardSize={boardSize}
                         gameType={gameType}
+                        showNames={showCellNames}
                         onCellPlayed={(player, playerName, coordinate) =>
                             handleCellPlayed(player as "p1" | "p2", playerName, coordinate)
                         }

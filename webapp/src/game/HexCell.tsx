@@ -14,6 +14,7 @@ interface HexCellProps {
   initialSelected?: boolean;
   disabled?: boolean;
   coordinates?: Coordinates;
+  showNames?: boolean;
   onRequestSelectCell?: (coordinates: Coordinates, player: "p1" | "p2") => void;
   onCellClick?: (coordinates: Coordinates, name: string) => void;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
@@ -51,7 +52,7 @@ const colors = {
 
 const HexCell = forwardRef<HexCellRef, HexCellProps>(
   ({ name = "cell", size = 60, owner = "none", initialSelected = false,
-     disabled = false, coordinates, onRequestSelectCell, onCellClick }, ref) => {
+     disabled = false, coordinates, showNames = true, onRequestSelectCell, onCellClick }, ref) => {
 
     const [selected, setSelected] = useState(initialSelected);
     const [cellOwner, setCellOwner] = useState<"none" | "p1" | "p2">(owner);
@@ -105,12 +106,15 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
         style={{
           width: size,
           height: size,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           backgroundColor: selected ? chosen.sel : chosen.bg,
           color: chosen.fg,
           transform: selected ? "scale(1.08)" : "scale(1.0)",
         }}
       >
-        {name}
+        {showNames && name}
       </div>
     );
   }

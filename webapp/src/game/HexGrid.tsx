@@ -11,6 +11,7 @@ interface HexGridProps {
   gameId: string | undefined;
   disabledCells?: Set<string>;
   highlightCells?: Map<string, string>; // key → css color, para Tabu etc.
+  showNames?: boolean;
   onCellClick: (coordinates: Coordinates, name: string) => void;
   onRequestSelectCell: (coordinates: Coordinates, player: "p1" | "p2") => void;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
@@ -25,6 +26,7 @@ const HexGrid: React.FC<HexGridProps> = ({
   gameId,
   disabledCells = new Set(),
   highlightCells = new Map(),
+  showNames = true,
   onCellClick,
   onRequestSelectCell,
   onCellPlayed,
@@ -85,6 +87,7 @@ const HexGrid: React.FC<HexGridProps> = ({
                 initialSelected={savedOwner !== "none"}
                 disabled={isDisabled}
                 coordinates={coord}
+                showNames={showNames}
                 onRequestSelectCell={onRequestSelectCell}
                 onCellClick={onCellClick}
                 onCellPlayed={onCellPlayed}
