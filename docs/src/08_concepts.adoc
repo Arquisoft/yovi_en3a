@@ -49,7 +49,7 @@ variables. The **authSource=admin** parameter is required for all connections.
 
 ==== Internal Network Isolation
 All microservices communicate through an internal Docker network (monitor-net).
-Only the `gateway` (port 8000) and `webapp` (port 80) are exposed externally.
+Only the `gateway` (port 8000) and `webapp` (port 8080) are exposed externally.
 Direct access to `users`, `game-manager`, `gamey` and `MongoDB` is restricted to
 internal container communication.
 
@@ -60,7 +60,8 @@ internal container communication.
 ==== Gateway Pattern
 All external requests enter the system through a single **gateway service** running
 on port 8000. The **gateway proxies** requests to the appropriate microservice based
-on the URL prefix (/api/users, /api/game-manager, /api/gamey).
+on the URL prefix (/api/users, /api/game-manager). Communication with `gamey` is
+not a generic proxy — only the specific endpoint `POST /api/gamey/play` is exposed.
 
 ==== Proxy Request Pattern
 The `gateway` uses a generic **proxyRequest** function that forwards any HTTP method,
@@ -86,11 +87,12 @@ managed through environment variables. Local development uses a `.env` file,
 while production injects them via `docker-compose`` on the server.
 
 ==== API Documentation
-Each microservice exposes a **Swagger UI** at /api-docs using swagger-ui-express
-and `openapi.yaml`.
+The `gatewayservice` exposes a **Swagger UI** at `/api-docs` using swagger-ui-express
+and a single `openapi.yaml` that documents all public API endpoints across microservices
+(`/api/users`, `/api/game-manager`, `/api/gamey`).
 
 ==== Testing Strategy
-**Node.js** microservices (users, gateway) use **Vitest** and **Supertest** for unit and
+**Node.js** microservices (users, game-manager, gateway) use **Vitest** and **Supertest** for unit and
 integration testing. Each **Node.js** service has a `test:coverage` script that generates
 coverage reports. The `gamey` service uses **cargo test** for unit testing and
 **cargo llvm-cov** for coverage reporting. The **CI/CD pipeline** runs all tests on

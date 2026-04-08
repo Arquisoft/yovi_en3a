@@ -86,7 +86,7 @@ rectangle "YOVI System" {
 
 }
 
-user --> Web : Browser (HTTP)
+user --> Web : Browser (HTTPS)
 
 Web --> gateway: HTTP REST\nall requests\nport 8000
 gateway--> UserSvc : HTTP REST\nuser auth & registration\nport 3000
@@ -256,6 +256,7 @@ rectangle "WebApp" as webapp {
   [Ranking View] as Ranking
 }
 
+node "Gateway Service" as Gateway
 node "User Service" as UserSvc
 node "Game Manager" as GameMgr
 
@@ -263,8 +264,8 @@ player --> Landing
 Landing --> Login
 Landing --> Register
 
-Login --> UserSvc: HTTP POST /login\nAuthenticate user\nport 3000
-Register --> UserSvc: HTTP POST /register\nCreate new account\nport 3000
+Login --> Gateway: HTTP POST /api/users/login\nAuthenticate user\nport 8000
+Register --> Gateway: HTTP POST /api/users/register\nCreate new account\nport 8000
 
 Login --> Menu
 Menu --> HTP
@@ -272,13 +273,16 @@ Menu --> GameSelect
 Menu --> Stats
 Menu --> Ranking
 
-Stats --> UserSvc: HTTP GET /stats\nFetch user statistics\nport 3000
-Ranking --> UserSvc: HTTP GET /ranking\nFetch leaderboard\nport 3000
+Stats --> Gateway: HTTP GET /api/users/stats\nFetch user statistics\nport 8000
+Ranking --> Gateway: HTTP GET /api/users/ranking\nFetch leaderboard\nport 8000
 
-GameSelect --> GameMgr: HTTP POST /create\nInitialize game session\nport 5000
-GameSelect --> GameUI 
+GameSelect --> Gateway: HTTP POST /api/game-manager/create/:gameName\nInitialize game session\nport 8000
+GameSelect --> GameUI
 
-GameUI --> GameMgr: HTTP POST /move\nSubmit player move\n(authentication required)\nport 5000
+GameUI --> Gateway: HTTP POST /api/game-manager/move\nSubmit player move\n(authentication required)\nport 8000
+
+Gateway --> UserSvc: HTTP REST\nport 3000
+Gateway --> GameMgr: HTTP REST\nport 5000
 ----
 
 
