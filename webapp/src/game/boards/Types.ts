@@ -15,6 +15,7 @@ export interface BoardProps {
 
 export interface GameBoardRef {
   selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => boolean;
+  makeRandomMove?: () => void;
 }
 
 export interface GameLogicOptions {
