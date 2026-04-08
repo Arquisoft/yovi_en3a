@@ -34,12 +34,19 @@ use axum::http::{HeaderValue, Method};
 
 use crate::{GameYError, RandomBot, BeginnerBot, MediumBot, YBotRegistry, state::AppState};
 
+fn get_allowed_origin() -> HeaderValue {
+    let origin = std::env::var("GAME_MANAGER_URL")
+        .unwrap_or_else(|_| "http://localhost:5173".to_string());
+    
+    origin.parse::<HeaderValue>()
+        .expect("Invalid CORS_ORIGIN value")
+}
 /// Creates the Axum router with the given state.
 ///
 /// This is useful for testing the API without binding to a network port.
 pub fn create_router(state: AppState) -> axum::Router {
     let cors = CorsLayer::new()
-        .allow_origin("http://4.233.138.159".parse::<HeaderValue>().unwrap())
+        .allow_origin(get_allowed_origin())
         .allow_methods([Method::GET, Method::POST])
         .allow_headers(Any);
 

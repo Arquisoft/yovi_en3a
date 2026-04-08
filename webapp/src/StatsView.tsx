@@ -27,11 +27,6 @@ interface UserStats {
     winRate: number;
 }
 
-interface RankingData {
-    position: number;
-    // userStats: UserStats; // Ya lo tenemos en el estado principal
-}
-
 const StatsView: React.FC = () => {
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
