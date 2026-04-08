@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { gatewayUrl } from "../../lib/config";
 import { type Coordinates, type GameBoardRef, type GameLogicOptions, parseLayout } from "../boards/Types";
@@ -21,6 +21,8 @@ export const useGameLogic = (
   // Layout local para comparar sin hacer fetch extra
   const currentLayoutRef = useRef<string>("");
 
+  const playedCoords = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (!gameId) return;
     const token = localStorage.getItem("token");
@@ -30,8 +32,10 @@ export const useGameLogic = (
       .then((res) => res.json())
       .then((data) => {
         if (data.yen?.layout) {
-          currentLayoutRef.current = data.yen.layout; // guardar layout inicial
-          setInitialOwners(parseLayout(data.yen.layout, data.yen.size));
+          currentLayoutRef.current = data.yen.layout;
+          const owners = parseLayout(data.yen.layout, data.yen.size);
+          setInitialOwners(owners);
+          playedCoords.current = new Set(owners.keys());
         }
         if (data.status === "won") onGameOver?.("p1");
         else if (data.status === "lost") onGameOver?.("p2");
@@ -49,15 +53,15 @@ export const useGameLogic = (
     selectCell(coordinates.x, coordinates.y, coordinates.z, player);
   };
 
-  const handleClick = async (coordinates: Coordinates, name: string) => {
+  const executeMove = useCallback(async (coordinates: Coordinates, name: string) => {
     if (!gameId) return;
-    if (options?.onBeforeMove?.() === false) return;
-
     const token = localStorage.getItem("token");
+    const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
 
     flushSync(() => {
       selectCell(coordinates.x, coordinates.y, coordinates.z, "p1");
     });
+    playedCoords.current.add(key);
     onCellPlayed?.("p1", "Player 1", name);
     options?.onAfterPlayerMove?.(coordinates);
 
@@ -70,7 +74,8 @@ export const useGameLogic = (
     });
 
     if (!res.ok) {
-      cellRefs.current.get(`${coordinates.x}-${coordinates.y}-${coordinates.z}`)?.deselect();
+      cellRefs.current.get(key)?.deselect();
+      playedCoords.current.delete(key);
       return;
     }
 
@@ -93,17 +98,43 @@ export const useGameLogic = (
             const y = colIndex;
             const z = rowIndex - colIndex;
             selectCell(x, y, z, "p2");
+            playedCoords.current.add(`${x}-${y}-${z}`);
             onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
             options?.onAfterBotMove?.({ x, y, z });
           }
         }
       });
     }
+  }, [gameId]);
+
+  const handleClick = async (coordinates: Coordinates, name: string) => {
+    if (!gameId) return;
+    if (options?.onBeforeMove?.() === false) return;
+    await executeMove(coordinates, name);
   };
+
+  const makeRandomMove = useCallback(() => {
+    const allCoords: Coordinates[] = [];
+    for (let row = 0; row < boardSize; row++) {
+      const x = boardSize - 1 - row;
+      for (let y = 0; y <= row; y++) {
+        allCoords.push({ x, y, z: row - y });
+      }
+    }
+
+    const available = allCoords.filter(
+      (c) => !playedCoords.current.has(`${c.x}-${c.y}-${c.z}`)
+    );
+    if (available.length === 0) return;
+
+    const coord = available[Math.floor(Math.random() * available.length)];
+    executeMove(coord, `(${coord.x},${coord.y},${coord.z})`);
+  }, [boardSize, executeMove]);
 
   const gameBoardRef: GameBoardRef = {
     selectCellByCoordinates: (x, y, z, player) => selectCell(x, y, z, player),
+    makeRandomMove,
   };
 
-  return { gameId, cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef };
+  return { gameId, cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef, makeRandomMove };
 };

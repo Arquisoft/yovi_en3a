@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
-import GameBoard from './game/GameBoard';
+import GameBoard, { type GameBoardRef } from './game/GameBoard';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
@@ -10,6 +10,7 @@ import { gatewayUrl } from './lib/config';
 import { PlayerCard } from './game/PlayerCard';
 import { MoveHistory, type Move } from './game/MoveHistory';
 import { GameTimer } from './game/GameTimer';
+import { TurnTimer } from './game/TurnTimer';
 import { Trophy, LogOut, Gamepad2, Eye, EyeOff } from 'lucide-react';
 
 interface GameScreenProps {
@@ -21,6 +22,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
 
     const sidePanelRef = useRef<SidePanelRef>(null);
+    const gameBoardRef = useRef<GameBoardRef>(null);
+
     const [gameOver, setGameOver] = useState<"p1" | "p2" | null>(null);
     const [moves, setMoves] = useState<Move[]>([]);
     const [currentTurn, setCurrentTurn] = useState<"p1" | "p2">("p1");
@@ -73,6 +76,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const handleExit = () => {
         if (onExit) onExit();
         else navigate(-1);
+    };
+
+    const handleTurnTimeout = () => {
+        gameBoardRef.current?.makeRandomMove?.();
     };
 
     return (
@@ -163,8 +170,18 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
                     <Separator className="bg-white/5" />
 
-                    {/* Timer — se para cuando termina la partida */}
+                    {/* Elapsed game timer — se para cuando termina la partida */}
                     <GameTimer isRunning={!gameOver} />
+
+                    {/* Turn countdown — solo visible en el turno del jugador */}
+                    {currentTurn === "p1" && !gameOver && (
+                        <TurnTimer
+                            key={turnNumber}
+                            gameId={gameId}
+                            totalSeconds={20}
+                            onExpire={handleTurnTimeout}
+                        />
+                    )}
 
                     <Separator className="bg-white/5" />
 
@@ -194,13 +211,12 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                     >
                         {showCellNames ? <Eye className="h-7 w-7" /> : <EyeOff className="h-7 w-7" />}
                     </Button>
-
-                  
                 </aside>
 
                 {/* Center: board */}
                 <main className="game-board-section flex-shrink-0">
                     <GameBoard
+                        ref={gameBoardRef}
                         gameIdProp={gameId}
                         boardSize={boardSize}
                         gameType={gameType}
