@@ -1,6 +1,8 @@
 node_modules
 coverage
 gamey/target
+gatling/target
+gatling/results
 lcov.info
 docs/build
 .env
