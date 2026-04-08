@@ -15,6 +15,7 @@ app.use(metricsMiddleware);
 const mongoose = require("mongoose")
 const User = require("./models/user")
 const Stats = require("./models/stats");
+const History = require("./models/history");
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/userdb"
 const connectToMongoDB = async () => {
@@ -171,6 +172,177 @@ app.post('/login',
   }
 );
 
+//Updates user stats
+app.post('/stats/update', async(req,res) => {
+  const { userId, result } = req.body;
+
+  if(!userId){
+    return res.status(400).json({error: "userId is required!"})
+  }
+
+  if(!result){
+    return res.status(400).json({error: "result is required!"})
+  }
+
+  if(!['won', 'lost', 'resigned'].includes(result)){
+    return res.status(400).json({error: "result is not valid"})
+  }
+
+  try{
+    if(!mongoose.Types.ObjectId.isValid(userId)){
+      return res.status(400).json({error: "Invalid userId"})
+    }
+
+    const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
+    if(!userStats){
+      return res.status(404).json({error: "Stats not found"})
+    }
+
+    userStats.gamesPlayed++; //We increase by one the number of games
+    
+    //We add a new victory or defeat depending on the last result
+    switch (result){
+      case 'won': 
+        userStats.wins++
+        break
+      case 'lost':
+      case 'resigned': 
+        userStats.losses++;
+        break
+    }
+
+    //We modify its win rate depending on the current result
+    userStats.winRate = userStats.gamesPlayed > 0
+      ? userStats.wins / userStats.gamesPlayed * 100
+      : 0;
+    
+    await userStats.save()
+    res.json({updated: "Stats updated", userStats});
+  } catch(err){
+    res.status(500).json({error: err.message})
+  }
+})
+
+//Returns the general ranking of best players (limited to 20 for the moment)
+app.get('/stats/ranking', async(req,res) => {
+  const {sortBy = 'wins'} = req.query  //It can be ordered by both wins and winRate, by specifying it on the query
+  const userId = req.headers['x-user-id']
+
+  if(!['wins', 'winRate'].includes(sortBy)){
+    return res.status(400).json({error: 'Invalid sort method'})
+  }
+
+  try{
+    //We choose whether to order by wins or winRate
+    const sortOptions = sortBy === 'wins'
+            ? { wins: -1, winRate: -1 }
+            : { winRate: -1, wins: -1 }
+
+    //We then sort, show the 20 best players and instead of putting the userId, we rather choose tha username
+    const top = 20;
+    const ranking = await Stats.find({ gamesPlayed : {$gt: 0}})
+      .sort(sortOptions)
+
+    const topPlayers = await Stats.find({ gamesPlayed: { $gt: 0 } })
+        .sort(sortOptions)
+        .limit(top)
+        .populate('userId', 'username')
+
+    //We check if user is in the ranking
+    if(userId && mongoose.Types.ObjectId.isValid(userId)){
+      const position = ranking.findIndex(rank => rank.userId.toString() == userId) + 1
+      if(position > top){
+        const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
+          .populate('userId', 'username')
+        return res.json({topPlayers, userPosition: { position, userStats }})
+      }
+    }
+
+    res.json({topPlayers, userPosition: null})
+  } catch(err){
+    res.status(500).json({error: err.message}) 
+  }
+})
+
+//Returs the personal statistics
+app.get('/stats/:userId', async(req,res) => {
+  const userId = req.headers['x-user-id']
+  try{
+    if(!mongoose.Types.ObjectId.isValid(userId)){
+      return res.status(400).json({error: 'Invalid user'})
+    }
+    const userStats = await Stats.findOne({ userId: new mongoose.Types.ObjectId(userId) })
+    if(!userStats){
+      return res.status(404).json({error: 'User has never played a game'})
+    }
+
+    res.json(userStats)
+  } catch(err){
+    res.status(500).json({error: err.message})
+  }
+})
+
+// Adds a history to the user for a completed match
+app.post('/history/add', async (req, res) => {
+  const { userId, result, botId, boardSize, gameType } = req.body;
+ 
+  if (!userId) {
+    return res.status(400).json({ error: "userId is mandatory" });
+  }
+  if (!result || !['won', 'lost', 'resigned'].includes(result)) {
+    return res.status(400).json({ error: "result must be 'won', 'lost' or 'resigned'" });
+  }
+  if (!botId || !['random_bot', 'beginner_bot', 'medium_bot'].includes(botId)) {
+    return res.status(400).json({ error: "botId must be 'random_bot', 'beginner_bot' or 'medium_bot'" });
+  }
+  if (boardSize === undefined || boardSize === null) {
+    return res.status(400).json({ error: "boardSize is mandatory" });
+  }
+  if (!gameType) {
+    return res.status(400).json({ error: "gameType is mandatory" });
+  }
+ 
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+ 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+ 
+    const entry = new History({ userId, result, botId, boardSize, gameType });
+    await entry.save();
+ 
+    res.status(201).json({ message: "History entry created successful", entry });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Returrs the match history of a user given its ID
+app.get('/history/:userId', async (req, res) => {
+  const userId = req.params.userId;
+ 
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid userId" });
+    }
+ 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+ 
+    const history = await History.find({ userId: new mongoose.Types.ObjectId(userId) })
+      .sort({ playedAt: -1 });  // Sorts them by most recent first
+ 
+    res.json({ history });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 if (require.main === module) {
   connectToMongoDB()

@@ -60,14 +60,6 @@ endif::arc42help[]
 |===
 | Debt | Description | Possible Solution
 
-| *No Persistent Game State Recovery*
-| If the game-manager container crashes mid-game, the current game state is lost. Games are not saved to the gamesdb during play, only at completion.
-| Persist game state to gamesdb after each move. On reconnection, allow the player to resume an interrupted game by querying the last saved state.
-
-| *Hardcoded Service URLs in Gateway*
-| The gateway resolves microservice addresses using hardcoded service names from docker-compose (for example http://users:3001).
-| Extract service URLs into environment variables. This would allow reconfiguration without code changes.
-
 | *Missing API Versioning*
 | All REST endpoints in the gateway and microservices are exposed without versioning (/api/users/login instead of /api/v1/users/login). Any breaking API change will require coordinated updates across all consumers simultaneously.
 | Introduce API versioning.
@@ -77,7 +69,7 @@ endif::arc42help[]
 | Adopt a structured logging library that outputs JSON logs.
 
 | *Swagger Documentation Incomplete*
-| Each microservice is configured to expose a Swagger UI via openapi.yaml, but the actual files may not fully document all endpoints, request schemas, and error responses.
-| Ensure all request/response schemas, authentication requirements and error codes are documented.
+| The `gatewayservice` exposes a Swagger UI with an `openapi.yaml` that centralises all public API documentation. However, some endpoints are not yet documented (e.g. `/api/users/history`), leaving gaps for external developers and bot integrators.
+| Complete the gateway's `openapi.yaml` to cover all public endpoints, including request/response schemas, authentication requirements and error codes.
 
 |===

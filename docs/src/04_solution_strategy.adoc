@@ -11,20 +11,21 @@ ifndef::imagesdir[:imagesdir: ../images]
 * *Vite*: Used for constructing the FrontEnd. 
 
 ==== BackEnd
-* *Node.js*: Used for managing the users registration in the server.
-* *Express*: Used for develop the API rest that allows to communicate between FrontEnd and BackEnd.
+* *Node.js*: Used for developing the backend microservices: `users` (registration, login, stats), `game-manager` (game orchestration) and `gatewayservice` (single entry point for all API requests).
+* *Express*: Used for developing the REST APIs that allow communication between the Frontend and the backend microservices.
 * *Rust*: Used for developing the bots and to be used as the game engine.
 * *Cargo*: Used for building and compiling rust proyect.
-* *MongoDB*: We are using MongoDB as the database for the users because it gives support for JSON, being it the main communication file in our application. Also because in case we need to keep the state of something in a JSON file at some point, it would be easier having a document based databes instead of having an SQL one.
+* *MongoDB*: Used as the database for both `users` (`usersdb`) and `game-manager` (`gamesdb`). Its document-based model fits naturally with JSON, which is the main communication format in the application, and makes it easier to store and retrieve flexible data structures without the overhead of a relational schema.
 
 ==== Infraestructure
-* *Docker*: Used for having just one container that works the same way in different computers.
+* *Docker + Docker Compose*: Used for containerizing each microservice independently and orchestrating them together, ensuring the stack works the same way across different environments.
 * *Github Actions*: Used for automatizing tasks such as passing the test, compiling code before we push something into the repository
 * *SonarCloud*: Used for verifying the quality of the code.
 * *Gitflow for branch strategy*: We are using gitflow as branching strategy as we need keep a record of the changes, and because we are having different versions being coded at the same time so we need to keep them save.
 
 === Top-Level decomposition decisions
-* *Strategy pattern*: Used for the bots, having the YBot trait as an interface used for the different bots implemented.
+* *Strategy pattern*: Used for the bots, having the YBot trait as an interface used for the different bots implemented. Also used for the different game modes.
+* *Factory pattern*: Used for the different games names that could be created
 
 === How to achieve key quality goals
 * *Performance*: The game and the bots are developed in Rust, making the time responses lower than any other programming language.
@@ -41,9 +42,14 @@ ifndef::imagesdir[:imagesdir: ../images]
 * Wiki in GitHub will be used for publishing information about the different modules so everyone in the team could see and understand the most critical parts of the proyect in case we need it.
 
 === Arquitecture Pattern Used
-For developing out system, we will use a microservices arquitecture, that is based on having different independent services that communicate each other via APIs. 
-For now, we will have at least 3 microservices: GameY that is the engine of the game, Users for managing the users verification and validation and
-WebApp for being the front layer of the system.
+For developing our system, we use a microservices architecture, based on having different independent services that communicate with each other via REST APIs.
+The system is composed of 5 microservices:
+
+* *webapp*: Frontend layer served via Nginx.
+* *gatewayservice*: Single entry point for all external API requests, routing them to the appropriate microservice.
+* *users*: Handles user registration, login, statistics and match history.
+* *game-manager*: Orchestrates the game flow, applying moves and interacting with `gamey` for bot decisions.
+* *gamey*: The game engine implemented in Rust, responsible for move validation, win detection and bot logic.
 
 ifdef::arc42help[]
 [role="arc42help"]

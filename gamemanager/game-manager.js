@@ -9,6 +9,7 @@ const { GameFactory } = require('./models/gameFactory');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb';
 const GAMEY_SERVICE_URL = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3000';
 
 const connectToMongoDB = async () => {
     try {
@@ -72,6 +73,18 @@ const applyMove = (layout, size, coords, playerSymbol) => {
     return rows.join('/');
 }
 
+//It calls the update stats endpoint from users module
+const updateStats = async(userId, result) => {
+    try{
+        await axios.post(`${USERS_SERVICE_URL}/stats/update`,
+            { userId, result },
+            { headers: {'Content-Type' : 'application/json'} }
+        )
+    } catch(error){
+        console.warn('Could not update the stats:', error.message)
+    }
+}
+
 // End aux methods
 
 // New game
@@ -128,10 +141,20 @@ app.post('/create/:gameName', async (req, res) => {
 
 // Get game state
 app.get('/state/:id', async (req, res) => {
+     const userId = req.headers['x-user-id'];
+    
     try {
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });  
+        }   
+
         const game = await Game.findById(req.params.id);
         if (!game) {
             return res.status(404).json({ error: 'Game not found' });
+        }
+
+        if (game.userId.toString() !== userId) {
+            return res.status(403).json({ error: 'Forbidden' });
         }
 
         res.json({
@@ -212,6 +235,7 @@ app.post('/game/:id/move', async (req, res) => {
             game.status = winCheckAfterPlayer.winner === 0 ? 'won' : 'lost';
             game.markModified('status');
             await game.save();
+            await updateStats(userId, game.status)
             return res.json({
                 message: 'Game over',
                 gameId: game._id,
@@ -238,6 +262,13 @@ app.post('/game/:id/move', async (req, res) => {
                     game.status = winCheckAfterBot.winner === 0 ? 'won' : 'lost';
                     game.markModified('status');
                     await game.save();
+                    await updateStats(userId, game.status)
+                    return res.json({
+                        message: 'Game over',
+                        gameId: game._id,
+                        yen: game.yen,
+                        status: game.status,
+                });
                 }
             }
         } else {
@@ -281,6 +312,7 @@ app.post('/game/:id/resign', async (req, res) => {
         game.status = 'resigned';
         game.updatedAt = new Date();
         await game.save();
+        await updateStats(userId, game.status)
 
         res.json({ message: 'Game resigned', gameId: game._id, status: game.status });
 

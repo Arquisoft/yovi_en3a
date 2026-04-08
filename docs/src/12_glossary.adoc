@@ -61,10 +61,10 @@ endif::arc42help[]
 | A tool for defining and running multi-container Docker applications via a single docker-compose.yml configuration file. Used to manage the full YOVI application, including all microservices, MongoDB, Grafana...
 
 | *Express*
-| A minimal and flexible Node.js web framework used in the users and gateway microservices to define REST API routes.
+| A minimal and flexible Node.js web framework used in the users, game-manager and gateway microservices to define REST API routes.
 
 | *Gateway*
-| A microservice that acts as the single entry point for all external HTTP requests. It guides requests to the appropriate internal microservice based on the URL prefix (for example: /api/users, /api/gamey`).
+| A microservice that acts as the single entry point for all external HTTP requests. It guides requests to the appropriate internal microservice based on the URL prefix (for example: `/api/users`, `/api/gamey`).
 
 | *GitHub Actions*
 | The CI/CD platform integrated with the YOVI GitHub repository. It automates testing, code quality analysis, Docker image builds, and production deployments.
@@ -76,7 +76,7 @@ endif::arc42help[]
 | A compact, URL-safe token format used for authenticating users in YOVI. Tokens are issued at login and expire after 24 hours.
 
 | *Microservice*
-| An independently deployable service that handles a specific business capability. YOVI is composed of four main microservices: webapp, users, game-manager and gamey.
+| An independently deployable service that handles a specific business capability. YOVI is composed of five main microservices: webapp, gatewayservice, users, game-manager and gamey.
 
 | *MongoDB*
 | A document-oriented NoSQL database used for data persistence. A single shared MongoDB container hosts both usersdb and gamesdb.
@@ -91,7 +91,7 @@ endif::arc42help[]
 | A cloud-based code quality and security analysis service integrated into the YOVI CI pipeline. It checks for bugs, vulnerabilities, and test coverage.
 
 | *Swagger / OpenAPI*
-| An open standard and toolset for describing REST APIs. Each YOVI microservice exposes a Swagger UI.
+| An open standard and toolset for describing REST APIs. In YOVI, the `gatewayservice` exposes a Swagger UI at `/api-docs` with a single `openapi.yaml` that centralises the documentation of all public API endpoints.
 
 | *Strategy Pattern*
 | A behavioral design pattern used for the YOVI bots. Each bot implementation provides a different strategy and difficulty level.

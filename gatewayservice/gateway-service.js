@@ -60,18 +60,22 @@ let proxyRequest = async(targetUrl, req, res) => {
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-id');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 //It enters from /api/xyz and it redirects to xyz
-app.use('/api/users', (req,res) => proxyRequest(USERS_SERVICE_URL, req, res))
+app.use('/api/users', (req, res, next) => {
+    if (req.path.startsWith('/stats')) return authMiddleware(req, res, next);
+    next();
+}, (req, res) => proxyRequest(USERS_SERVICE_URL, req, res))
+
 app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MANAGER_URL, req, res));
 //app.use('/api/gamey', (req,res) => proxyRequest(GAMEY_SERVICE_URL, req, res))
 
 // Used for playing against the desired bot of our game
 app.post('/api/gamey/play', async (req, res) => {
-    const { botId = 'random_bot', ...yen } = req.body;
+    const { botId = 'medium_bot', ...yen } = req.body;
 
     if (!yen.layout || !yen.size) {
         return res.status(400).json({ error: 'yen (layout, size) is required' });

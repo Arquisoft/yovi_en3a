@@ -37,16 +37,17 @@ skinparam linetype ortho
 
 actor User
 actor "External Bots" as Bots
+database "MongoDB" as DB
 
-rectangle YOVI as YOVI
+rectangle "YOVI" {
+    rectangle "Frontend" as Frontend
+    rectangle "Backend" as Backend
+}
 
-User -[hidden]-> YOVI
-YOVI -[hidden]-> Bots
-
-User ---> YOVI : Login credentials \n Game decisions
-YOVI ---> User : Game state \n Statistics/History 
-
-Bots <---> YOVI : API requests \n Game data \n Movements
+User <--> Frontend : Accesses and uses the application
+Frontend <--> Backend : Communicates via API calls with
+Backend <--> DB : Save / Retrieve documents
+Bots <--> Backend : Retrieve information via API calls
 ----
 
 .YOVI
@@ -91,35 +92,30 @@ endif::arc42help[]
 
 [plantuml, "Technical context",png]
 ----
+skinparam linetype ortho
+
 actor User
-actor ExternalBots as Bots
+actor "External Bots" as Bots
+database "MongoDB" as DB
 
 node "YOVI" {
-
     rectangle "Web Frontend" as Frontend
-    
-    rectangle "API" as API
-    
-    rectangle "User Registration" as Registration
-    rectangle "User Service" as Service
-    
-    rectangle "GameY" as Game {
-        rectangle "Bot"
-    }
-
-    database "MongoDB" as DB
+    rectangle "Gateway Service" as Gateway
+    rectangle "Users Service" as Service
+    rectangle "Game Manager" as Manager
+    rectangle "GameY" as Game
 }
 
-User --> Frontend : HTTPS
-Bots --> API : HTTPS
-
-Frontend --> API : HTTPS
-
-API --> Registration
-API --> Service
-API --> Game
-
-Service <--> DB : MongoDB
+User --> Frontend : HTTPS requests
+Frontend --> Gateway : API calls
+Gateway --> Service : Redirects to Users Service
+Gateway --> Manager : Redirects to Game Manager
+Gateway --> Game : External bot access
+Bots --> Gateway : HTTPS
+Service <--> DB : Save / Retrieve user data
+Manager <--> DB : Save / Retrieve board data
+Manager <--> Game : Game operations
+Manager --> Service : Update user stats
 ----
 
 |===
@@ -135,22 +131,20 @@ Service <--> DB : MongoDB
 
 | Web Frontend
 | - Requests from the user (login, moves, strategy)
-| - Forwards requests to API
+| - Forwards requests to Gateway Service
 
-| API
+| Gateway Service
 | - Requests from Frontend +
   - Requests from External Bots
-| - Forwards requests to User Registration, User Service, GameY +
+| - Forwards requests to Users Service, Game Manager, GameY +
   - Responds back to Frontend and Bots
 
-| User Registration
-| - Registration/Login data from API
+| Users Service
+| - Registration/Login data from API +
+  - Requests from API (stats, history)
 | - User created / validated +
-  - Authentication result
-
-| User Service
-| - Requests from API (stats, history)
-| - Data from MongoDB
+  - Authentication result +
+  - Data from MongoDB
 
 | GameY
 | - Game moves from API +
@@ -159,13 +153,10 @@ Service <--> DB : MongoDB
   - Bot actions +
   - Responses to the API
 
-| Bot (internal)
-| - Game state
-| - Next action
-
 | MongoDB
-| - Queries from User Service
-| - Returns requested user data
+| - Queries from Users Service +
+  - Queries from Game Manager
+| - Returns requested user and game data
 |===
 
 

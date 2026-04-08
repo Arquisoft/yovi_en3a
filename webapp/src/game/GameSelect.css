@@ -1,0 +1,259 @@
+/* GameSelect.css */
+
+.game-select-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #080b14;
+    padding: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.game-select-container {
+    width: 100%;
+    max-width: 24rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+}
+
+.game-select-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.game-select-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 0.25rem 0;
+}
+
+.game-select-subtitle {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.btn-back {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: #9ca3af;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s;
+}
+
+.btn-back:hover {
+    color: white;
+}
+
+.standard-section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+}
+
+.mode-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1.25rem 1.5rem;
+    min-height: 4rem;
+    border-radius: 0.75rem;
+    text-align: left;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.06);
+    background-color: rgba(8, 11, 20, 0.6);
+    color: #9ca3af;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.mode-card:hover:not(:disabled) {
+    background-color: rgba(99,102,241,0.08);
+    border-color: rgba(99,102,241,0.3);
+}
+
+.mode-card:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.mode-card-active {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-color: rgba(99,102,241,0.5);
+    background-color: rgba(8, 11, 20, 0.8);
+    color: white;
+}
+
+.mode-card-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.mode-card-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.mode-card-label {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #d1d5db;
+}
+
+.mode-card-active .mode-card-label {
+    color: white;
+}
+
+.mode-card-desc {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.mode-card-arrow {
+    color: #6b7280;
+    flex-shrink: 0;
+}
+
+.config-panel {
+    padding: 1.25rem;
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+    border-left: 1px solid rgba(99,102,241,0.3);
+    border-right: 1px solid rgba(99,102,241,0.3);
+    border-bottom: 1px solid rgba(99,102,241,0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background-color: rgba(8, 11, 20, 0.8);
+    backdrop-filter: blur(12px);
+    box-sizing: border-box;
+}
+
+.config-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    font-weight: 900;
+    color: #818cf8;
+    margin-bottom: 0.5rem;
+    display: block;
+    letter-spacing: 0.1em;
+}
+
+.size-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.size-option-btn {
+    padding: 0.5rem 0;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    background-color: rgba(8, 11, 20, 0.7);
+    color: #64748b;
+    border: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+}
+
+.size-option-btn:hover {
+    border-color: rgba(99,102,241,0.3);
+    color: #9ca3af;
+}
+
+.size-option-btn.is-selected {
+    background-color: #6366f1;
+    color: white;
+    border-color: #6366f1;
+}
+
+.difficulty-dropdown {
+    width: 100%;
+    background-color: rgba(8, 11, 20, 0.7);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 0.625rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.difficulty-dropdown:focus {
+    border-color: rgba(99,102,241,0.5);
+}
+
+.difficulty-dropdown option {
+    background-color: #0d1117;
+    color: white;
+}
+
+.btn-primary-start {
+    width: 100%;
+    background-color: #6366f1;
+    padding: 0.75rem 0;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: white;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+    border: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.btn-primary-start:hover:not(:disabled) {
+    background-color: #4f46e5;
+}
+
+.btn-primary-start:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.variant-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    opacity: 0.5;
+}
+
+.divider-line {
+    height: 1px;
+    background-color: rgba(255,255,255,0.08);
+    flex: 1;
+}
+
+.divider-text {
+    font-size: 0.625rem;
+    color: #6b7280;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+}
+
+.variants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}

@@ -1,42 +1,50 @@
-import {useState } from 'react';
-import './App.css'
-import RegisterForm from './RegisterForm';
-import LoginForm from './LoginForm';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './Landing';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
 import MenuView from './MenuView';
-
-type AuthScreen = 'landing' | 'login' | 'register' | 'menu';
+import GameSelect from './game/GameSelect';
+import HowToPlay from "./HowToPlay";
+import './App.css';
+import { GameScreen } from './GameScreen';
+import StatsView from './StatsView';
+import RankingView from './RankingView';
+import ProtectedRoute from './ProtectRoutes';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<AuthScreen>('landing');
-  // Para probar el menu sin el login, deberia de estar comentado y la linea superior descomentada
-  //const [currentScreen, setCurrentScreen] = useState<AuthScreen>('menu');
-
   return (
-    <div className="App">
+    <BrowserRouter>
+      <div className="App">
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
 
-      {currentScreen === 'landing' && (
-        <Landing
-          onSelectLogin={() => setCurrentScreen('login')}
-          onSelectRegister={() => setCurrentScreen('register')}
-        />
-      )}
+          {/* Rutas protegidas */}
+          <Route path="/menu" element={
+            <ProtectedRoute><MenuView /></ProtectedRoute>
+          } />
+          <Route path="/select-game" element={
+            <ProtectedRoute><GameSelect onBack={() => {}} /></ProtectedRoute>
+          } />
+          <Route path="/how-to-play" element={
+            <ProtectedRoute><HowToPlay /></ProtectedRoute>
+          } />
+          <Route path="/game/:gameId/:size/:gameType" element={
+            <ProtectedRoute><GameScreen /></ProtectedRoute>
+          } />
+          <Route path="/stats" element={
+            <ProtectedRoute><StatsView /></ProtectedRoute>
+          } />
+          <Route path="/ranking" element={
+            <ProtectedRoute><RankingView /></ProtectedRoute>
+          } />
 
-      {currentScreen === 'login' && (
-        <LoginForm onSwitchToRegister={() => setCurrentScreen('register')}
-          onLoginSuccess={() => setCurrentScreen('menu')}
-        />
-      )}
-
-      {currentScreen === 'register' && (
-        <RegisterForm onSwitchToLogin={() => setCurrentScreen('login')} />
-      )}
-
-      {currentScreen === 'menu' && (
-        <MenuView onLogout={() => setCurrentScreen('landing')} />
-      )}
-
-    </div>
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

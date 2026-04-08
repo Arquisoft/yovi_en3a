@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Button } from './components/ui/button';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
+import { CountryDropdown } from 'react-country-region-selector';
+import ModelBackground from './ModelBackground';
+import './RegisterForm.css';
 
-interface RegisterFormProps {
-  onSwitchToLogin: () => void;
-}
-
-const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
+const RegisterForm: React.FC = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,38 +27,27 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     countryToRegister: string
   ): Promise<void> => {
     try {
-      // Determine API URLs based on environment
       const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-
-      
-      const registerData = { 
-        username: usernameToRegister,
-        email: emailToRegister,
-        password: passwordToRegister,
-        age: ageToRegister ? parseInt(ageToRegister) : undefined,
-        country: countryToRegister
-      };
-
       const res = await fetch(`${gatewayUrl}/api/users/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(registerData)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: usernameToRegister,
+          email: emailToRegister,
+          password: passwordToRegister,
+          age: ageToRegister ? parseInt(ageToRegister) : undefined,
+          country: countryToRegister,
+        }),
       });
-
       const data = await res.json();
       if (res.ok) {
         setResponseMessage(data.message);
-        setUsername('');
-        setEmail('');
-        setPassword('');
-        setPasswordConfirm('');
-        setAge('');
-        setCountry('');
-      } 
-      else if (res.status >= 400 && res.status < 500) {
+        setUsername(''); setEmail(''); setPassword('');
+        setPasswordConfirm(''); setAge(''); setCountry('');
+        setTimeout(() => navigate('/login'), 1500);
+      } else if (res.status >= 400 && res.status < 500) {
         setError(data.error || 'Invalid input. Please check your data and try again.');
-      }
-      else {
+      } else {
         setError(data.error || 'Server error');
       }
     } catch (err: any) {
@@ -65,130 +55,89 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     } finally {
       setLoading(false);
     }
-   
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setResponseMessage(null);
     setError(null);
-
-    if (!username.trim()) {
-      setError('Please enter a username.');
-      return;
-    }
-
-    if (!email.trim()) {
-      setError('Please enter an email.');
-      return;
-    }
-
-    if (!password.trim()) {
-      setError('Please enter a password.');
-      return;
-    }
-
-    if (password !== passwordConfirm) {
-      setError('Passwords do not match.');
-      return;
-    }
-
+    if (!username.trim()) { setError('Please enter a username.'); return; }
+    if (!email.trim()) { setError('Please enter an email.'); return; }
+    if (!password.trim()) { setError('Please enter a password.'); return; }
+    if (password !== passwordConfirm) { setError('Passwords do not match.'); return; }
     setLoading(true);
     await registerUser(username, email, password, age, country);
   };
 
-
   return (
-    <form onSubmit={handleSubmit} className="register-form">
-      <h2>Register</h2>
-      <div className="space-y-2">
-  <Label htmlFor="username">Username</Label>
-    <Input
-    id="username"
-    value={username}
-    onChange={(e) => setUsername(e.target.value)}
-     />
-</div>
-     <div className="space-y-2">
-  <Label htmlFor="email">Email</Label>
-  <Input
-    id="email"
-    type="email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-  />
-</div>
-      <div className="space-y-2">
-  <Label htmlFor="password">Password</Label>
-  <Input
-    id="password"
-    type="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-  />
-</div>
-      
-<div className="space-y-2">
-  <Label htmlFor="passwordConfirm">Confirm Password</Label>
-  <Input
-    id="passwordConfirm"
-    type="password"
-    value={passwordConfirm}
-    onChange={(e) => setPasswordConfirm(e.target.value)}
-  />
-</div>
-
-    
-<div className="space-y-2">
-  <Label htmlFor="age">Age (optional)</Label>
-  <Input
-    id="age"
-    type="number"
-    value={age}
-    min="0"
-    onChange={(e) => setAge(e.target.value)}
-  />
-</div>
-
-     
-<div className="space-y-2">
-  <Label htmlFor="country">Country (optional)</Label>
-  <Input
-    id="country"
-    value={country}
-    onChange={(e) => setCountry(e.target.value)}
-  />
-</div>
-
-      <Button type="submit" className="w-full" disabled={loading}>
-       {loading ? "Creating account..." : "Register"}
-      </Button> 
-
-      {responseMessage && (
-        <div className="success-message" style={{ marginTop: 12, color: 'green' }}>
-          {responseMessage}
-        </div>
-      )}
-
-      {error && (
-        <div className="error-message" style={{ marginTop: 12, color: 'red' }}>
-          {error}
-        </div>
-      )}
-
-      <div className="auth-switch" style={{ marginTop: 20, textAlign: 'center' }}>
-        <p>
-          Already have an account?{' '}
-          <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="link-button"
-          >
-            Login here
-          </button>
+    <ModelBackground>
+      {/* Header */}
+      <div>
+        <div className="rf-header-badge">◆ Join the game ◆</div>
+        <h1 className="rf-header-title">
+          Sign<br />
+          <span style={{ color: '#6366f1' }}>Up</span>
+        </h1>
+        <p className="rf-header-subtitle">
+          Create your account<br />and start playing.
         </p>
       </div>
-    </form>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <Label htmlFor="username" className="rf-label">Username</Label>
+        <Input id="username" className="rf-input" value={username} onChange={(e) => setUsername(e.target.value)} />
+       </div>
+
+       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+       <Label htmlFor="email" className="rf-label">Email</Label>
+       <Input id="email" type="email" className="rf-input" value={email} onChange={(e) => setEmail(e.target.value)} />
+       </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+       <Label htmlFor="password" className="rf-label">Password</Label>
+       <Input id="password" type="password" className="rf-input" value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <Label htmlFor="passwordConfirm" className="rf-label">Confirm Password</Label>
+        <Input id="passwordConfirm" type="password" className="rf-input" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
+      </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+            <Label htmlFor="age" className="rf-label">Age (optional)</Label>
+            <Input  id="age" className="rf-input" type="number" value={age} min="0" onChange={(e) => setAge(e.target.value)} />
+          </div>
+
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+            <Label htmlFor="country" className="rf-label">Country (optional)</Label>
+            <CountryDropdown
+              id="country" 
+              priorityOptions={['ES', 'US', 'GB', 'DE', 'FR']}
+              value={country}
+              onChange={setCountry}
+              className="rf-select"
+              defaultOptionLabel="Select…"
+            />
+          </div>
+        </div>
+
+        <Button type="submit" disabled={loading} className="rf-submit">
+          {loading ? 'Creating account…' : 'Register'}
+        </Button>
+
+        {responseMessage && <p className="rf-message-success">{responseMessage}</p>}
+        {error && <p className="rf-message-error">{error}</p>}
+
+        <p className="rf-login-link">
+          Already have an account?{' '}
+          <button type="button" onClick={() => navigate('/login')}>Log in</button>
+        </p>
+      </form>
+    </ModelBackground>
   );
 };
 

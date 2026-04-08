@@ -1,14 +1,11 @@
-import './index.css'
-import App from './App.tsx'
+
 import React from "react";
 import ReactDOM from "react-dom/client";
-import RoutesWrapper from "./RoutesWrapper";
+import App from './App.tsx'
 import "./index.css";
-
-
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RoutesWrapper />
+    <App />
   </React.StrictMode>
 );

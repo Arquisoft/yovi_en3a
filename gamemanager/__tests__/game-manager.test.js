@@ -97,6 +97,7 @@ describe('GET /state/:id', () => {
     it('returns 404 if game not found', async () => {
         const res = await request(app)
             .get('/state/123456789012345678901234')
+            .set(authHeader)
         expect(res.status).toBe(404)
         expect(res.body).toHaveProperty('error', 'Game not found')
     })

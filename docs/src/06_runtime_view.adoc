@@ -43,25 +43,62 @@ endif::arc42help[]
 
 This scenario shows how a user registers in the system, including how the frontend and backend communicate.
 
-[plantuml,"Sequence diagram - Login ",png]
+[plantuml,"Sequence diagram - Register",png]
 ----
 hide footbox
 
 actor User
 participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
 participant "Users Service" as Service
 
-User -> Webapp : Fill form
-Webapp -> Service : POST /createuser\n{ username }
+User -> Webapp : Fill registration form\n{ username, email, password }
+Webapp -> Gateway : POST /api/users/register
+Gateway -> Service : POST /register\n{ username, email, password }
+Service --> Service : Validate input\nHash password (bcrypt)\nStore in MongoDB
 
 alt Success
-    Service --> Webapp : { message }
-    Webapp -> User : Show welcome message
+    Service --> Gateway : { message: "User created" }
+    Gateway --> Webapp : Forward response
+    Webapp -> User : Show welcome message\nRedirect to login
 else Error
-    Service --> Webapp : { error }
+    Service --> Gateway : { error: "User already exists" }
+    Gateway --> Webapp : Forward response
     Webapp -> User : Show error message
 end
 ----
+
+=== User Login
+
+This scenario shows how a user logs into the system, including how the frontend and backend communicate.
+
+[plantuml,"Sequence diagram - Login",png]
+----
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -> Webapp : Fill login form\n{ username, password }
+Webapp -> Gateway : POST /api/users/login
+Gateway -> Service : POST /login\n{ username, password }
+Service --> Service : Validate credentials\nCompare password (bcrypt)
+
+alt Success
+    Service --> Gateway : { token: JWT, userId }
+    Gateway --> Webapp : Forward response
+    Webapp -> Webapp : Store JWT in session
+    Webapp -> User : Redirect to main menu
+else Error
+    Service --> Gateway : { error: "Invalid credentials" }
+    Gateway --> Webapp : Forward response
+    Webapp -> User : Show error message
+end
+----
+
+
 
 === Game loop
 
@@ -72,41 +109,35 @@ This scenario shows how a user plays a game, including interactions with the web
 
 actor "Player" as User
 participant "WebApp" as Web
-participant "Game Core" as GameCore
-participant "Bot Service" as Bot
+participant "Gateway Service" as Gateway
+participant "Game Manager" as GameCore
+participant "Gamey Engine" as Bot
 
-User -> Web : Start Game
-
-
+User -> Web : Start Game\nSelect difficulty & board size
+Web -> Gateway : POST /api/game-manager/create/standard\n{ botId, boardSize }
+Gateway -> GameCore : POST /create/standard\n{ botId, boardSize }
+GameCore -> GameCore : Create game\nStore in MongoDB
+GameCore --> Gateway : { gameId, yen, status }
+Gateway --> Web : { gameId, yen, status }
 Web --> User : Game started
 
-
 loop until game over
-  
-    User -> Web : make move
-    Web -> GameCore : process player move
-    GameCore -> GameCore : updated state
 
-    GameCore -> GameCore : check if game over
-        GameCore --> Web : update state
-        Web --> User : show state
-    
+    User -> Web : make move\n{ x, y, z }
+    Web -> Gateway : POST /api/game-manager/game/:id/move\n{ coords }
+    Gateway -> GameCore : POST /game/:id/move\n{ coords }
+    GameCore -> GameCore : apply player move\ncheck if game over
 
-   
-    GameCore -> Bot : send current board state
-    Bot --> GameCore : bot's next move
-    GameCore -> GameCore : update state
+    GameCore -> Bot : POST /v1/ybot/choose/{botId}\n{ yen }
+    Bot --> GameCore : { coords }
+    GameCore -> GameCore : apply bot move\ncheck if game over
 
-    GameCore -> GameCore : check if game over
-    
+    GameCore --> Gateway : { yen, status }
+    Gateway --> Web : { yen, status }
+    Web --> User : show updated board
 
-    GameCore --> Web : updated state
-    deactivate GameCore
-
-    Web --> User : show state
 end
 
- 
 Web --> User : Game Over
 
 ----

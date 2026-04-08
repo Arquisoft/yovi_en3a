@@ -76,10 +76,10 @@ const SidePanel = forwardRef<SidePanelRef>((_, ref) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {moves.reverse().map((move, idx) => (
+              {[...moves].reverse().map((move, idx) => (
                 <TableRow key={idx} className="move-row">
                   <TableCell className="text-muted-foreground text-xs">
-                    {idx + 1}
+                    {moves.length - idx} 
                   </TableCell>
                   <TableCell>
                     <Badge className={playerColor(move.player)}>

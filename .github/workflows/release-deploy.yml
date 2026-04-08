@@ -71,9 +71,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build gamey
+        run: |
+          cd gamey
+          cargo build
       - name: Install users dependencies
         run: |
           cd users
+          npm ci
+      - name: Install gatewayservice dependencies
+        run: |
+          cd gatewayservice
+          npm ci
+      - name: Install gamemanager dependencies
+        run: |
+          cd gamemanager
           npm ci
       - name: Install webapp dependencies
         run: |
@@ -83,9 +97,14 @@ jobs:
         run: |
           cd webapp
           npm run test:e2e:install-browsers
-      - name: Run E2E tests (start servers and run cucumber)
+      - name: Run E2E tests
         env:
           MONGODB_URI: mongodb://admin:password@localhost:27017/usersdb?authSource=admin
+          MONGODB_URI_GAMES: mongodb://admin:password@localhost:27017/gamesdb?authSource=admin
+          JWT_SECRET: test-secret-for-e2e
+          GAMEY_SERVICE_URL: http://localhost:4000
+          USERS_SERVICE_URL: http://localhost:3000
+          GAME_MANAGER_URL: http://localhost:5000
         run: |
           cd webapp
           npm run test:e2e
@@ -129,7 +148,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: webapp
-          buildargs: VITE_API_URL=http://${{ secrets.DEPLOY_HOST }}:8000
+          buildargs: VITE_API_URL=https://yovi-en3a.duckdns.org
 
   docker-push-gamey:
     name: Publish gamey image
@@ -203,6 +222,7 @@ jobs:
           user: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           command: |
-            wget https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/master/docker-compose.yml -O docker-compose.yml
+            wget https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ github.event.release.tag_name }}/docker-compose.yml -O docker-compose.yml
             docker compose down
             docker compose up -d --pull always --no-build
+            sudo systemctl restart nginx

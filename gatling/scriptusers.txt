@@ -1,0 +1,7 @@
+for ($i = 1; $i -le 20; $i++) {
+    Invoke-WebRequest -Uri "http://localhost:8000/api/users/register" `
+        -Method POST `
+        -ContentType "application/json" `
+        -Body "{`"username`":`"loaduser$i`",`"email`":`"loaduser$i@test.com`",`"password`":`"Password1`"}" `
+        -UseBasicParsing | Select-Object StatusCode, Content
+}
