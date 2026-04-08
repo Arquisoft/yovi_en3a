@@ -47,6 +47,8 @@ services:
     build: ./gamey
     container_name: gamey
     image: ghcr.io/arquisoft/yovi_en3a-gamey:latest
+    environment:
+      - GAME_MANAGER_URL=http://game-manager:5000
     networks:
       - monitor-net
 
