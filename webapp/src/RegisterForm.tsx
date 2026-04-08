@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
+import { CountryDropdown } from 'react-country-region-selector';
 import ModelBackground from './ModelBackground';
+import './RegisterForm.css';
 
 const RegisterForm: React.FC = () => {
   const navigate = useNavigate();
@@ -26,20 +28,17 @@ const RegisterForm: React.FC = () => {
   ): Promise<void> => {
     try {
       const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-      const registerData = {
-        username: usernameToRegister,
-        email: emailToRegister,
-        password: passwordToRegister,
-        age: ageToRegister ? parseInt(ageToRegister) : undefined,
-        country: countryToRegister,
-      };
-
       const res = await fetch(`${gatewayUrl}/api/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData),
+        body: JSON.stringify({
+          username: usernameToRegister,
+          email: emailToRegister,
+          password: passwordToRegister,
+          age: ageToRegister ? parseInt(ageToRegister) : undefined,
+          country: countryToRegister,
+        }),
       });
-
       const data = await res.json();
       if (res.ok) {
         setResponseMessage(data.message);
@@ -70,47 +69,16 @@ const RegisterForm: React.FC = () => {
     await registerUser(username, email, password, age, country);
   };
 
-  const inputStyle = {
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    color: '#fff',
-    borderRadius: '8px',
-  };
-
-  const labelStyle = {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: '0.8rem',
-    letterSpacing: '0.05em',
-  };
-
   return (
     <ModelBackground>
       {/* Header */}
       <div>
-        <div style={{
-          fontSize: '0.7rem', letterSpacing: '0.4em',
-          color: '#6366f1', textTransform: 'uppercase',
-          marginBottom: '0.75rem',
-        }}>
-          ◆ Join the game ◆
-        </div>
-        <h1 style={{
-          fontSize: 'clamp(2.5rem, 4vw, 3.5rem)',
-          fontWeight: 900,
-          color: '#fff',
-          margin: 0,
-          lineHeight: 1,
-          letterSpacing: '-0.02em',
-        }}>
+        <div className="rf-header-badge">◆ Join the game ◆</div>
+        <h1 className="rf-header-title">
           Sign<br />
           <span style={{ color: '#6366f1' }}>Up</span>
         </h1>
-        <p style={{
-          color: 'rgba(255,255,255,0.4)',
-          fontSize: '0.95rem',
-          marginTop: '1rem',
-          lineHeight: 1.6,
-        }}>
+        <p className="rf-header-subtitle">
           Create your account<br />and start playing.
         </p>
       </div>
@@ -118,74 +86,52 @@ const RegisterForm: React.FC = () => {
       {/* Form */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <Label htmlFor="username" style={labelStyle}>Username</Label>
-          <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} />
+          <Label className="rf-label">Username</Label>
+          <Input className="rf-input" value={username} onChange={(e) => setUsername(e.target.value)} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <Label htmlFor="email" style={labelStyle}>Email</Label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
+          <Label className="rf-label">Email</Label>
+          <Input className="rf-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <Label htmlFor="password" style={labelStyle}>Password</Label>
-          <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+          <Label className="rf-label">Password</Label>
+          <Input className="rf-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <Label htmlFor="passwordConfirm" style={labelStyle}>Confirm Password</Label>
-          <Input id="passwordConfirm" type="password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} style={inputStyle} />
+          <Label className="rf-label">Confirm Password</Label>
+          <Input className="rf-input" type="password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
-            <Label htmlFor="age" style={labelStyle}>Age (optional)</Label>
-            <Input id="age" type="number" value={age} min="0" onChange={(e) => setAge(e.target.value)} style={inputStyle} />
+            <Label className="rf-label">Age (optional)</Label>
+            <Input className="rf-input" type="number" value={age} min="0" onChange={(e) => setAge(e.target.value)} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
-            <Label htmlFor="country" style={labelStyle}>Country (optional)</Label>
-            <Input id="country" value={country} onChange={(e) => setCountry(e.target.value)} style={inputStyle} />
+            <Label className="rf-label">Country (optional)</Label>
+            <CountryDropdown
+              priorityOptions={['ES', 'US', 'GB', 'DE', 'FR']}
+              value={country}
+              onChange={setCountry}
+              className="rf-select"
+              defaultOptionLabel="Select…"
+            />
           </div>
         </div>
 
-        <Button
-          type="submit"
-          disabled={loading}
-          style={{
-            height: '3.25rem',
-            background: '#6366f1',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.95rem',
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            cursor: 'pointer',
-            marginTop: '0.25rem',
-          }}
-        >
+        <Button type="submit" disabled={loading} className="rf-submit">
           {loading ? 'Creating account…' : 'Register'}
         </Button>
 
-        {responseMessage && (
-          <p style={{ color: '#4ade80', fontSize: '0.85rem', textAlign: 'center' }}>{responseMessage}</p>
-        )}
-        {error && (
-          <p style={{ color: '#f87171', fontSize: '0.85rem', textAlign: 'center' }}>{error}</p>
-        )}
+        {responseMessage && <p className="rf-message-success">{responseMessage}</p>}
+        {error && <p className="rf-message-error">{error}</p>}
 
-        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', textAlign: 'center' }}>
+        <p className="rf-login-link">
           Already have an account?{' '}
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            style={{
-              background: 'none', border: 'none',
-              color: '#6366f1', cursor: 'pointer',
-              fontSize: 'inherit', textDecoration: 'underline',
-            }}
-          >
-            Log in
-          </button>
+          <button type="button" onClick={() => navigate('/login')}>Log in</button>
         </p>
       </form>
     </ModelBackground>

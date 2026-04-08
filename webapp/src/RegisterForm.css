@@ -1,0 +1,91 @@
+.rf-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.rf-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-radius: 8px;
+}
+
+.rf-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+/* This is the key fix — options need dark background + light text */
+.rf-select option {
+  background: #1e1e2e;
+  color: #fff;
+}
+
+.rf-submit {
+  height: 3.25rem;
+  background: #6366f1;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.rf-header-badge {
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+  color: #6366f1;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.rf-header-title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.rf-header-subtitle {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.rf-message-success {
+  color: #4ade80;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.rf-message-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.rf-login-link {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.rf-login-link button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+}
