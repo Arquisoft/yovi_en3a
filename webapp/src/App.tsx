@@ -9,37 +9,38 @@ import './App.css';
 import { GameScreen } from './GameScreen';
 import StatsView from './StatsView';
 import RankingView from './RankingView';
+import ProtectedRoute from './ProtectRoutes';
 
 function App() {
   return (
     <BrowserRouter>
       <div className="App">
         <Routes>
-          {/* Ruta inicial */}
+          {/* Rutas públicas */}
           <Route path="/" element={<Landing />} />
-
-          {/* Autenticación */}
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
 
-          {/* Dashboard y Selección */}
-          <Route path="/menu" element={<MenuView />} />
-          <Route path="/select-game" element={<GameSelect onBack={() => { }} />} />
+          {/* Rutas protegidas */}
+          <Route path="/menu" element={
+            <ProtectedRoute><MenuView /></ProtectedRoute>
+          } />
+          <Route path="/select-game" element={
+            <ProtectedRoute><GameSelect onBack={() => {}} /></ProtectedRoute>
+          } />
+          <Route path="/how-to-play" element={
+            <ProtectedRoute><HowToPlay /></ProtectedRoute>
+          } />
+          <Route path="/game/:gameId/:size/:gameType" element={
+            <ProtectedRoute><GameScreen /></ProtectedRoute>
+          } />
+          <Route path="/stats" element={
+            <ProtectedRoute><StatsView /></ProtectedRoute>
+          } />
+          <Route path="/ranking" element={
+            <ProtectedRoute><RankingView /></ProtectedRoute>
+          } />
 
-          {/* Cómo jugar */}
-          <Route path="/how-to-play" element={<HowToPlay />} />
-
-          {/*Panel de juego */}
-          <Route path="/game/:gameId/:size/:gameType" element={<GameScreen />} />
-          {/* Estadísticas */}
-          <Route path="/stats" element={<StatsView />} />
-
-          {/* Ranking */}
-          <Route path="/ranking" element={<RankingView />} />
-
-          {/*Panel de juego */}
-          <Route path="/game/:gameId/:size/:gameType" element={<GameScreen />} />
-          {/* Redirección por defecto si la ruta no existe */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
