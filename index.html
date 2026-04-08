@@ -605,7 +605,7 @@ These include</p>
 for the game development company "Micrati".
 The system must be a robust and scalable solution that combines modern web development technologies
 along with Rust&#8217;s efficient computational logic, which will use YEN notation to communicate with the Web Applcation.
-The game will contain several innovative features such as the possibility to face several bots implementing different difficulties and game strategies, as well as multiplayer mode in which you can play real time against other player.</p>
+The game allows players to face bots implementing different difficulties and game strategies. Real-time multiplayer mode is planned as a future feature.</p>
 </div>
 <div class="paragraph">
 <p>Functional requirements:</p>
@@ -613,7 +613,10 @@ The game will contain several innovative features such as the possibility to fac
 <div class="ulist">
 <ul>
 <li>
-<p>The system will allow users to play against players or bots</p>
+<p>The system will allow users to play against bots with different difficulty levels</p>
+</li>
+<li>
+<p><em>(Planned)</em> Real-time multiplayer mode allowing users to play against other players</p>
 </li>
 <li>
 <p>The size of the board, as well as the strategies and difficulty of the bots to play against can be selected by the user</p>
@@ -943,23 +946,9 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 <div class="sect2">
 <h3 id="_business_context">3.1. Business Context</h3>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-skinparam linetype ortho
-
-actor User
-actor "External Bots" as Bots
-
-rectangle YOVI as YOVI
-
-User -[hidden]-&gt; YOVI
-YOVI -[hidden]-&gt; Bots
-
-User ---&gt; YOVI : Login credentials \n Game decisions
-YOVI ---&gt; User : Game state \n Statistics/History
-
-Bots &lt;---&gt; YOVI : API requests \n Game data \n Movements</pre>
+<img src="./images/Business%20context.png" alt="Business context" width="246" height="441">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1018,38 +1007,9 @@ The title of the table is the name of your system, the three columns contain the
 </div>
 <div class="sect2">
 <h3 id="_technical_context">3.2. Technical Context</h3>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-actor User
-actor ExternalBots as Bots
-
-node "YOVI" {
-
-    rectangle "Web Frontend" as Frontend
-
-    rectangle "API" as API
-
-    rectangle "User Registration" as Registration
-    rectangle "User Service" as Service
-
-    rectangle "GameY" as Game {
-        rectangle "Bot"
-    }
-
-    database "MongoDB" as DB
-}
-
-User --&gt; Frontend : HTTPS
-Bots --&gt; API : HTTPS
-
-Frontend --&gt; API : HTTPS
-
-API --&gt; Registration
-API --&gt; Service
-API --&gt; Game
-
-Service &lt;--&gt; DB : MongoDB</pre>
+<img src="./images/Technical%20context.png" alt="Technical context" width="569" height="661">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1078,25 +1038,22 @@ Service &lt;--&gt; DB : MongoDB</pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Web Frontend</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">- Requests from the user (login, moves, strategy)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Forwards requests to API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Forwards requests to Gateway Service</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway Service</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">- Requests from Frontend<br>
   - Requests from External Bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Forwards requests to User Registration, User Service, GameY<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Forwards requests to Users Service, Game Manager, GameY<br>
   - Responds back to Frontend and Bots</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">User Registration</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Registration/Login data from API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Registration/Login data from API<br>
+  - Requests from API (stats, history)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">- User created / validated<br>
-  - Authentication result</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">User Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Requests from API (stats, history)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Data from MongoDB</p></td>
+  - Authentication result<br>
+  - Data from MongoDB</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GameY</p></td>
@@ -1113,8 +1070,9 @@ Service &lt;--&gt; DB : MongoDB</pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">MongoDB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Queries from User Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Returns requested user data</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Queries from Users Service<br>
+  - Queries from Game Manager</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Returns requested user and game data</p></td>
 </tr>
 </tbody>
 </table>
@@ -1162,10 +1120,10 @@ together with a mapping table showing the relationships between channels and inp
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Node.js</strong>: Used for managing the users registration in the server.</p>
+<p><strong>Node.js</strong>: Used for developing the backend microservices: <code>users</code> (registration, login, stats), <code>game-manager</code> (game orchestration) and <code>gatewayservice</code> (single entry point for all API requests).</p>
 </li>
 <li>
-<p><strong>Express</strong>: Used for develop the API rest that allows to communicate between FrontEnd and BackEnd.</p>
+<p><strong>Express</strong>: Used for developing the REST APIs that allow communication between the Frontend and the backend microservices.</p>
 </li>
 <li>
 <p><strong>Rust</strong>: Used for developing the bots and to be used as the game engine.</p>
@@ -1174,7 +1132,7 @@ together with a mapping table showing the relationships between channels and inp
 <p><strong>Cargo</strong>: Used for building and compiling rust proyect.</p>
 </li>
 <li>
-<p><strong>MongoDB</strong>: We are using MongoDB as the database for the users because it gives support for JSON, being it the main communication file in our application. Also because in case we need to keep the state of something in a JSON file at some point, it would be easier having a document based databes instead of having an SQL one.</p>
+<p><strong>MongoDB</strong>: Used as the database for both <code>users</code> (<code>usersdb</code>) and <code>game-manager</code> (<code>gamesdb</code>). Its document-based model fits naturally with JSON, which is the main communication format in the application, and makes it easier to store and retrieve flexible data structures without the overhead of a relational schema.</p>
 </li>
 </ul>
 </div>
@@ -1184,7 +1142,7 @@ together with a mapping table showing the relationships between channels and inp
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Docker</strong>: Used for having just one container that works the same way in different computers.</p>
+<p><strong>Docker + Docker Compose</strong>: Used for containerizing each microservice independently and orchestrating them together, ensuring the stack works the same way across different environments.</p>
 </li>
 <li>
 <p><strong>Github Actions</strong>: Used for automatizing tasks such as passing the test, compiling code before we push something into the repository</p>
@@ -1256,9 +1214,27 @@ together with a mapping table showing the relationships between channels and inp
 <div class="sect2">
 <h3 id="_arquitecture_pattern_used">4.5. Arquitecture Pattern Used</h3>
 <div class="paragraph">
-<p>For developing out system, we will use a microservices arquitecture, that is based on having different independent services that communicate each other via APIs.
-For now, we will have at least 3 microservices: GameY that is the engine of the game, Users for managing the users verification and validation and
-WebApp for being the front layer of the system.</p>
+<p>For developing our system, we use a microservices architecture, based on having different independent services that communicate with each other via REST APIs.
+The system is composed of 5 microservices:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>webapp</strong>: Frontend layer served via Nginx.</p>
+</li>
+<li>
+<p><strong>gatewayservice</strong>: Single entry point for all external API requests, routing them to the appropriate microservice.</p>
+</li>
+<li>
+<p><strong>users</strong>: Handles user registration, login, statistics and match history.</p>
+</li>
+<li>
+<p><strong>game-manager</strong>: Orchestrates the game flow, applying moves and interacting with <code>gamey</code> for bot decisions.</p>
+</li>
+<li>
+<p><strong>gamey</strong>: The game engine implemented in Rust, responsible for move validation, win detection and bot logic.</p>
+</li>
+</ul>
 </div>
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -1393,33 +1369,9 @@ In the best case you will get away with examples or simple signatures.</p>
 </div>
 </div>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-
-actor "User" as user
-
-rectangle "YOVI System" {
-
-  node "WebApp" as Web
-  node [Gateway Service] as gateway
-  node "Game Manager" as GameSvc
-  node "User Service" as UserSvc
-  node "Gamey Engine" as GameEngine
-  database "MongoDB" as db
-
-
-}
-
-user --&gt; Web : Browser (HTTP)
-
-Web --&gt; gateway: HTTP REST\nall requests\nport 8000
-gateway--&gt; UserSvc : HTTP REST\nuser auth &amp; registration\nport 3000
-gateway--&gt; GameSvc: HTTP REST\ngame management\nport 5000
-GameSvc--&gt; GameEngine: HTTP POST\nfetch bot move &amp; check win\nport 4000
-GameSvc--&gt; UserSvc: HTTP POST\nupdate user stats\nport 3000
-UserSvc --&gt; db: user data persistence\nport 27017
-GameSvc--&gt; db: game state persistence\nport 27017</pre>
+<img src="./images/YOVI%20System%20Architecture%20-%20Level%201.png" alt="YOVI System Architecture   Level 1" width="593" height="845">
 </div>
 </div>
 <div class="dlist">
@@ -1561,32 +1513,9 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_gamey">5.2.1. White Box Gamey</h4>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-node "Game Manager" as game_mgr
-rectangle "Gamey" as gamey {
-  'component [Yen Notation] as yen
-
-  component [Bot Registry] as bots
-  port "CLI" as cli
-  component "Bot Server\n(HTTP)" as api
-  component [Core Game Logic] as core
-
-
-
-}
-
-"Developer" as dev
-
-
-'yen --- core
-core --&gt; bots
-api --&gt; core
-api --&gt; bots
-api -u0)- game_mgr: HTTP POST\n /choose \n /checkWin
-cli --&gt; core: local play \n(not for regular users)
-cli -u0)- dev: terminal</pre>
+<img src="./images/Gamey%20Engine%20-%20Internal%20Structure.png" alt="Gamey Engine   Internal Structure" width="613" height="639">
 </div>
 </div>
 <div class="dlist">
@@ -1671,48 +1600,9 @@ cli -u0)- dev: terminal</pre>
 </div>
 <div class="sect3">
 <h4 id="_white_box_webapp">5.2.2. White Box WebApp</h4>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-
-
-actor "Player" as player
-
-rectangle "WebApp" as webapp {
-  [Landing Page] as Landing
-  [Login Form] as Login
-  [Register Form] as Register
-  [Menu View] as Menu
-  [How To Play] as HTP
-  [Game Selection] as GameSelect
-  [Game UI] as GameUI
-  [Stats View] as Stats
-  [Ranking View] as Ranking
-}
-
-node "User Service" as UserSvc
-node "Game Manager" as GameMgr
-
-player --&gt; Landing
-Landing --&gt; Login
-Landing --&gt; Register
-
-Login --&gt; UserSvc: HTTP POST /login\nAuthenticate user\nport 3000
-Register --&gt; UserSvc: HTTP POST /register\nCreate new account\nport 3000
-
-Login --&gt; Menu
-Menu --&gt; HTP
-Menu --&gt; GameSelect
-Menu --&gt; Stats
-Menu --&gt; Ranking
-
-Stats --&gt; UserSvc: HTTP GET /stats\nFetch user statistics\nport 3000
-Ranking --&gt; UserSvc: HTTP GET /ranking\nFetch leaderboard\nport 3000
-
-GameSelect --&gt; GameMgr: HTTP POST /create\nInitialize game session\nport 5000
-GameSelect --&gt; GameUI
-
-GameUI --&gt; GameMgr: HTTP POST /move\nSubmit player move\n(authentication required)\nport 5000</pre>
+<img src="./images/WebApp%20-%20Internal%20Structure%20and%20Navigation.png" alt="WebApp   Internal Structure and Navigation" width="1637" height="967">
 </div>
 </div>
 <div class="dlist">
@@ -1848,30 +1738,9 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user registers in the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-hide footbox
-
-actor User
-participant "Webapp" as Webapp
-participant "Gateway Service" as Gateway
-participant "Users Service" as Service
-
-User -&gt; Webapp : Fill form
-Webapp -&gt; Gateway : Forward request
-Gateway -&gt; Service : POST /createuser\n{ username, password, email ... }
-Service --&gt; Service : { Validate input }
-
-alt Success
-    Service --&gt; Webapp : { message }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show welcome message
-else Error
-    Service --&gt; Webapp : { error }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show error message
-end</pre>
+<img src="./images/Sequence%20diagram%20-%20Register.png" alt="Sequence diagram   Register" width="808" height="536">
 </div>
 </div>
 </div>
@@ -1880,29 +1749,9 @@ end</pre>
 <div class="paragraph">
 <p>This scenario shows how a user logs into the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-hide footbox
-
-actor User
-participant "Webapp" as Webapp
-participant "Gateway Service" as Gateway
-participant "Users Service" as Service
-
-User -&gt; Webapp : Fill form
-Webapp -&gt; Gateway : Forward request
-Gateway -&gt; Service : POST /login\n{ username, password }
-
-alt Success
-    Service --&gt; Webapp : { message }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show welcome message and redirect to main menu
-else Error
-    Service --&gt; Webapp : { error }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show error message
-end</pre>
+<img src="./images/Sequence%20diagram%20-%20Login.png" alt="Sequence diagram   Login" width="765" height="548">
 </div>
 </div>
 </div>
@@ -1911,49 +1760,9 @@ end</pre>
 <div class="paragraph">
 <p>This scenario shows how a user plays a game, including interactions with the web app, game core, and bot service.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-
-actor "Player" as User
-participant "WebApp" as Web
-participant "Game Core" as GameCore
-
-participant "Bot Service" as Bot
-
-User -&gt; Web : Start Game
-
-
-Web --&gt; User : Game started
-
-
-loop until game over
-
-    User -&gt; Web : make move
-    Web -&gt; GameCore : process player move
-    GameCore -&gt; GameCore : updated state
-
-    GameCore -&gt; GameCore : check if game over
-        GameCore --&gt; Web : update state
-        Web --&gt; User : show state
-
-
-
-    GameCore -&gt; Bot : send current board state
-    Bot --&gt; GameCore : bot's next move
-    GameCore -&gt; GameCore : update state
-
-    GameCore -&gt; GameCore : check if game over
-
-
-    GameCore --&gt; Web : updated state
-    deactivate GameCore
-
-    Web --&gt; User : show state
-end
-
-
-Web --&gt; User : Game Over</pre>
+<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop " width="1000" height="932">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1973,10 +1782,20 @@ Web --&gt; User : Game Over</pre>
 The project is designed to be highly portable. By using a Virtual Machine on Azure, we ensure that the application is accessible via a public IP/DNS for grading and testing, while the local environment is used for rapid development.</p>
 </div>
 <div class="paragraph">
-<p><strong>Quality and/or Performance Features</strong>
-* <strong>Availability:</strong> The Azure VM provides a stable 24/7 uptime.
-* <strong>Security:</strong> Management access is restricted via SSH (Port 22). Public access is strictly limited to Ports 80, 3000, and 4000 via Azure Network Security Groups.
-* <strong>Portability:</strong> The entire stack is containerized, allowing the team to switch from Azure to any other cloud provider with minimal configuration changes.</p>
+<p><strong>Quality and/or Performance Features</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Availability:</strong> The Azure VM provides a stable 24/7 uptime.</p>
+</li>
+<li>
+<p><strong>Security:</strong> Management access is restricted via SSH (Port 22). Public access is strictly limited to Ports 8080 and 8000 via Azure Network Security Groups.</p>
+</li>
+<li>
+<p><strong>Portability:</strong> The entire stack is containerized, allowing the team to switch from Azure to any other cloud provider with minimal configuration changes.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p><strong>Mapping</strong></p>
@@ -1999,7 +1818,7 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Azure VM (Ubuntu)</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Production containers: <code>webapp</code>, <code>users</code>, <code>gamey</code>, and <code>mongodb</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Production containers: <code>webapp</code>, <code>gatewayservice</code>, <code>users</code>, <code>game-manager</code>, <code>gamey</code>, and <code>mongodb</code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2010,21 +1829,9 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 <div class="paragraph">
 <p>This level zooms into the internal structure of the production environment hosted on Azure.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-@startuml
-!theme plain
-
-node "Developer Machine" as dev
-cloud "GitHub (yovi_en3a)" as ghcr
-node "Azure VM" as azure
-actor "User" as user
-
-dev -&gt; ghcr : push image
-ghcr -&gt; azure : pull image
-user -&gt; azure : access webapp
-@enduml</pre>
+<img src="./images/deployment-lv1.png" alt="deployment lv1" width="796" height="146">
 </div>
 </div>
 <div class="sect3">
@@ -2075,22 +1882,22 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: webapp</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">React/Vite SPA</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx / Static HTTP Server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx / Static HTTP Server (Port 8080)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: gatewayservice</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Express Proxy / Helmet</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 20+ (Entry Point)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Express Proxy / JWT Auth</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 22 (Entry Point, Port 8000)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: users</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Node.js / Express API</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 20+ Runtime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 22 Runtime</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: game-manager</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Node.js / Orchestrator</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 20+ Runtime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js 22 Runtime</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: gamey</strong></p></td>
@@ -2112,79 +1919,9 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="paragraph">
 <p><strong>Azure connections</strong></p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-@startuml
-' =========================
-' Configuración de estilo
-' =========================
-skinparam backgroundColor white
-skinparam roundcorner 5
-skinparam shadowing false
-skinparam componentStyle uml2
-skinparam DefaultFontName "Arial"
-skinparam nodesep 50
-skinparam ranksep 40
-
-' =========================
-' Estilo de contenedores
-' =========================
-skinparam node {
-    BackgroundColor #fdfdfd
-    BorderColor black
-    FontColor black
-    FontSize 12
-    StereotypeAlignment center
-}
-
-' =========================
-' Estilo de actores (cabeza pintada)
-' =========================
-skinparam actor {
-    BackgroundColor #3399FF  ' Azul oscuro
-    BorderColor #1F4E79
-    FontColor black
-    FontStyle bold
-    FontSize 12
-}
-skinparam actorStyle classic  ' Para que la cabeza sea visible y uniforme
-
-' =========================
-' Actores externos
-' =========================
-actor "User" as user
-actor "External Bot" as bot
-
-' =========================
-' Contenedor Azure VM con fondo azul claro
-' =========================
-node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
-
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;webapp&lt;/b&gt;&lt;/size&gt;\nPort 80" as webapp
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;gatewayservice&lt;/b&gt;&lt;/size&gt;\nPort 8000" as gateway
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;users API&lt;/b&gt;&lt;/size&gt;\nPort 3000" as users
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;game-manager&lt;/b&gt;&lt;/size&gt;\nPort 5000" as manager
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;gamey API&lt;/b&gt;&lt;/size&gt;\nPort 4000" as gamey
-
-    database "«container»\n&lt;size:14&gt;&lt;b&gt;MongoDB&lt;/b&gt;&lt;/size&gt;\nPort 27017" as mongodb
-}
-
-' =========================
-' Flujos
-' =========================
-user -right-&gt; webapp : HTTP / REST
-bot -right-&gt; gateway : REST / JSON (Bot)
-webapp -right-&gt; gateway : REST / JSON
-gateway -down-&gt; users : REST / JSON
-gateway -down-&gt; manager : REST / JSON
-gateway -[bold]-&gt; gamey : REST / JSON (Bot)
-manager -right-&gt; gamey : REST / JSON (YEN)
-manager -left-&gt; users : REST / JSON (Stats)
-users -down-&gt; mongodb : MongoDB Driver
-manager -down-&gt; mongodb : MongoDB Driver
-
-@enduml</pre>
+<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="901" height="411">
 </div>
 </div>
 </div>
@@ -2305,7 +2042,7 @@ variables. The <strong>authSource=admin</strong> parameter is required for all c
 <h4 id="_internal_network_isolation">8.2.4. Internal Network Isolation</h4>
 <div class="paragraph">
 <p>All microservices communicate through an internal Docker network (monitor-net).
-Only the <code>gateway</code> (port 8000) and <code>webapp</code> (port 80) are exposed externally.
+Only the <code>gateway</code> (port 8000) and <code>webapp</code> (port 8080) are exposed externally.
 Direct access to <code>users</code>, <code>game-manager</code>, <code>gamey</code> and <code>MongoDB</code> is restricted to
 internal container communication.</p>
 </div>
@@ -2319,7 +2056,8 @@ internal container communication.</p>
 <div class="paragraph">
 <p>All external requests enter the system through a single <strong>gateway service</strong> running
 on port 8000. The <strong>gateway proxies</strong> requests to the appropriate microservice based
-on the URL prefix (/api/users, /api/game-manager, /api/gamey).</p>
+on the URL prefix (/api/users, /api/game-manager). Communication with <code>gamey</code> is
+not a generic proxy — only the specific endpoint <code>POST /api/gamey/play</code> is exposed.</p>
 </div>
 </div>
 <div class="sect3">
@@ -2365,14 +2103,15 @@ while production injects them via <code>docker-compose`</code> on the server.</p
 <div class="sect3">
 <h4 id="_api_documentation">8.4.2. API Documentation</h4>
 <div class="paragraph">
-<p>Each microservice exposes a <strong>Swagger UI</strong> at /api-docs using swagger-ui-express
-and <code>openapi.yaml</code>.</p>
+<p>The <code>gatewayservice</code> exposes a <strong>Swagger UI</strong> at <code>/api-docs</code> using swagger-ui-express
+and a single <code>openapi.yaml</code> that documents all public API endpoints across microservices
+(<code>/api/users</code>, <code>/api/game-manager</code>, <code>/api/gamey</code>).</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_testing_strategy">8.4.3. Testing Strategy</h4>
 <div class="paragraph">
-<p><strong>Node.js</strong> microservices (users, gateway) use <strong>Vitest</strong> and <strong>Supertest</strong> for unit and
+<p><strong>Node.js</strong> microservices (users, game-manager, gateway) use <strong>Vitest</strong> and <strong>Supertest</strong> for unit and
 integration testing. Each <strong>Node.js</strong> service has a <code>test:coverage</code> script that generates
 coverage reports. The <code>gamey</code> service uses <strong>cargo test</strong> for unit testing and
 <strong>cargo llvm-cov</strong> for coverage reporting. The <strong>CI/CD pipeline</strong> runs all tests on
@@ -2598,33 +2337,9 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-@startmindmap
-* Quality
-** Performance
-*** Low-latency bot computation (Q1)
-*** Fast API response time (Q2)
-** Usability
-*** Intuitive board interaction (Q3)
-*** Seamless authentication flow (Q4)
-** Scalability
-*** Concurrent bot requests (Q5)
-*** Growing number of players (Q6)
-** Interoperability
-*** External bot API (Q7)
-*** YEN notation as common language (Q8)
-** Maintainability
-*** Modular microservice structure (Q9)
-*** Independent deployability (Q10)
-** Security
-*** JWT authentication (Q11)
-*** Secure password storage (Q12)
-** Testability
-*** Unit and integration tests (Q13)
-*** CI/CD pipeline (Q14)
-@endmindmap</pre>
+<img src="./images/quality-tree.png" alt="quality tree" width="603" height="811">
 </div>
 </div>
 <hr>
@@ -3090,15 +2805,15 @@ concrete and measurable.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">A pull request is opened against the develop branch. The CI/CD pipeline automatically runs all tests and coverages for all services and blocks the merge if any test fails.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A pull request is opened on GitHub or a push is made to master. The CI/CD pipeline automatically runs all tests and coverage for all services and blocks the merge if any test fails.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pull request opened on GitHub</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pull request opened on GitHub (any branch) or push to master</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">GitHub Actions runs all tests and SonarQube checks coverage reporting results within 5 minutes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GitHub Actions runs all tests and SonarQube analysis reporting results within 5 minutes</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Priority</strong></p></td>
@@ -3236,16 +2951,6 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>No Persistent Game State Recovery</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">If the game-manager container crashes mid-game, the current game state is lost. Games are not saved to the gamesdb during play, only at completion.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Persist game state to gamesdb after each move. On reconnection, allow the player to resume an interrupted game by querying the last saved state.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Hardcoded Service URLs in Gateway</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The gateway resolves microservice addresses using hardcoded service names from docker-compose (for example <a href="http://users:3001" class="bare">http://users:3001</a>).</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Extract service URLs into environment variables. This would allow reconfiguration without code changes.</p></td>
-</tr>
-<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Missing API Versioning</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">All REST endpoints in the gateway and microservices are exposed without versioning (/api/users/login instead of /api/v1/users/login). Any breaking API change will require coordinated updates across all consumers simultaneously.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Introduce API versioning.</p></td>
@@ -3257,8 +2962,8 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Swagger Documentation Incomplete</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Each microservice is configured to expose a Swagger UI via openapi.yaml, but the actual files may not fully document all endpoints, request schemas, and error responses.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Ensure all request/response schemas, authentication requirements and error codes are documented.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>gatewayservice</code> exposes a Swagger UI with an <code>openapi.yaml</code> that centralises all public API documentation. However, some endpoints are not yet documented (e.g. <code>/api/users/history</code>), leaving gaps for external developers and bot integrators.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Complete the gateway&#8217;s <code>openapi.yaml</code> to cover all public endpoints, including request/response schemas, authentication requirements and error codes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -3351,11 +3056,11 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Express</strong></em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A minimal and flexible Node.js web framework used in the users and gateway microservices to define REST API routes.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A minimal and flexible Node.js web framework used in the users, game-manager and gateway microservices to define REST API routes.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Gateway</strong></em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A microservice that acts as the single entry point for all external HTTP requests. It guides requests to the appropriate internal microservice based on the URL prefix (for example: /api/users, /api/gamey`).</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A microservice that acts as the single entry point for all external HTTP requests. It guides requests to the appropriate internal microservice based on the URL prefix (for example: <code>/api/users</code>, <code>/api/gamey</code>).</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>GitHub Actions</strong></em></p></td>
@@ -3371,7 +3076,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Microservice</strong></em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An independently deployable service that handles a specific business capability. YOVI is composed of four main microservices: webapp, users, game-manager and gamey.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An independently deployable service that handles a specific business capability. YOVI is composed of five main microservices: webapp, gatewayservice, users, game-manager and gamey.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>MongoDB</strong></em></p></td>
@@ -3391,7 +3096,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Swagger / OpenAPI</strong></em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An open standard and toolset for describing REST APIs. Each YOVI microservice exposes a Swagger UI.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An open standard and toolset for describing REST APIs. In YOVI, the <code>gatewayservice</code> exposes a Swagger UI at <code>/api-docs</code> with a single <code>openapi.yaml</code> that centralises the documentation of all public API endpoints.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Strategy Pattern</strong></em></p></td>
@@ -3421,7 +3126,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-04-01 13:05:05 +0200
+Last updated 2026-02-06 19:04:45 +0100
 </div>
 </div>
 </body>
