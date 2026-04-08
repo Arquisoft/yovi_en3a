@@ -37,16 +37,17 @@ skinparam linetype ortho
 
 actor User
 actor "External Bots" as Bots
+database "MongoDB" as DB
 
-rectangle YOVI as YOVI
+rectangle "YOVI" {
+    rectangle "Frontend" as Frontend
+    rectangle "Backend" as Backend
+}
 
-User -[hidden]-> YOVI
-YOVI -[hidden]-> Bots
-
-User ---> YOVI : Login credentials \n Game decisions
-YOVI ---> User : Game state \n Statistics/History 
-
-Bots <---> YOVI : API requests \n Game data \n Movements
+User <--> Frontend : Accesses and uses the application
+Frontend <--> Backend : Communicates via API calls with
+Backend <--> DB : Save / Retrieve documents
+Bots <--> Backend : Retrieve information via API calls
 ----
 
 .YOVI
@@ -91,37 +92,30 @@ endif::arc42help[]
 
 [plantuml, "Technical context",png]
 ----
+skinparam linetype ortho
+
 actor User
-actor ExternalBots as Bots
+actor "External Bots" as Bots
+database "MongoDB" as DB
 
 node "YOVI" {
-
     rectangle "Web Frontend" as Frontend
-    
-    rectangle "Gateway Service" as API
-
+    rectangle "Gateway Service" as Gateway
     rectangle "Users Service" as Service
-
-    rectangle "GameY" as Game {
-        rectangle "Bot"
-    }
-
     rectangle "Game Manager" as Manager
-
-    database "MongoDB" as DB
+    rectangle "GameY" as Game
 }
 
-User --> Frontend : HTTPS
-Bots --> API : HTTPS
-
-Frontend --> API : HTTPS
-
-API --> Service
-API --> Manager
-API --> Game
-
-Service <--> DB : MongoDB
-Manager <--> DB : MongoDB
+User --> Frontend : HTTPS requests
+Frontend --> Gateway : API calls
+Gateway --> Service : Redirects to Users Service
+Gateway --> Manager : Redirects to Game Manager
+Gateway --> Game : External bot access
+Bots --> Gateway : HTTPS
+Service <--> DB : Save / Retrieve user data
+Manager <--> DB : Save / Retrieve board data
+Manager <--> Game : Game operations
+Manager --> Service : Update user stats
 ----
 
 |===
@@ -158,10 +152,6 @@ Manager <--> DB : MongoDB
 | - Game state updates +
   - Bot actions +
   - Responses to the API
-
-| Bot (internal)
-| - Game state
-| - Next action
 
 | MongoDB
 | - Queries from Users Service +
