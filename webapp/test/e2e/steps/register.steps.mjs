@@ -24,8 +24,8 @@ When('I fill in the registration form with valid data', async function () {
 Then('I should see a success message', async function () {
     const page = this.page
     if (!page) throw new Error('Page not initialized')
-    await page.waitForSelector('p[style*="color: rgb(74, 222, 128)"]', { timeout: 5000 })
-    const text = await page.textContent('p[style*="color: rgb(74, 222, 128)"]')
+    await page.waitForSelector('p.rf-message-success', { timeout: 5000 })
+    const text = await page.textContent('p.rf-message-success')
     assert.ok(text && text.length > 0, `Expected success message but got: "${text}"`)
 })
 

@@ -71,6 +71,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build gamey
+        run: |
+          cd gamey
+          cargo build
       - name: Install users dependencies
         run: |
           cd users
@@ -78,6 +84,10 @@ jobs:
       - name: Install gatewayservice dependencies
         run: |
           cd gatewayservice
+          npm ci
+      - name: Install gamemanager dependencies
+        run: |
+          cd gamemanager
           npm ci
       - name: Install webapp dependencies
         run: |
@@ -90,7 +100,11 @@ jobs:
       - name: Run E2E tests
         env:
           MONGODB_URI: mongodb://admin:password@localhost:27017/usersdb?authSource=admin
+          MONGODB_URI_GAMES: mongodb://admin:password@localhost:27017/gamesdb?authSource=admin
           JWT_SECRET: test-secret-for-e2e
+          GAMEY_SERVICE_URL: http://localhost:4000
+          USERS_SERVICE_URL: http://localhost:3000
+          GAME_MANAGER_URL: http://localhost:5000
         run: |
           cd webapp
           npm run test:e2e
