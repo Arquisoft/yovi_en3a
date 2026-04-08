@@ -9,8 +9,9 @@ This level describes the distribution of the system across the environments used
 The project is designed to be highly portable. By using a Virtual Machine on Azure, we ensure that the application is accessible via a public IP/DNS for grading and testing, while the local environment is used for rapid development.
 
 **Quality and/or Performance Features**
+
 * **Availability:** The Azure VM provides a stable 24/7 uptime.
-* **Security:** Management access is restricted via SSH (Port 22). Public access is strictly limited to Ports 80, 3000, and 4000 via Azure Network Security Groups.
+* **Security:** Management access is restricted via SSH (Port 22). Public access is strictly limited to Ports 8080 and 8000 via Azure Network Security Groups.
 * **Portability:** The entire stack is containerized, allowing the team to switch from Azure to any other cloud provider with minimal configuration changes.
 
 **Mapping**
@@ -18,7 +19,7 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 |===
 | Element | Software Artifacts (Building Blocks)
 | **Local Developer PC** | Source code, Node.js environment, Rust toolchain, and local Docker Desktop.
-| **Azure VM (Ubuntu)** | Production containers: `webapp`, `users`, `gamey`, and `mongodb`.
+| **Azure VM (Ubuntu)** | Production containers: `webapp`, `gatewayservice`, `users`, `game-manager`, `gamey`, and `mongodb`.
 |===
 
 ---
@@ -59,10 +60,10 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 [cols="1,2,2", options="header"]
 |===
 | Infrastructure Element | Artifact | Execution Environment
-| **Container: webapp** | React/Vite SPA | Nginx / Static HTTP Server
-| **Container: gatewayservice** | Express Proxy / Helmet | Node.js 20+ (Entry Point)
-| **Container: users** | Node.js / Express API | Node.js 20+ Runtime
-| **Container: game-manager** | Node.js / Orchestrator | Node.js 20+ Runtime
+| **Container: webapp** | React/Vite SPA | Nginx / Static HTTP Server (Port 8080)
+| **Container: gatewayservice** | Express Proxy / JWT Auth | Node.js 22 (Entry Point, Port 8000)
+| **Container: users** | Node.js / Express API | Node.js 22 Runtime
+| **Container: game-manager** | Node.js / Orchestrator | Node.js 22 Runtime
 | **Container: gamey** | Rust Server Binary | Debian Slim (No compiler)
 | **Container: mongodb** | MongoDB Image | Mongo 6.0+ Engine
 | **Storage Volume** | User Database Files | Persistent Host File System
@@ -117,7 +118,7 @@ actor "External Bot" as bot
 ' =========================
 node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
 
-    node "«container»\n<size:14><b>webapp</b></size>\nPort 80" as webapp
+    node "«container»\n<size:14><b>webapp</b></size>\nPort 8080" as webapp
     node "«container»\n<size:14><b>gatewayservice</b></size>\nPort 8000" as gateway
     node "«container»\n<size:14><b>users API</b></size>\nPort 3000" as users
     node "«container»\n<size:14><b>game-manager</b></size>\nPort 5000" as manager

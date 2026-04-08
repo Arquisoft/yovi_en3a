@@ -229,9 +229,9 @@ endif::arc42help[]
 [cols="1,4",options="header"]
 |===
 | **ID** | **Q14**
-| **Scenario** | A pull request is opened against the develop branch. The CI/CD pipeline automatically runs all tests and coverages for all services and blocks the merge if any test fails.
-| **Stimulus** | Pull request opened on GitHub
-| **Response** | GitHub Actions runs all tests and SonarQube checks coverage reporting results within 5 minutes
+| **Scenario** | A pull request is opened on GitHub or a push is made to master. The CI/CD pipeline automatically runs all tests and coverage for all services and blocks the merge if any test fails.
+| **Stimulus** | Pull request opened on GitHub (any branch) or push to master
+| **Response** | GitHub Actions runs all tests and SonarQube analysis reporting results within 5 minutes
 | **Priority** | High
 |===
 

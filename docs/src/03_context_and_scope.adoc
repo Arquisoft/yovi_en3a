@@ -98,14 +98,15 @@ node "YOVI" {
 
     rectangle "Web Frontend" as Frontend
     
-    rectangle "API" as API
-    
-    rectangle "User Registration" as Registration
-    rectangle "User Service" as Service
-    
+    rectangle "Gateway Service" as API
+
+    rectangle "Users Service" as Service
+
     rectangle "GameY" as Game {
         rectangle "Bot"
     }
+
+    rectangle "Game Manager" as Manager
 
     database "MongoDB" as DB
 }
@@ -115,11 +116,12 @@ Bots --> API : HTTPS
 
 Frontend --> API : HTTPS
 
-API --> Registration
 API --> Service
+API --> Manager
 API --> Game
 
 Service <--> DB : MongoDB
+Manager <--> DB : MongoDB
 ----
 
 |===
@@ -135,22 +137,20 @@ Service <--> DB : MongoDB
 
 | Web Frontend
 | - Requests from the user (login, moves, strategy)
-| - Forwards requests to API
+| - Forwards requests to Gateway Service
 
-| API
+| Gateway Service
 | - Requests from Frontend +
   - Requests from External Bots
-| - Forwards requests to User Registration, User Service, GameY +
+| - Forwards requests to Users Service, Game Manager, GameY +
   - Responds back to Frontend and Bots
 
-| User Registration
-| - Registration/Login data from API
+| Users Service
+| - Registration/Login data from API +
+  - Requests from API (stats, history)
 | - User created / validated +
-  - Authentication result
-
-| User Service
-| - Requests from API (stats, history)
-| - Data from MongoDB
+  - Authentication result +
+  - Data from MongoDB
 
 | GameY
 | - Game moves from API +
@@ -164,8 +164,9 @@ Service <--> DB : MongoDB
 | - Next action
 
 | MongoDB
-| - Queries from User Service
-| - Returns requested user data
+| - Queries from Users Service +
+  - Queries from Game Manager
+| - Returns requested user and game data
 |===
 
 
