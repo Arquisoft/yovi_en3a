@@ -98,4 +98,43 @@ describe('RegisterForm', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/login')
     }, { timeout: 2000 })
   })
+
+
+
+  test('renders the country dropdown', () => {
+  render(<MemoryRouter><RegisterForm /></MemoryRouter>)
+  
+  const countrySelect = document.querySelector('select[name="rcrs-country"]')
+  expect(countrySelect).toBeInTheDocument()
+})
+
+
+test('submits with selected country in the payload', async () => {
+  const user = userEvent.setup()
+
+  global.fetch = vi.fn().mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ message: 'Registration successful!' }),
+  } as Response)
+
+  render(<MemoryRouter><RegisterForm /></MemoryRouter>)
+
+  await waitFor(async () => {
+    await user.type(screen.getByLabelText(/username/i), 'Pablo')
+    await user.type(screen.getByLabelText(/email/i), 'pablo@test.com')
+    await user.type(screen.getByLabelText(/^password$/i), 'secret123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'secret123')
+
+    const countrySelect = document.querySelector('select[name="rcrs-country"]')!
+    await user.selectOptions(countrySelect as HTMLElement, 'Spain')
+
+    await user.click(screen.getByRole('button', { name: /register/i }))
+
+    expect(screen.getByText(/registration successful!/i)).toBeInTheDocument()
+  })
+
+  const fetchCall = vi.mocked(global.fetch).mock.calls[0]
+  const body = JSON.parse(fetchCall[1]?.body as string)
+  expect(body.country).toBe('Spain')
+})
 })
