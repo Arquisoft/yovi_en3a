@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, ArrowLeft, User } from 'lucide-react';
+import { Trophy, Medal, ArrowLeft, User, Target } from 'lucide-react';
 
 interface PlayerRank {
     userId: {
@@ -10,13 +10,20 @@ interface PlayerRank {
     };
     wins: number;
     gamesPlayed: number;
-    winRate: number;
+}
+
+interface UserPosition {
+    position: number;
+    wins: number;
+    gamesPlayed: number;
 }
 
 const RankingView: React.FC = () => {
     const [topPlayers, setTopPlayers] = useState<PlayerRank[]>([]);
+    const [userRank, setUserRank] = useState<UserPosition | null>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const currentUserId = localStorage.getItem('userId');
 
     useEffect(() => {
         const fetchRanking = async () => {
@@ -30,7 +37,9 @@ const RankingView: React.FC = () => {
 
                 const data = await res.json();
                 if (res.ok) {
-                    setTopPlayers(data.topPlayers);
+                    setTopPlayers(data.topPlayers || []);
+                    // Guardamos la posición personal del usuario
+                    setUserRank(data.userPosition || null);
                 }
             } catch (err) {
                 console.error("Error fetching ranking:", err);
@@ -47,9 +56,12 @@ const RankingView: React.FC = () => {
     const podio = topPlayers.slice(0, 3);
     const resto = topPlayers.slice(3);
 
+    // Verificamos si el usuario actual ya está en el Top 20 mostrado
+    const isUserInTop20 = topPlayers.some((_, index) => (index + 1) === userRank?.position);
+
     return (
-        <div className="min-h-screen bg-[#0d1117] text-white p-4 md:p-8">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-[#0d1117] text-white p-4 md:p-8 flex justify-center">
+            <div className="w-full max-w-4xl">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-10">
                     <button
@@ -64,53 +76,39 @@ const RankingView: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Podio Visual AI generated */}
-                <div className="grid grid-cols-3 gap-2 items-end mb-12 px-4">
-                    {/* Segundo Puesto */}
+                {/* Podio Visual */}
+                <div className="grid grid-cols-3 gap-2 items-end mb-12 px-4 h-64">
                     {podio[1] && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                            className="flex flex-col items-center"
-                        >
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
                             <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center mb-2 border-4 border-gray-500 shadow-lg">
                                 <Medal size={32} className="text-gray-800" />
                             </div>
                             <span className="font-bold text-sm truncate w-full text-center">{podio[1].userId.username}</span>
-                            <div className="bg-gray-700 w-full h-24 rounded-t-lg mt-2 flex items-center justify-center text-2xl font-black">2</div>
+                            <div className="bg-gray-700 w-full h-24 rounded-t-lg mt-2 flex items-center justify-center text-2xl font-black italic">2</div>
                         </motion.div>
                     )}
-
-                    {/* Primer Puesto */}
                     {podio[0] && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
-                            className="flex flex-col items-center"
-                        >
+                        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
                             <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-2 border-4 border-yellow-600 shadow-xl shadow-yellow-900/20">
                                 <Trophy size={40} className="text-yellow-900" />
                             </div>
                             <span className="font-bold text-lg truncate w-full text-center">{podio[0].userId.username}</span>
-                            <div className="bg-yellow-600/20 border-x border-t border-yellow-500/50 w-full h-32 rounded-t-lg mt-2 flex items-center justify-center text-4xl font-black text-yellow-500">1</div>
+                            <div className="bg-yellow-600/20 border-x border-t border-yellow-500/50 w-full h-32 rounded-t-lg mt-2 flex items-center justify-center text-4xl font-black text-yellow-500 italic">1</div>
                         </motion.div>
                     )}
-
-                    {/* Tercer Puesto */}
                     {podio[2] && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                            className="flex flex-col items-center"
-                        >
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
                             <div className="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center mb-2 border-4 border-orange-600 shadow-lg">
                                 <Medal size={28} className="text-orange-900" />
                             </div>
                             <span className="font-bold text-sm truncate w-full text-center">{podio[2].userId.username}</span>
-                            <div className="bg-orange-900/40 w-full h-20 rounded-t-lg mt-2 flex items-center justify-center text-2xl font-black">3</div>
+                            <div className="bg-orange-900/40 w-full h-20 rounded-t-lg mt-2 flex items-center justify-center text-2xl font-black italic">3</div>
                         </motion.div>
                     )}
                 </div>
 
-                {/* Table with Rest of Players */}
-                <div className="bg-[#161b22] rounded-xl border border-[#30363d] overflow-hidden">
+                {/* Tabla Principal */}
+                <div className="bg-[#161b22] rounded-xl border border-[#30363d] overflow-hidden mb-6">
                     <table className="w-full text-left">
                         <thead className="bg-[#0d1117] border-b border-[#30363d]">
                             <tr>
@@ -121,30 +119,98 @@ const RankingView: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#30363d]">
-                            {resto.map((player, index) => (
-                                <motion.tr
-                                    key={player.userId._id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="hover:bg-[#1c2128] transition-colors"
-                                >
-                                    <td className="px-6 py-4 font-mono text-gray-400">#{index + 4}</td>
-                                    <td className="px-6 py-4 flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-blue-500/10 rounded-full flex items-center justify-center">
-                                            <User size={16} className="text-blue-400" />
-                                        </div>
-                                        <span className="font-medium">{player.userId.username}</span>
-                                    </td>
-                                    <td className="px-6 py-4 text-center font-bold text-green-400">{player.wins}</td>
-                                    <td className="px-6 py-4 text-right text-gray-400">
-                                        {((player.wins / player.gamesPlayed) * 100).toFixed(1)}%
-                                    </td>
-                                </motion.tr>
-                            ))}
+                            {resto.map((player, index) => {
+                                const isMe = player.userId._id === currentUserId;
+                                const position = index + 4;
+                                const winRate = (player.wins / player.gamesPlayed) * 100;
+                                const winRateFormatted = winRate.toFixed(1);
+
+                                return (
+                                    <motion.tr
+                                        key={player.userId._id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        // Conditional styling: Blue glow if it's the current user
+                                        className={`transition-colors ${isMe
+                                            ? 'bg-blue-600/20 border-l-4 border-l-blue-500 hover:bg-blue-600/30'
+                                            : 'hover:bg-[#1c2128]'
+                                            }`}
+                                    >
+                                        <td className={`px-6 py-4 font-mono ${isMe ? 'text-blue-400 font-bold' : 'text-gray-400'}`}>
+                                            #{position}
+                                        </td>
+                                        <td className="px-6 py-4 flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isMe ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'}`}>
+                                                <User size={16} />
+                                            </div>
+                                            <span className={`font-medium ${isMe ? 'text-blue-100' : ''}`}>
+                                                {player.userId.username} {isMe && <span className="text-[10px] ml-2 bg-blue-500 px-1.5 py-0.5 rounded text-white uppercase">You</span>}
+                                            </span>
+                                        </td>
+                                        <td className={`px-6 py-4 text-center font-bold ${isMe ? 'text-blue-300' : 'text-green-400'}`}>
+                                            {player.wins}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex flex-col items-end gap-1.5">
+                                                {/* El número del porcentaje */}
+                                                <span className={`text-xs font-mono ${isMe ? 'text-blue-300 font-bold' : 'text-gray-400'}`}>
+                                                    {winRateFormatted}%
+                                                </span>
+
+                                                {/* El contenedor de la barra */}
+                                                <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${winRate}%` }}
+                                                        transition={{ duration: 1, ease: "easeOut" }}
+                                                        className={`h-full rounded-full ${isMe ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
+                                                                winRate > 50 ? 'bg-green-500' : 'bg-yellow-600'
+                                                            }`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </motion.tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
+
+                {/* SECCIÓN PERSONAL (Solo si no está en el Top 20) */}
+                {userRank && !isUserInTop20 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-4 flex items-center justify-between shadow-lg"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="bg-blue-500 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center font-bold">
+                                <span className="text-[10px] uppercase leading-none opacity-80">Rank</span>
+                                <span className="text-lg">#{userRank.position}</span>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-white flex items-center gap-2">
+                                    Your Standing <Target size={14} className="text-blue-400" />
+                                </h3>
+                                <p className="text-xs text-gray-400 italic">Keep playing to climb the leaderboard!</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-8 text-right">
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-semibold">Wins</p>
+                                <p className="text-xl font-bold text-green-400">{userRank.wins}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase font-semibold">Win Rate</p>
+                                <p className="text-xl font-bold text-white">
+                                    {((userRank.wins / userRank.gamesPlayed) * 100).toFixed(1)}%
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
             </div>
         </div>
     );
