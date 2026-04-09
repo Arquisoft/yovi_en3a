@@ -12,7 +12,7 @@ This repository contains the project for the [software architecture curse](https
 
 The development of the game follows [these](https://docs.google.com/document/d/1VKKkNxAdRo5Eo8VpZHr3fQ3owIvBvZ_6fKDch0N8m3U/edit?tab=t.0#heading=h.knuq2aw7zapd) requirements.
 
-The project is deployed [here](http://4.233.138.159/), the documentation can be found [here](https://arquisoft.github.io/yovi_en3a/). 
+The project is deployed [here](https://yovi-en3a.duckdns.org/), the documentation can be found [here](https://arquisoft.github.io/yovi_en3a/). 
 
 Go to the [wiki](https://github.com/Arquisoft/yovi_en3a/wiki) for more information about the development.
 
