@@ -74,7 +74,7 @@ app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MAN
 //app.use('/api/gamey', (req,res) => proxyRequest(GAMEY_SERVICE_URL, req, res))
 
 // Used for playing against the desired bot of our game
-app.post('/api/gamey/play', async (req, res) => {
+app.get('/api/gamey/play', async (req, res) => {
     const { botId = 'medium_bot', ...yen } = req.body;
 
     if (!yen.layout || !yen.size) {
