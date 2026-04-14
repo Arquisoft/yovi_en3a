@@ -10,6 +10,7 @@ import { GameScreen } from './GameScreen';
 import StatsView from './StatsView';
 import RankingView from './RankingView';
 import ProtectedRoute from './ProtectRoutes';
+import MatchHistoryView from './MatchHistoryView';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
             <ProtectedRoute><MenuView /></ProtectedRoute>
           } />
           <Route path="/select-game" element={
-            <ProtectedRoute><GameSelect onBack={() => {}} /></ProtectedRoute>
+            <ProtectedRoute><GameSelect onBack={() => { }} /></ProtectedRoute>
           } />
           <Route path="/how-to-play" element={
             <ProtectedRoute><HowToPlay /></ProtectedRoute>
@@ -39,6 +40,9 @@ function App() {
           } />
           <Route path="/ranking" element={
             <ProtectedRoute><RankingView /></ProtectedRoute>
+          } />
+          <Route path="/match-history" element={
+            <ProtectedRoute><MatchHistoryView /></ProtectedRoute>
           } />
 
           <Route path="*" element={<Navigate to="/" />} />
