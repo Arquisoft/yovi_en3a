@@ -11,7 +11,7 @@ import { PlayerCard } from './game/PlayerCard';
 import { MoveHistory, type Move } from './game/MoveHistory';
 import { GameTimer } from './game/GameTimer';
 import { TurnTimer } from './game/TurnTimer';
-import { Trophy, LogOut, Gamepad2, Eye, EyeOff } from 'lucide-react';
+import { Trophy, LogOut, Gamepad2, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import HexBackground from './HexBackGround';
 
 interface GameScreenProps {
@@ -32,6 +32,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [piecesP2, setPiecesP2] = useState(0);
     const [turnNumber, setTurnNumber] = useState(1);
     const [showCellNames, setShowCellNames] = useState(false);
+    const [isMoveHistoryOpen, setIsMoveHistoryOpen] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -87,7 +88,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
             <HexBackground />
 
             {/* Todo el contenido por encima del fondo */}
-            <div className="relative z-10 flex flex-col flex-1">
+            <div className="relative z-10 flex flex-col flex-1 w-full">
 
                 {/* ── Header ── */}
                 <header className="w-full flex items-center justify-between px-6 py-3 border-b border-white/5">
@@ -146,10 +147,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                 )}
 
                 {/* ── Main layout ── */}
-                <div className="flex flex-1 gap-5 px-6 py-4 items-start justify-center">
+                <div className="game-layout-container flex flex-col md:flex-row justify-center items-start md:items-stretch flex-1 w-full">
 
-                    {/* Left sidebar */}
-                    <aside className="flex flex-col gap-3 w-52 shrink-0 pt-1">
+                    {/* Left sidebar: Player cards, timers, info */}
+                    <aside className="game-layout-left-sidebar w-full md:w-52 flex flex-col gap-3 md:gap-4 flex-shrink-0" style={{ minWidth: 0 }}>
                         <PlayerCard
                             name="Player 1"
                             playerNumber={1}
@@ -190,19 +191,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                 <span className="text-indigo-400 font-mono font-bold">{moves.length}</span>
                             </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowCellNames(!showCellNames)}
-                            className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors"
-                            title={showCellNames ? "Hide coordinates" : "Show coordinates"}
-                        >
-                            {showCellNames ? <Eye className="h-7 w-7" /> : <EyeOff className="h-7 w-7" />}
-                        </Button>
                     </aside>
 
                     {/* Center: board */}
-                    <main className="game-board-section flex-shrink-0">
+                    <main className="game-layout-center w-full md:w-auto flex flex-col items-center flex-shrink-0" style={{ minWidth: 0 }}>
                         <GameBoard
                             ref={gameBoardRef}
                             gameIdProp={gameId}
@@ -216,9 +208,46 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         />
                     </main>
 
-                    {/* Right sidebar */}
-                    <aside className="flex flex-col gap-3 w-56 shrink-0 pt-1">
-                        <MoveHistory moves={moves} maxHeight={420} />
+                    {/* Right sidebar: Move History (collapsible on mobile) */}
+                    <aside className="game-layout-right-sidebar w-full md:w-56 flex flex-col gap-3 md:gap-4 flex-shrink-0" style={{ minWidth: 0 }}>
+                        {/* Move History Collapsible */}
+                        <div className="rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden">
+                            <button
+                                onClick={() => setIsMoveHistoryOpen(!isMoveHistoryOpen)}
+                                className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.05] transition-colors"
+                            >
+                                <h3 className="text-[0.65rem] uppercase tracking-widest text-white/40 font-bold">
+                                    Move History
+                                </h3>
+                                <div className="text-white/40">
+                                    {isMoveHistoryOpen ? (
+                                        <ChevronUp className="w-4 h-4" />
+                                    ) : (
+                                        <ChevronDown className="w-4 h-4" />
+                                    )}
+                                </div>
+                            </button>
+                            {isMoveHistoryOpen && (
+                                <div className="px-4 py-3 border-t border-white/5">
+                                    <MoveHistory moves={moves} maxHeight={420} />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Tool bar for toggle button and future options */}
+                        <div className="game-layout-tools">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowCellNames(!showCellNames)}
+                                className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors flex-shrink-0"
+                                title={showCellNames ? "Hide coordinates" : "Show coordinates"}
+                            >
+                                {showCellNames ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                            </Button>
+                        </div>
+
+                        {/* Hidden SidePanel (legacy) */}
                         <div className="hidden">
                             <SidePanel ref={sidePanelRef} />
                         </div>
