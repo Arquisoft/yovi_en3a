@@ -37,11 +37,11 @@ skinparam linetype ortho
 
 actor User
 actor "External Bots" as Bots
-database "MongoDB" as DB
 
-rectangle "YOVI" {
+node "YOVI" {
     rectangle "Frontend" as Frontend
     rectangle "Backend" as Backend
+    database "MongoDB" as DB
 }
 
 User <--> Frontend : Accesses and uses the application
@@ -96,7 +96,6 @@ skinparam linetype ortho
 
 actor User
 actor "External Bots" as Bots
-database "MongoDB" as DB
 
 node "YOVI" {
     rectangle "Web Frontend" as Frontend
@@ -104,6 +103,7 @@ node "YOVI" {
     rectangle "Users Service" as Service
     rectangle "Game Manager" as Manager
     rectangle "GameY" as Game
+    database "MongoDB" as DB
 }
 
 User --> Frontend : HTTPS requests
@@ -111,7 +111,7 @@ Frontend --> Gateway : API calls
 Gateway --> Service : Redirects to Users Service
 Gateway --> Manager : Redirects to Game Manager
 Gateway --> Game : External bot access
-Bots --> Gateway : HTTPS
+Bots --> Gateway : API Call
 Service <--> DB : Save / Retrieve user data
 Manager <--> DB : Save / Retrieve board data
 Manager <--> Game : Game operations
