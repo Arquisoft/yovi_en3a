@@ -328,6 +328,27 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'gamemanager' });
 });
 
+app.get('/api/gamey/play', async (req, res) => {
+    const { bot_id: botId = 'medium_bot', ...yen } = req.query;
+    
+    if (!yen.layout || !yen.size) {
+        return res.status(400).json({ error: 'yen (layout, size) is required' });
+    }
+
+    try {
+        const response = await axios.post(
+            `${GAMEY_SERVICE_URL}/v1/ybot/choose/${botId}`,
+            yen,
+            { headers: { 'Content-Type': 'application/json' } }
+        );
+        res.json({ coords: response.data.coords });
+    } catch (error) {
+        const status = error.response?.status || 500;
+        const data = error.response?.data || { error: 'Gamey service error' };
+        res.status(status).json(data);
+    }
+});
+
 if (require.main === module) {
     app.listen(port, () => {
         console.log(`Game Manager listening at http://localhost:${port}`);

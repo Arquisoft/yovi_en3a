@@ -1,4 +1,4 @@
-/*import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 import { gatewayUrl } from "../../lib/config";
@@ -7,11 +7,11 @@ export const useHoleyLogic = (
   gameIdProp: BoardProps["gameIdProp"],
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
-  onGameOver: BoardProps["onGameOver"]
+  onGameOver: BoardProps["onGameOver"],
+  onTurnChange: BoardProps["onTurnChange"]
 ) => {
   const [holeCells, setHoleCells] = useState<Set<string>>(new Set());
 
-  // Cargamos los huecos desde el estado inicial del backend
   useEffect(() => {
     if (!gameIdProp) return;
     const token = localStorage.getItem("token");
@@ -31,11 +31,13 @@ export const useHoleyLogic = (
   }, [gameIdProp]);
 
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
-    onBeforeMove: () => true, // el bloqueo lo gestiona HexGrid via disabledCells
+    onBeforeMove: () => true,
+    onAfterPlayerMove: () => onTurnChange?.("p2"),
+    onAfterBotMove: () => onTurnChange?.("p1"),
   });
 
   const highlightCells = new Map<string, string>();
   holeCells.forEach((key) => highlightCells.set(key, "#6b7280"));
 
   return { ...logic, holeCells, highlightCells };
-};*/
+};

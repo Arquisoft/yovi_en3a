@@ -26,7 +26,7 @@ const HexGrid: React.FC<HexGridProps> = ({
   gameId,
   disabledCells = new Set(),
   highlightCells = new Map(),
-  showNames = true,
+  showNames = false,
   onCellClick,
   onRequestSelectCell,
   onCellPlayed,

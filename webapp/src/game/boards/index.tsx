@@ -1,8 +1,11 @@
 import React, { type ForwardRefExoticComponent, type RefAttributes } from "react";
 import StandardBoard from "./StandardBoard";
-//import MasterBoard from "./MasterBoard";
-//import FortuneBoard from "./FortuneBoard";
-//import TabuBoard from "./TabuBoard";
+import MasterBoard from "./MasterBoard";
+import FortuneBoard from "./FortuneBoard";
+import TabuBoard from "./TabuBoard";
+import PolyBoard from "./PolyBoard";
+import WhyNotBoard from "./WhyNotBoard";
+import HoleyBoard from "./HoleyBoard";
 import { type BoardProps, type GameBoardRef } from "./Types";
 
 export const BOARD_MAP: Record <
@@ -10,7 +13,10 @@ export const BOARD_MAP: Record <
   ForwardRefExoticComponent<BoardProps & RefAttributes<GameBoardRef>>
 > = {
   standard: StandardBoard,
-//  master: MasterBoard,
-//  fortune: FortuneBoard,
-//  tabu: TabuBoard,
+  master: MasterBoard,
+  fortune: FortuneBoard,
+  tabu: TabuBoard,
+  poly: PolyBoard,
+  whynot: WhyNotBoard,
+  holey: HoleyBoard,
 };

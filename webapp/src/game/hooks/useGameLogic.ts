@@ -17,11 +17,11 @@ export const useGameLogic = (
 
   const cellRefs = useRef<Map<string, HexCellRef>>(new Map());
   const [initialOwners, setInitialOwners] = useState<Map<string, "p1" | "p2">>(new Map());
-
-  // Layout local para comparar sin hacer fetch extra
   const currentLayoutRef = useRef<string>("");
-
   const playedCoords = useRef<Set<string>>(new Set());
+  // Ref para que los useCallback siempre lean las options actuales sin stale closures
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     if (!gameId) return;
@@ -53,6 +53,26 @@ export const useGameLogic = (
     selectCell(coordinates.x, coordinates.y, coordinates.z, player);
   };
 
+  // Aplica visualmente las celdas del bot comparando layouts
+  const applyBotCellsFromLayout = (layoutBefore: string, data: any) => {
+    const rowsBefore = layoutBefore.split("/");
+    const rowsAfter: string[] = data.yen.layout.split("/");
+    rowsAfter.forEach((row: string, rowIndex: number) => {
+      for (let colIndex = 0; colIndex < row.length; colIndex++) {
+        if (row[colIndex] === "R" && rowsBefore[rowIndex]?.[colIndex] !== "R") {
+          const x = data.yen.size - 1 - rowIndex;
+          const y = colIndex;
+          const z = rowIndex - colIndex;
+          selectCell(x, y, z, "p2");
+          playedCoords.current.add(`${x}-${y}-${z}`);
+          onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
+          optionsRef.current?.onAfterBotMove?.({ x, y, z });
+        }
+      }
+    });
+  };
+
+  // Solo mueve al jugador — NO llama al bot
   const executeMove = useCallback(async (coordinates: Coordinates, name: string) => {
     if (!gameId) return;
     const token = localStorage.getItem("token");
@@ -63,7 +83,7 @@ export const useGameLogic = (
     });
     playedCoords.current.add(key);
     onCellPlayed?.("p1", "Player 1", name);
-    options?.onAfterPlayerMove?.(coordinates);
+    optionsRef.current?.onAfterPlayerMove?.(coordinates);
 
     // 1. Petición para aplicar la jugada del jugador
     const playerRes = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move/player`, {
@@ -85,6 +105,8 @@ export const useGameLogic = (
       onGameOver?.(playerData.status === "won" ? "p1" : "p2");
       return;
     }
+
+    if (optionsRef.current?.skipBotAfterMove) return;
 
     // 2. Petición para que el bot haga su jugada
     const layoutBeforeBot = currentLayoutRef.current;
@@ -118,16 +140,40 @@ export const useGameLogic = (
             selectCell(x, y, z, "p2");
             playedCoords.current.add(`${x}-${y}-${z}`);
             onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
-            options?.onAfterBotMove?.({ x, y, z });
+            optionsRef.current?.onAfterBotMove?.({ x, y, z });
           }
         }
       });
     }
   }, [gameId]);
 
+  // Solo mueve al bot — puede llamarse independientemente
+  const executeBotMove = useCallback(async (layoutBeforeOverride?: string) => {
+    if (!gameId) return;
+    const token = localStorage.getItem("token");
+    const layoutBefore = layoutBeforeOverride ?? currentLayoutRef.current;
+
+    const res = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move/bot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    if (data.yen?.layout) currentLayoutRef.current = data.yen.layout;
+
+    if (data.status === "won" || data.status === "lost") {
+      onGameOver?.(data.status === "won" ? "p1" : "p2");
+      return;
+    }
+
+    applyBotCellsFromLayout(layoutBefore, data);
+  }, [gameId]);
+
   const handleClick = async (coordinates: Coordinates, name: string) => {
     if (!gameId) return;
-    if (options?.onBeforeMove?.() === false) return;
+    if (optionsRef.current?.onBeforeMove?.() === false) return;
     await executeMove(coordinates, name);
   };
 
@@ -139,12 +185,10 @@ export const useGameLogic = (
         allCoords.push({ x, y, z: row - y });
       }
     }
-
     const available = allCoords.filter(
       (c) => !playedCoords.current.has(`${c.x}-${c.y}-${c.z}`)
     );
     if (available.length === 0) return;
-
     const coord = available[Math.floor(Math.random() * available.length)];
     executeMove(coord, `(${coord.x},${coord.y},${coord.z})`);
   }, [boardSize, executeMove]);
@@ -154,5 +198,16 @@ export const useGameLogic = (
     makeRandomMove,
   };
 
-  return { gameId, cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef, makeRandomMove };
+  return {
+    gameId,
+    cellRefs,
+    initialOwners,
+    handleClick,
+    handleRequestSelectCell,
+    gameBoardRef,
+    makeRandomMove,
+    executeMove,
+    executeBotMove,        // ← nuevo, expuesto para Fortune y variantes
+    currentLayoutRef,      // ← expuesto para que Fortune lo lea antes del bot move
+  };
 };

@@ -32,45 +32,42 @@ interface GameSelectProps {
 }
 
 const VARIANTES = [
-  { id: "master", label: "Master", description: "For experienced players" },
-  { id: "fortune", label: "Fortune", description: "Luck plays a role" },
-  { id: "tabu", label: "Tabu", description: "Some moves are forbidden" },
-  { id: "holey", label: "Holey", description: "The board has holes" },
-  { id: "whynot", label: "Why Not", description: "Anything goes" },
-  { id: "poly", label: "Poly", description: "Multiple boards at once" },
+  { id: "master",  label: "Master",  description: "Double moves for each player",          bot: "medium_bot", configurable: true  },
+  { id: "fortune", label: "Fortune", description: "Game where a dice decides who plays next", bot: "medium_bot", configurable: true  },
 ];
 
 const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
   const playTick = useTickSound();
   const [loading, setLoading] = useState<string | null>(null);
-  const [isStandardOpen, setIsStandardOpen] = useState(false);
-  const [boardSize, setBoardSize] = useState(7);
-  const [difficulty, setDifficulty] = useState("random_bot");
-
   const navigate = useNavigate();
 
-  const handleSelect = async (
-    gameId: string,
-    size: number = 7,
-    bot: string = "random_bot"
-  ) => {
+  // Standard
+  const [isStandardOpen, setIsStandardOpen] = useState(false);
+  const [standardSize, setStandardSize] = useState(7);
+  const [standardDifficulty, setStandardDifficulty] = useState("random_bot");
+
+  // Variants configurables
+  const [openVariant, setOpenVariant] = useState<string | null>(null);
+  const [variantSize, setVariantSize] = useState<Record<string, number>>(
+    Object.fromEntries(VARIANTES.map((v) => [v.id, 7]))
+  );
+  const [variantDifficulty, setVariantDifficulty] = useState<Record<string, string>>(
+    Object.fromEntries(VARIANTES.map((v) => [v.id, v.bot]))
+  );
+
+  const handleSelect = async (gameId: string, size: number = 7, bot: string = "random_bot") => {
     setLoading(gameId);
     try {
       const token =
-        typeof localStorage !== "undefined"
-          ? localStorage.getItem("token")
-          : null;
-      const res = await fetch(
-        `${gatewayUrl}/api/game-manager/create/${gameId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ botId: bot, boardSize: size }),
-        }
-      );
+        typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
+      const res = await fetch(`${gatewayUrl}/api/game-manager/create/${gameId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ botId: bot, boardSize: size }),
+      });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -104,9 +101,7 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
             ← Back
           </button>
           <h1 className="game-select-title">Select Mode</h1>
-          <p className="game-select-subtitle">
-            Choose a game type to play vs Bot
-          </p>
+          <p className="game-select-subtitle">Choose a game type to play vs Bot</p>
         </header>
 
         {/* STANDARD MODE */}
@@ -129,30 +124,24 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
           {isStandardOpen && (
             <div className="config-panel">
               <div>
-                <label className="config-label">
-                  Board Size: {boardSize}x{boardSize}
-                </label>
+                <label className="config-label">Board Size: {standardSize}x{standardSize}</label>
                 <div className="size-selector-grid">
                   {[5, 7, 9, 11].map((s) => (
                     <button
                       key={s}
-                      onClick={() => {
-                        playTick();
-                        setBoardSize(s);
-                      }}
-                      className={`size-option-btn ${boardSize === s ? "is-selected" : ""}`}
+                      onClick={() => { playTick(); setStandardSize(s); }}
+                      className={`size-option-btn ${standardSize === s ? "is-selected" : ""}`}
                     >
                       {s}
                     </button>
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="config-label">Difficulty</label>
                 <select
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
+                  value={standardDifficulty}
+                  onChange={(e) => setStandardDifficulty(e.target.value)}
                   className="difficulty-dropdown"
                 >
                   <option value="random_bot">Easy</option>
@@ -160,12 +149,8 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
                   <option value="medium_bot">Hard</option>
                 </select>
               </div>
-
               <button
-                onClick={() => {
-                  playTick();
-                  handleSelect("standard", boardSize, difficulty);
-                }}
+                onClick={() => { playTick(); handleSelect("standard", standardSize, standardDifficulty); }}
                 disabled={loading !== null}
                 className="btn-primary-start"
               >
@@ -184,23 +169,79 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack }) => {
         {/* VARIANTS LIST */}
         <div className="variants-list">
           {VARIANTES.map((game) => (
-            <button
-              key={game.id}
-              onClick={() => {
-                playTick();
-                handleSelect(game.id);
-              }}
-              disabled={loading !== null}
-              className="mode-card"
-            >
-              <div className="mode-card-info">
-                <span className="mode-card-label">{game.label}</span>
-                <span className="mode-card-desc">{game.description}</span>
-              </div>
-              <span className="mode-card-arrow">→</span>
-            </button>
+            <section key={game.id} className="standard-section">
+              <button
+                onClick={() => {
+                  playTick();
+                  if (game.configurable) {
+                    setOpenVariant(openVariant === game.id ? null : game.id);
+                  } else {
+                    handleSelect(game.id, 7, game.bot);
+                  }
+                }}
+                disabled={loading !== null}
+                className={`mode-card ${openVariant === game.id ? "mode-card-active" : ""}`}
+              >
+                <div className="mode-card-info">
+                  <span className="mode-card-label">{game.label}</span>
+                  <span className="mode-card-desc">{game.description}</span>
+                </div>
+                <span className="mode-card-arrow">
+                  {game.configurable ? (openVariant === game.id ? "▲" : "▼") : "→"}
+                </span>
+              </button>
+
+              {game.configurable && openVariant === game.id && (
+                <div className="config-panel">
+                  <div>
+                    <label className="config-label">
+                      Board Size: {variantSize[game.id]}x{variantSize[game.id]}
+                    </label>
+                    <div className="size-selector-grid">
+                      {[5, 7, 9, 11].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => {
+                            playTick();
+                            setVariantSize((prev) => ({ ...prev, [game.id]: s }));
+                          }}
+                          className={`size-option-btn ${variantSize[game.id] === s ? "is-selected" : ""}`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="config-label">Difficulty</label>
+                    <select
+                      value={variantDifficulty[game.id]}
+                      onChange={(e) =>
+                        setVariantDifficulty((prev) => ({ ...prev, [game.id]: e.target.value }))
+                      }
+                      className="difficulty-dropdown"
+                    >
+                      <option value="random_bot">Easy</option>
+                      <option value="beginner_bot">Medium</option>
+                      <option value="medium_bot">Hard</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => {
+                      playTick();
+                      handleSelect(game.id, variantSize[game.id], variantDifficulty[game.id]);
+                    }}
+                    disabled={loading !== null}
+                    className="btn-primary-start"
+                  >
+                    {loading === game.id ? "Creating..." : `Start ${game.label}`}
+                  </button>
+                </div>
+              )}
+            </section>
           ))}
         </div>
+
       </motion.div>
     </div>
   );
