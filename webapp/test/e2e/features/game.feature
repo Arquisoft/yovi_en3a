@@ -12,3 +12,10 @@ Feature: Game
     Given I am logged in and in a game
     When I click resign
     Then I should be redirected to the game selection menu
+
+  Scenario: Play a complete game from start to finish
+    Given I am logged in and in a game
+    When I play moves until the game ends
+    Then I should see the game over screen
+    When I click Back to Menu from game over
+    Then I should be redirected to the game selection menu
