@@ -329,7 +329,11 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/gamey/play', async (req, res) => {
-    const { bot_id: botId = 'medium_bot', ...yen } = req.query;
+    const { bot_id: botId = 'medium_bot', size, turn, players: rawPlayers, ...rest } = req.query;
+    const players = rawPlayers
+        ? (Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers))
+        : ['B', 'R'];
+    const yen = { ...rest, size: parseInt(size, 10), turn: parseInt(turn, 10), players };
     
     if (!yen.layout || !yen.size) {
         return res.status(400).json({ error: 'yen (layout, size) is required' });
@@ -354,26 +358,5 @@ if (require.main === module) {
         console.log(`Game Manager listening at http://localhost:${port}`);
     });
 }
-
-app.get('/api/gamey/play', async (req, res) => {
-    const { bot_id: botId = 'medium_bot', ...yen } = req.query;
-    
-    if (!yen.layout || !yen.size) {
-        return res.status(400).json({ error: 'yen (layout, size) is required' });
-    }
-
-    try {
-        const response = await axios.post(
-            `${GAMEY_SERVICE_URL}/v1/ybot/choose/${botId}`,
-            yen,
-            { headers: { 'Content-Type': 'application/json' } }
-        );
-        res.json({ coords: response.data.coords });
-    } catch (error) {
-        const status = error.response?.status || 500;
-        const data = error.response?.data || { error: 'Gamey service error' };
-        res.status(status).json(data);
-    }
-});
 
 module.exports = app;

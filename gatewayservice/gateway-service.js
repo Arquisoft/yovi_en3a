@@ -74,7 +74,7 @@ app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MAN
 //app.use('/api/gamey', (req,res) => proxyRequest(GAMEY_SERVICE_URL, req, res))
 
 // Used for playing against the desired bot of our game
-app.get('/api/gamey/play', (req, res) => {
+app.get('/play', (req, res) => {
     req.path = '/api/gamey/play';
     proxyRequest(GAME_MANAGER_URL, req, res);
 });
