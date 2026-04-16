@@ -65,36 +65,54 @@ export const useGameLogic = (
     onCellPlayed?.("p1", "Player 1", name);
     options?.onAfterPlayerMove?.(coordinates);
 
-    const layoutBefore = currentLayoutRef.current;
-
-    const res = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move`, {
+    // 1. Petición para aplicar la jugada del jugador
+    const playerRes = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move/player`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ coords: { x: coordinates.x, y: coordinates.y } }),
     });
 
-    if (!res.ok) {
+    if (!playerRes.ok) {
       cellRefs.current.get(key)?.deselect();
       playedCoords.current.delete(key);
       return;
     }
 
-    const data = await res.json();
-    if (data.yen?.layout) currentLayoutRef.current = data.yen.layout;
+    const playerData = await playerRes.json();
+    if (playerData.yen?.layout) currentLayoutRef.current = playerData.yen.layout;
 
-    if (data.status === "won" || data.status === "lost") {
-      onGameOver?.(data.status === "won" ? "p1" : "p2");
+    if (playerData.status === "won" || playerData.status === "lost") {
+      onGameOver?.(playerData.status === "won" ? "p1" : "p2");
       return;
     }
 
-    if (layoutBefore && data.yen?.layout) {
-      const rowsBefore = layoutBefore.split("/");
-      const rowsAfter: string[] = data.yen.layout.split("/");
+    // 2. Petición para que el bot haga su jugada
+    const layoutBeforeBot = currentLayoutRef.current;
+
+    const botRes = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move/bot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
+
+    if (!botRes.ok) return;
+
+    const botData = await botRes.json();
+    if (botData.yen?.layout) currentLayoutRef.current = botData.yen.layout;
+
+    if (botData.status === "won" || botData.status === "lost") {
+      onGameOver?.(botData.status === "won" ? "p1" : "p2");
+      return;
+    }
+
+    // Detectar la celda nueva del bot comparando layouts
+    if (layoutBeforeBot && botData.yen?.layout) {
+      const rowsBefore = layoutBeforeBot.split("/");
+      const rowsAfter: string[] = botData.yen.layout.split("/");
 
       rowsAfter.forEach((row, rowIndex) => {
         for (let colIndex = 0; colIndex < row.length; colIndex++) {
           if (row[colIndex] === "R" && rowsBefore[rowIndex]?.[colIndex] !== "R") {
-            const x = data.yen.size - 1 - rowIndex;
+            const x = botData.yen.size - 1 - rowIndex;
             const y = colIndex;
             const z = rowIndex - colIndex;
             selectCell(x, y, z, "p2");
