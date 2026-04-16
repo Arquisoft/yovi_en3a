@@ -146,37 +146,56 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                     </div>
                 )}
 
-                {/* ── Main layout ── */}
-                <div className="game-layout-container flex flex-col md:flex-row justify-center items-start md:items-stretch flex-1 w-full">
+                {/* ── Main layout: Desktop 3-column, Mobile vertical stack ── */}
+                <div className="game-layout-container">
 
                     {/* Left sidebar: Player cards, timers, info */}
-                    <aside className="game-layout-left-sidebar w-full md:w-52 flex flex-col gap-3 md:gap-4 flex-shrink-0" style={{ minWidth: 0 }}>
-                        <PlayerCard
-                            name="Player 1"
-                            playerNumber={1}
-                            isCurrentTurn={currentTurn === "p1" && !gameOver}
-                            piecesPlaced={piecesP1}
-                            isWinner={gameOver === "p1"}
-                        />
-                        <PlayerCard
-                            name="Player 2"
-                            playerNumber={2}
-                            isCurrentTurn={currentTurn === "p2" && !gameOver}
-                            piecesPlaced={piecesP2}
-                            isWinner={gameOver === "p2"}
-                        />
+                    <aside className="game-layout-left-sidebar">
+                        {/* MOBILE ORDER: 1. Game Timer - at top */}
+                        <div className="game-timer-mobile-top" data-mobile-order="timer">
+                            <GameTimer isRunning={!gameOver} />
+                        </div>
+
+                        {/* 2. Player Cards - side by side on mobile */}
+                        <div className="player-cards-container" data-mobile-order="cards">
+                            <div className="flex-1 min-w-0">
+                                <PlayerCard
+                                    name="Player 1"
+                                    playerNumber={1}
+                                    isCurrentTurn={currentTurn === "p1" && !gameOver}
+                                    piecesPlaced={piecesP1}
+                                    isWinner={gameOver === "p1"}
+                                />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <PlayerCard
+                                    name="Player 2"
+                                    playerNumber={2}
+                                    isCurrentTurn={currentTurn === "p2" && !gameOver}
+                                    piecesPlaced={piecesP2}
+                                    isWinner={gameOver === "p2"}
+                                />
+                            </div>
+                        </div>
+
                         <Separator className="bg-white/5" />
-                        <GameTimer isRunning={!gameOver} />
+
+                        {/* 5. Turn Timer */}
                         {currentTurn === "p1" && !gameOver && (
+                            <div data-mobile-order="turn-timer">
                             <TurnTimer
                                 key={turnNumber}
                                 gameId={gameId}
                                 totalSeconds={20}
                                 onExpire={handleTurnTimeout}
                             />
+                            </div>
                         )}
+
                         <Separator className="bg-white/5" />
-                        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2">
+
+                        {/* 7. Info Box */}
+                        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2" data-mobile-order="info">
                             <p className="text-[0.6rem] uppercase tracking-widest text-white/20 font-bold">Info</p>
                             <div className="flex justify-between text-xs">
                                 <span className="text-white/30">Board</span>
@@ -193,8 +212,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         </div>
                     </aside>
 
-                    {/* Center: board */}
-                    <main className="game-layout-center w-full md:w-auto flex flex-col items-center flex-shrink-0" style={{ minWidth: 0 }}>
+                    {/* Center: Game board */}
+                    <main className="game-layout-center" data-mobile-order="board">
                         <GameBoard
                             ref={gameBoardRef}
                             gameIdProp={gameId}
@@ -208,10 +227,23 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         />
                     </main>
 
-                    {/* Right sidebar: Move History (collapsible on mobile) */}
-                    <aside className="game-layout-right-sidebar w-full md:w-56 flex flex-col gap-3 md:gap-4 flex-shrink-0" style={{ minWidth: 0 }}>
-                        {/* Move History Collapsible */}
-                        <div className="rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden">
+                    {/* Right sidebar: Move history, tools */}
+                    <aside className="game-layout-right-sidebar">
+                        {/* 4. Tool bar - Toggle buttons */}
+                        <div className="game-layout-tools" data-mobile-order="tools">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowCellNames(!showCellNames)}
+                                className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors flex-shrink-0"
+                                title={showCellNames ? "Hide coordinates" : "Show coordinates"}
+                            >
+                                {showCellNames ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                            </Button>
+                        </div>
+
+                        {/* 6. Move History - Collapsible */}
+                        <div className="rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden" data-mobile-order="history">
                             <button
                                 onClick={() => setIsMoveHistoryOpen(!isMoveHistoryOpen)}
                                 className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.05] transition-colors"
@@ -232,19 +264,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                     <MoveHistory moves={moves} maxHeight={420} />
                                 </div>
                             )}
-                        </div>
-
-                        {/* Tool bar for toggle button and future options */}
-                        <div className="game-layout-tools">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setShowCellNames(!showCellNames)}
-                                className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors flex-shrink-0"
-                                title={showCellNames ? "Hide coordinates" : "Show coordinates"}
-                            >
-                                {showCellNames ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                            </Button>
                         </div>
 
                         {/* Hidden SidePanel (legacy) */}

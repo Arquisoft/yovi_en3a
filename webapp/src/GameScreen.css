@@ -229,7 +229,7 @@
   transform: scale(1.02);
 }
 
-/* ── Main layout container for mobile responsiveness ── */
+/* ── Main layout container - Desktop 3-column by default ── */
 .game-layout-container {
   display: flex;
   flex-direction: row;
@@ -270,6 +270,119 @@
   flex-wrap: wrap;
 }
 
+.game-timer-mobile-top {
+  display: none;
+}
+
+.player-cards-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
+/* ── MOBILE LAYOUT (max-width 768px): Vertical stack with reordered elements ── */
+@media screen and (max-width: 768px) {
+  .game-layout-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 1rem !important;
+    padding: 0.75rem !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Flatten the sidebars to allow direct reordering of their children */
+  .game-layout-left-sidebar {
+    display: contents;
+  }
+
+  .game-layout-right-sidebar {
+    display: contents;
+  }
+
+  /* Mobile-specific container for hidden elements */
+  .game-layout-left-sidebar > .hidden {
+    display: none !important;
+  }
+
+  /* Use data attributes for clean, maintainable mobile ordering */
+  [data-mobile-order="timer"] {
+    order: 10 !important;
+    width: 100%;
+    flex-shrink: 0;
+    display: block !important;
+  }
+
+  [data-mobile-order="cards"] {
+    order: 20 !important;
+    width: 100%;
+    max-width: 100%;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.75rem !important;
+  }
+
+  [data-mobile-order="cards"] > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  [data-mobile-order="board"] {
+    order: 30 !important;
+    width: 100% !important;
+    flex-shrink: unset !important;
+    display: block !important;
+  }
+
+  [data-mobile-order="tools"] {
+    order: 40 !important;
+    width: 100%;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+    flex-shrink: 0;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  [data-mobile-order="turn-timer"] {
+    order: 50 !important;
+    width: 100% !important;
+    flex-shrink: 0;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  [data-mobile-order="history"] {
+    order: 60 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-shrink: 0;
+  }
+
+  [data-mobile-order="info"] {
+    order: 70 !important;
+    width: 100% !important;
+    flex-shrink: 0;
+  }
+
+  /* Hide separators on mobile */
+  .game-layout-left-sidebar > .bg-white\/5 {
+    display: none !important;
+  }
+
+  /* Style adjustments for mobile */
+  .board-skin {
+    border-radius: 8px;
+  }
+
+  .moves-scroll {
+    max-height: 200px;
+  }
+}
+
 /* ── Mobile/Tablet Responsive Layout ── */
 @media (max-width: 1024px) {
   .game-container {
@@ -285,8 +398,8 @@
 
 @media screen and (max-width: 768px) {
   .game-screen {
-    padding: 1rem;
-    gap: 0.75rem;
+    padding: 0.75rem;
+    gap: 0.5rem;
   }
 
   .game-header h1 {
@@ -294,57 +407,9 @@
     letter-spacing: 0.1em;
   }
 
-  /* ── CRITICAL: Override parent flex-col and force column layout ── */
   .game-layout-container {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    gap: 1rem !important;
+    gap: 0.75rem !important;
     padding: 0.75rem !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
-    min-height: auto !important;
-    min-width: 0 !important;
-  }
-
-  /* ── Make all sections full width and stack ── */
-  .game-layout-left-sidebar {
-    width: 100% !important;
-    max-width: 100% !important;
-    order: 1 !important;
-    flex-shrink: 0 !important;
-    min-width: 0 !important;
-    padding-top: 0 !important;
-  }
-
-  .game-layout-center {
-    width: 100% !important;
-    max-width: 100% !important;
-    order: 2 !important;
-    flex-shrink: 0 !important;
-    min-width: 0 !important;
-  }
-
-  .game-layout-right-sidebar {
-    width: 100% !important;
-    max-width: 100% !important;
-    order: 3 !important;
-    flex-shrink: 0 !important;
-    min-width: 0 !important;
-    padding-top: 0 !important;
-  }
-
-  .game-board-section {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .side-panel {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0.75rem;
   }
 
   .board-skin {
@@ -354,16 +419,11 @@
   .moves-scroll {
     max-height: 200px;
   }
-
-  .game-layout-tools {
-    width: 100% !important;
-    justify-content: flex-start;
-  }
 }
 
 @media screen and (max-width: 480px) {
   .game-screen {
-    padding: 0.75rem;
+    padding: 0.5rem;
     gap: 0.5rem;
   }
 
@@ -377,36 +437,28 @@
     padding-right: 0.75rem !important;
   }
 
-  /* ── Force column layout on very small screens ── */
   .game-layout-container {
-    display: flex !important;
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    width: 100% !important;
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
     padding: 0.5rem !important;
-    align-items: stretch !important;
   }
 
   .game-layout-left-sidebar {
-    width: 100% !important;
-    max-width: 100% !important;
     gap: 0.5rem;
   }
 
   .game-layout-center {
-    width: 100% !important;
-    max-width: 100% !important;
   }
 
   .game-layout-right-sidebar {
-    width: 100% !important;
-    max-width: 100% !important;
     gap: 0.5rem;
   }
 
   .side-panel {
     padding: 0.5rem;
+  }
+
+  .board-skin {
+    border-radius: 6px;
   }
 
   .moves-scroll {
@@ -432,24 +484,6 @@
   }
 
   .game-layout-tools {
-    width: 100% !important;
     justify-content: center !important;
-  }
-}
-
-/* ── DIAGNOSTIC: Test if media queries are firing ── */
-@media screen and (max-width: 768px) {
-  body::before {
-    content: "MOBILE VIEW ACTIVE (768px)";
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: #9333ea;
-    color: white;
-    padding: 4px 8px;
-    font-size: 11px;
-    z-index: 9999;
-    max-width: 200px;
-    word-break: break-all;
   }
 }
