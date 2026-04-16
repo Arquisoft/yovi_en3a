@@ -1,10 +1,10 @@
-/*import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
 import { useTabuLogic } from "../hooks/useTabuLogic";
 import HexGrid from "../HexGrid";
 
 const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
-  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver }, ref) => {
+  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver, onTurnChange }, ref) => {
     const {
       cellRefs,
       initialOwners,
@@ -13,7 +13,7 @@ const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
       gameBoardRef,
       tabuCells,
       highlightCells,
-    } = useTabuLogic(gameIdProp, boardSize, onCellPlayed, onGameOver);
+    } = useTabuLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange);
 
     useImperativeHandle(ref, () => gameBoardRef);
 
@@ -47,4 +47,4 @@ const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
 );
 
 TabuBoard.displayName = "TabuBoard";
-export default TabuBoard;*/
+export default TabuBoard;

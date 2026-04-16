@@ -32,7 +32,7 @@ interface GameSelectProps {
 }
 
 const VARIANTES = [
-  { id: "master", label: "Master", description: "For experienced players" },
+  { id: "master", label: "Master", description: "..." },
   { id: "fortune", label: "Fortune", description: "Luck plays a role" },
   { id: "tabu", label: "Tabu", description: "Some moves are forbidden" },
   { id: "holey", label: "Holey", description: "The board has holes" },

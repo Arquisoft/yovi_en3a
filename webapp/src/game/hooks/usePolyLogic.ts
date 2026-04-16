@@ -1,32 +1,40 @@
-/*import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps } from "../boards/Types";
+import { type BoardProps, type Coordinates } from "../boards/Types";
+import { gatewayUrl } from "../../lib/config";
 
-// Poly-Y: múltiples tableros, el jugador que controle más esquinas gana
-// El backend gestiona la lógica de esquinas, el front solo muestra el score
 export const usePolyLogic = (
   gameIdProp: BoardProps["gameIdProp"],
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
-  onGameOver: BoardProps["onGameOver"]
+  onGameOver: BoardProps["onGameOver"],
+  onTurnChange: BoardProps["onTurnChange"]
 ) => {
   const [corners, setCorners] = useState({ p1: 0, p2: 0 });
 
-  const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
-    onAfterBotMove: () => {
-      // Actualizar score de esquinas desde el estado del backend
-      if (!gameIdProp) return;
-      const token = localStorage.getItem("token");
-      fetch(`/api/game-manager/state/${gameIdProp}`, {
-        headers: { Authorization: `Bearer ${token}` },
+  const fetchCorners = useCallback(() => {
+    if (!gameIdProp) return;
+    const token = localStorage.getItem("token");
+    fetch(`${gatewayUrl}/api/game-manager/state/${gameIdProp}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.corners) setCorners(data.corners);
       })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.corners) setCorners(data.corners);
-        })
-        .catch(() => {});
+      .catch(() => {});
+  }, [gameIdProp]);
+
+  const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
+    onAfterPlayerMove: (_coord: Coordinates) => {
+      fetchCorners();
+      onTurnChange?.("p2");
+    },
+    onAfterBotMove: (_coord: Coordinates) => {
+      fetchCorners();
+      onTurnChange?.("p1");
     },
   });
 
   return { ...logic, corners };
-};*/
+};

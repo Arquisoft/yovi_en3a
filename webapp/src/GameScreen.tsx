@@ -59,15 +59,20 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         sidePanelRef.current?.addMove(player, playerName, coordinate);
         const newMove: Move = { player, playerName, coordinate, timestamp: new Date() };
         setMoves(prev => [...prev, newMove]);
+
         if (player === "p1") {
             setPiecesP1(p => p + 1);
             sidePanelRef.current?.incrementTurn();
             setTurnNumber(t => t + 1);
-            setCurrentTurn("p2");
+            if (gameType !== "fortune") setCurrentTurn("p2");
         } else {
             setPiecesP2(p => p + 1);
-            setCurrentTurn("p1");
+            if (gameType !== "fortune") setCurrentTurn("p1");
         }
+    };
+
+    const handleTurnChange = (turn: "p1" | "p2") => {
+        setCurrentTurn(turn);
     };
 
     const handleExit = () => {
@@ -83,10 +88,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         <div className="min-h-screen bg-[#080b14] flex flex-col relative overflow-hidden" style={{
             fontFamily: "'Courier New', monospace"
         }}>
-            {/* HexBackground al fondo */}
             <HexBackground />
 
-            {/* Todo el contenido por encima del fondo */}
             <div className="relative z-10 flex flex-col flex-1">
 
                 {/* ── Header ── */}
@@ -213,6 +216,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                 handleCellPlayed(player as "p1" | "p2", playerName, coordinate)
                             }
                             onGameOver={(winner) => setGameOver(winner)}
+                            onTurnChange={handleTurnChange}
                         />
                     </main>
 
