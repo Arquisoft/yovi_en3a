@@ -56,40 +56,32 @@ const getBotMove = async (botId, yen) => {
     }
 }
 
+
 const applyMove = (layout, size, coords, playerSymbol) => {
     const rows = layout.split('/');
     const rowIndex = size - 1 - coords.x;
     const row = rows[rowIndex];
 
-    if (!row || coords.y >= row.length) return null;
-    if (row[coords.y] !== '.') return null;
+    if (!row || coords.y >= row.length) {
+        return null;
+    } 
+    if (row[coords.y] !== '.') {
+        return null;
+    } 
 
     rows[rowIndex] = row.substring(0, coords.y) + playerSymbol + row.substring(coords.y + 1);
     return rows.join('/');
 }
 
-const updateStats = async (userId, result) => {
-    try {
+//It calls the update stats endpoint from users module
+const updateStats = async(userId, result) => {
+    try{
         await axios.post(`${USERS_SERVICE_URL}/stats/update`,
             { userId, result },
-            { headers: { 'Content-Type': 'application/json' } }
+            { headers: {'Content-Type' : 'application/json'} }
         )
-    } catch (error) {
+    } catch(error){
         console.warn('Could not update the stats:', error.message)
-    }
-}
-
-const checkWin = async (yen) => {
-    try {
-        const response = await axios.post(
-            `${GAMEY_SERVICE_URL}/v1/ybot/checkWin`,
-            yen,
-            { headers: { 'Content-Type': 'application/json' } }
-        );
-        return response.data;
-    } catch (err) {
-        console.warn('checkWin failed:', err.message);
-        return null;
     }
 }
 
@@ -100,6 +92,8 @@ app.post('/create/:gameName', async (req, res) => {
     const userId = req.headers['x-user-id'];
     const { botId = 'random_bot', boardSize = 5 } = req.body;
     const { gameName } = req.params;
+
+    console.log(userId);
 
     if (!GameFactory.isValid(gameName)) {
         return res.status(400).json({ error: `Unknown game type: ${gameName}` });
@@ -147,12 +141,12 @@ app.post('/create/:gameName', async (req, res) => {
 
 // Get game state
 app.get('/state/:id', async (req, res) => {
-    const userId = req.headers['x-user-id'];
-
+     const userId = req.headers['x-user-id'];
+    
     try {
         if (!userId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
+            return res.status(401).json({ error: 'Unauthorized' });  
+        }   
 
         const game = await Game.findById(req.params.id);
         if (!game) {
@@ -178,29 +172,56 @@ app.get('/state/:id', async (req, res) => {
     }
 });
 
-app.post('/game/:id/move/player', async (req, res) => {
+const checkWin = async (yen) => {
+    try {
+        const response = await axios.post(
+            `${GAMEY_SERVICE_URL}/v1/ybot/checkWin`,
+            yen,
+            { headers: { 'Content-Type': 'application/json' } }
+        );
+        return response.data;
+    } catch (err) {
+        console.warn('checkWin failed:', err.message);
+        return null;
+    }
+}
+
+// Player makes a move
+app.post('/game/:id/move', async (req, res) => {
     const { coords } = req.body;
     const userId = req.headers['x-user-id'];
 
     try {
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' }); //Verify userId exists in headers
 
         if (!coords || coords.x === undefined || coords.y === undefined) {
             return res.status(400).json({ error: 'Coords (x,y) are mandatory' });
         }
 
         const game = await Game.findById(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
 
-        if (game.userId.toString() !== userId) return res.status(403).json({ error: 'Forbidden' });
+        if (game.userId.toString() !== userId) { //Verify the user is the owner of the game
+            return res.status(403).json({ error: 'Forbidden' });
+        }
 
         if (game.status !== 'ongoing') {
             return res.status(400).json({ error: `Game is already ${game.status}` });
         }
 
+        // Player turn = 0
+        // Bot turn = 1
+        if (game.yen.turn !== 0) {
+            return res.status(400).json({ error: 'Not your turn' });
+        }
+
         const playerSymbol = game.yen.players[0];
         const newLayout = applyMove(game.yen.layout, game.yen.size, coords, playerSymbol);
-        if (!newLayout) return res.status(400).json({ error: 'Invalid move' });
+        if (!newLayout) {
+            return res.status(400).json({ error: 'Invalid move' });
+        }
 
         game.yen.layout = newLayout;
         game.yen.turn = 1;
@@ -208,60 +229,60 @@ app.post('/game/:id/move/player', async (req, res) => {
         game.markModified('yen');
         await game.save();
 
-        const winCheck = await checkWin(game.yen);
-        if (winCheck?.game_over) {
-            game.status = winCheck.winner === 0 ? 'won' : 'lost';
+        // Comprobar si el jugador ganó
+        const winCheckAfterPlayer = await checkWin(game.yen);
+        if (winCheckAfterPlayer?.game_over) {
+            game.status = winCheckAfterPlayer.winner === 0 ? 'won' : 'lost';
             game.markModified('status');
             await game.save();
-            await updateStats(userId, game.status);
-            return res.json({ message: 'Game over', gameId: game._id, yen: game.yen, status: game.status });
-        }
-
-        res.json({ message: 'Move applied', gameId: game._id, yen: game.yen, status: game.status });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.post('/game/:id/move/bot', async (req, res) => {
-    const userId = req.headers['x-user-id'];
-
-    try {
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-
-        const game = await Game.findById(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
-
-        if (game.userId.toString() !== userId) return res.status(403).json({ error: 'Forbidden' });
-
-        if (game.status !== 'ongoing') {
-            return res.status(400).json({ error: `Game is already ${game.status}` });
+            await updateStats(userId, game.status)
+            return res.json({
+                message: 'Game over',
+                gameId: game._id,
+                yen: game.yen,
+                status: game.status,
+            });
         }
 
         const botCoords = await getBotMove(game.botId, game.yen);
-        if (!botCoords) return res.status(503).json({ error: 'Bot unavailable' });
 
-        const botSymbol = game.yen.players[1];
-        const newLayout = applyMove(game.yen.layout, game.yen.size, botCoords, botSymbol);
-        if (!newLayout) return res.status(400).json({ error: 'Bot produced invalid move' });
+        if (botCoords) {
+            const botSymbol = game.yen.players[1];
+            const layoutAfterBot = applyMove(game.yen.layout, game.yen.size, botCoords, botSymbol);
+            if (layoutAfterBot) {
+                game.yen.layout = layoutAfterBot;
+                game.yen.turn = 0;
+                game.updatedAt = new Date();
+                game.markModified('yen');
+                await game.save();
 
-        game.yen.layout = newLayout;
-        game.yen.turn = 0;
-        game.updatedAt = new Date();
-        game.markModified('yen');
-        await game.save();
-
-        const winCheck = await checkWin(game.yen);
-        if (winCheck?.game_over) {
-            game.status = winCheck.winner === 0 ? 'won' : 'lost';
-            game.markModified('status');
+                // Comprobar si el bot ganó
+                const winCheckAfterBot = await checkWin(game.yen);
+                if (winCheckAfterBot?.game_over) {
+                    game.status = winCheckAfterBot.winner === 0 ? 'won' : 'lost';
+                    game.markModified('status');
+                    await game.save();
+                    await updateStats(userId, game.status)
+                    return res.json({
+                        message: 'Game over',
+                        gameId: game._id,
+                        yen: game.yen,
+                        status: game.status,
+                });
+                }
+            }
+        } else {
+            game.yen.turn = 0;
+            game.markModified('yen');
             await game.save();
-            await updateStats(userId, game.status);
-            return res.json({ message: 'Game over', gameId: game._id, yen: game.yen, status: game.status });
         }
 
-        res.json({ message: 'Bot moved', gameId: game._id, yen: game.yen, status: game.status });
+        res.json({
+            message: 'Move applied',
+            gameId: game._id,
+            yen: game.yen,
+            status: game.status,
+        });
 
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -273,12 +294,16 @@ app.post('/game/:id/resign', async (req, res) => {
     const userId = req.headers['x-user-id'];
 
     try {
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' }); //Verify userId exists in headers
 
         const game = await Game.findById(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
 
-        if (game.userId.toString() !== userId) return res.status(403).json({ error: 'Forbidden' });
+        if (game.userId.toString() !== userId) { //Verify the user is the owner of the game
+            return res.status(403).json({ error: 'Forbidden' });
+        }
 
         if (game.status !== 'ongoing') {
             return res.status(400).json({ error: `The game is already ${game.status}` });
@@ -287,7 +312,7 @@ app.post('/game/:id/resign', async (req, res) => {
         game.status = 'resigned';
         game.updatedAt = new Date();
         await game.save();
-        await updateStats(userId, game.status);
+        await updateStats(userId, game.status)
 
         res.json({ message: 'Game resigned', gameId: game._id, status: game.status });
 
@@ -297,6 +322,7 @@ app.post('/game/:id/resign', async (req, res) => {
 });
 
 // List user's games
+
 app.get('/list', async (req, res) => {
     const userId = req.headers['x-user-id'];
 
@@ -328,12 +354,6 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'gamemanager' });
 });
 
-if (require.main === module) {
-    app.listen(port, () => {
-        console.log(`Game Manager listening at http://localhost:${port}`);
-    });
-}
-
 app.get('/api/gamey/play', async (req, res) => {
     const { bot_id: botId = 'medium_bot', ...yen } = req.query;
     
@@ -354,5 +374,11 @@ app.get('/api/gamey/play', async (req, res) => {
         res.status(status).json(data);
     }
 });
+
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Game Manager listening at http://localhost:${port}`);
+    });
+}
 
 module.exports = app;
