@@ -19,15 +19,22 @@ describe('GameSelect Component', () => {
         global.fetch = vi.fn();
     });
 
-    test('renders all game variants', () => {
-        render(<MemoryRouter><GameSelect onBack={mockOnBack} /></MemoryRouter>)
+    test('renders bot game variants', () => {
+        render(<MemoryRouter><GameSelect onBack={mockOnBack} mode="bot" /></MemoryRouter>)
+        expect(screen.getByText(/Master/i)).toBeInTheDocument()
+        expect(screen.getByText(/Fortune/i)).toBeInTheDocument()
+        expect(screen.queryByText(/Tabu/i)).not.toBeInTheDocument()
+        expect(screen.queryByText(/Holey/i)).not.toBeInTheDocument()
+        expect(screen.queryByText(/Why Not/i)).not.toBeInTheDocument()
+    })
+
+    test('renders all game variants in multiplayer mode', () => {
+        render(<MemoryRouter><GameSelect onBack={mockOnBack} mode="multiplayer" /></MemoryRouter>)
         expect(screen.getByText(/Master/i)).toBeInTheDocument()
         expect(screen.getByText(/Fortune/i)).toBeInTheDocument()
         expect(screen.getByText(/Tabu/i)).toBeInTheDocument()
         expect(screen.getByText(/Holey/i)).toBeInTheDocument()
         expect(screen.getByText(/Why Not/i)).toBeInTheDocument()
-        expect(screen.getByText(/Poly/i)).toBeInTheDocument()
-
     })
 
     test('can configure and start a standard game', async () => {
