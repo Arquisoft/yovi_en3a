@@ -1,17 +1,25 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
+import { describe, it, expect, afterAll, afterEach, vi } from 'vitest'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
 import request from 'supertest'
 
-let mongoServer
+vi.mock('axios', () => {
+    const mockPost = vi.fn()
+    return {
+        default: {
+            post: mockPost,
+            get: vi.fn(),
+        }
+    }
+})
 
-// Raises a MongoDB instance in RAM, without Docker and returns an object to obtain conx URI with
+let mongoServer
 mongoServer = await MongoMemoryServer.create()
 const uri = mongoServer.getUri()
 process.env.MONGODB_URI = uri
 
-// Ahora importar la app, ya usará el URI correcto
 const { default: app } = await import('../game-manager.js')
+const { default: axios } = await import('axios')
 
 afterAll(async () => {
     await mongoose.disconnect()
@@ -19,6 +27,7 @@ afterAll(async () => {
 }, 30000)
 
 afterEach(async () => {
+    vi.clearAllMocks()
     const collections = mongoose.connection.collections
     for (const key in collections) {
         await collections[key].deleteMany({})
@@ -30,8 +39,7 @@ const authHeader = { 'x-user-id': validUserId }
 
 describe('GET /health', () => {
     it('returns ok status', async () => {
-        const res = await request(app)
-            .get('/health')
+        const res = await request(app).get('/health')
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('status', 'ok')
         expect(res.body).toHaveProperty('service', 'gamemanager')
@@ -120,14 +128,15 @@ describe('GET /list', () => {
     })
 
     it('returns 401 if userId is missing', async () => {
-        const res = await request(app)
-            .get('/list')
+        const res = await request(app).get('/list')
         expect(res.status).toBe(401)
     })
 })
 
 describe('POST /game/:id/resign', () => {
     it('resigns a game successfully', async () => {
+        axios.post.mockResolvedValueOnce({ data: {} })
+
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -144,7 +153,7 @@ describe('POST /game/:id/resign', () => {
 
     it('returns 401 if userId is missing', async () => {
         const res = await request(app)
-            .post(`/game/123456789012345678901234/resign`)
+            .post('/game/123456789012345678901234/resign')
         expect(res.status).toBe(401)
     })
 
@@ -172,6 +181,8 @@ describe('POST /game/:id/resign', () => {
     })
 
     it('returns 400 if game is already resigned', async () => {
+        axios.post.mockResolvedValue({ data: {} })
+
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -188,8 +199,10 @@ describe('POST /game/:id/resign', () => {
     })
 })
 
-describe('POST /game/:id/move', () => {
-    it('applies a move successfully', async () => {
+describe('POST /game/:id/move/player', () => {
+    it('applies a player move successfully', async () => {
+        axios.post.mockResolvedValueOnce({ data: { game_over: false } })
+
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -197,17 +210,18 @@ describe('POST /game/:id/move', () => {
         const gameId = createRes.body.gameId
 
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set(authHeader)
             .send({ coords: { x: 0, y: 0 } })
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('message', 'Move applied')
         expect(res.body).toHaveProperty('yen')
+        expect(res.body.yen.turn).toBe(1)
     })
 
     it('returns 401 if userId is missing', async () => {
         const res = await request(app)
-            .post('/game/123456789012345678901234/move')
+            .post('/game/123456789012345678901234/move/player')
             .send({ coords: { x: 0, y: 0 } })
         expect(res.status).toBe(401)
     })
@@ -220,7 +234,7 @@ describe('POST /game/:id/move', () => {
         const gameId = createRes.body.gameId
 
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set(authHeader)
             .send({})
         expect(res.status).toBe(400)
@@ -229,7 +243,7 @@ describe('POST /game/:id/move', () => {
 
     it('returns 404 if game not found', async () => {
         const res = await request(app)
-            .post('/game/123456789012345678901234/move')
+            .post('/game/123456789012345678901234/move/player')
             .set(authHeader)
             .send({ coords: { x: 0, y: 0 } })
         expect(res.status).toBe(404)
@@ -245,7 +259,7 @@ describe('POST /game/:id/move', () => {
 
         const otherUserId = new mongoose.Types.ObjectId().toString()
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set({ 'x-user-id': otherUserId })
             .send({ coords: { x: 0, y: 0 } })
         expect(res.status).toBe(403)
@@ -253,44 +267,27 @@ describe('POST /game/:id/move', () => {
     })
 
     it('returns 400 if game is already resigned', async () => {
+        axios.post.mockResolvedValueOnce({ data: {} })
+
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
             .send({ botId: 'random_bot', boardSize: 5 })
         const gameId = createRes.body.gameId
 
-        await request(app)
-            .post(`/game/${gameId}/resign`)
-            .set(authHeader)
+        await request(app).post(`/game/${gameId}/resign`).set(authHeader)
 
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set(authHeader)
             .send({ coords: { x: 0, y: 0 } })
         expect(res.status).toBe(400)
         expect(res.body).toHaveProperty('error')
     })
 
-    it('applies bot move after player move', async () => {
-        // Mock axios para simular que gamey responde
-        const axios = await import('axios')
-        axios.default.post = vi.fn().mockResolvedValue({ data: { coords: { x: 1, y: 0 } } })
-
-        const createRes = await request(app)
-            .post('/create/standard')
-            .set(authHeader)
-            .send({ botId: 'random_bot', boardSize: 5 })
-        const gameId = createRes.body.gameId
-
-        const res = await request(app)
-            .post(`/game/${gameId}/move`)
-            .set(authHeader)
-            .send({ coords: { x: 0, y: 0 } })
-        expect(res.status).toBe(200)
-        expect(res.body.yen.turn).toBe(0) // vuelve a ser turno del jugador
-    })
-
     it('returns 400 if move is invalid (cell already occupied)', async () => {
+        axios.post.mockResolvedValueOnce({ data: { game_over: false } })
+
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -298,13 +295,12 @@ describe('POST /game/:id/move', () => {
         const gameId = createRes.body.gameId
 
         await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set(authHeader)
             .send({ coords: { x: 0, y: 0 } })
 
-        // Intentar mover al mismo sitio
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set(authHeader)
             .send({ coords: { x: 0, y: 0 } })
         expect(res.status).toBe(400)
@@ -319,35 +315,75 @@ describe('POST /game/:id/move', () => {
         const gameId = createRes.body.gameId
 
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/player`)
             .set(authHeader)
             .send({ coords: { x: 99, y: 99 } })
         expect(res.status).toBe(400)
         expect(res.body).toHaveProperty('error', 'Invalid move')
     })
+})
 
-    it('returns 400 if it is not player turn', async () => {
+describe('POST /game/:id/move/bot', () => {
+    it('returns 401 if userId is missing', async () => {
+        const res = await request(app)
+            .post('/game/123456789012345678901234/move/bot')
+        expect(res.status).toBe(401)
+    })
+
+    it('returns 404 if game not found', async () => {
+        const res = await request(app)
+            .post('/game/123456789012345678901234/move/bot')
+            .set(authHeader)
+        expect(res.status).toBe(404)
+        expect(res.body).toHaveProperty('error', 'Game not found')
+    })
+
+    it('returns 403 if user is not the owner', async () => {
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
             .send({ botId: 'random_bot', boardSize: 5 })
         const gameId = createRes.body.gameId
 
-        // Hacer un movimiento para que el turno pase al bot
-        await request(app)
-            .post(`/game/${gameId}/move`)
-            .set(authHeader)
-            .send({ coords: { x: 0, y: 0 } })
+        const otherUserId = new mongoose.Types.ObjectId().toString()
+        const res = await request(app)
+            .post(`/game/${gameId}/move/bot`)
+            .set({ 'x-user-id': otherUserId })
+        expect(res.status).toBe(403)
+        expect(res.body).toHaveProperty('error', 'Forbidden')
+    })
 
-        // Forzar turno del bot directamente en MongoDB
-        const Game = mongoose.model('Game')
-        await Game.findByIdAndUpdate(gameId, { 'yen.turn': 1 })
+    it('returns 400 if game is already resigned', async () => {
+        axios.post.mockResolvedValueOnce({ data: {} })
+
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        await request(app).post(`/game/${gameId}/resign`).set(authHeader)
 
         const res = await request(app)
-            .post(`/game/${gameId}/move`)
+            .post(`/game/${gameId}/move/bot`)
             .set(authHeader)
-            .send({ coords: { x: 1, y: 0 } })
         expect(res.status).toBe(400)
-        expect(res.body).toHaveProperty('error', 'Not your turn')
+        expect(res.body).toHaveProperty('error')
+    })
+
+    it('returns 503 if bot service is unavailable', async () => {
+        axios.post.mockRejectedValue(new Error('Bot unavailable'))
+
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        const res = await request(app)
+            .post(`/game/${gameId}/move/bot`)
+            .set(authHeader)
+        expect(res.status).toBe(503)
+        expect(res.body).toHaveProperty('error', 'Bot unavailable')
     })
 })
