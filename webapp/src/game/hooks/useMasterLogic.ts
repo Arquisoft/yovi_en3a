@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 
@@ -11,34 +11,34 @@ export const useMasterLogic = (
 ) => {
   const [piecesThisTurn, setPiecesThisTurn] = useState(0);
   const [waitingForSecond, setWaitingForSecond] = useState(false);
-  const waitingForSecondRef = useRef(false);
+  const piecesThisTurnRef = useRef(0);
 
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
     onBeforeMove: () => true,
-    onAfterPlayerMove: () => {
-      const next = piecesThisTurn + 1;
-      if (next >= 2) {
-        setPiecesThisTurn(0);
-        setWaitingForSecond(false);
-        waitingForSecondRef.current = false;
-        // Solo cambiamos a p2 cuando el jugador ya puso las 2 piezas
-        onTurnChange?.("p2");
-      } else {
-        setPiecesThisTurn(next);
-        setWaitingForSecond(true);
-        waitingForSecondRef.current = true;
-        // Sigue siendo turno de p1, pero indicamos que va por la segunda pieza
-        onTurnChange?.("p1");
-      }
-    },
-    onAfterBotMove: () => {
-      setPiecesThisTurn(0);
-      setWaitingForSecond(false);
-      waitingForSecondRef.current = false;
-      onTurnChange?.("p1");
-    },
-    skipBotAfterMove: waitingForSecondRef.current,
+    skipBotAfterMove: true, // el bot siempre lo manejamos manualmente aquí
   });
 
-  return { ...logic, piecesThisTurn, waitingForSecond };
+  const handleClick = useCallback(async (coordinates: any, name: string) => {
+    await logic.handleClick(coordinates, name);
+
+    const next = piecesThisTurnRef.current + 1;
+    if (next >= 2) {
+      // Jugador ya puso sus 2 piezas → bot pone 2
+      piecesThisTurnRef.current = 0;
+      setPiecesThisTurn(0);
+      setWaitingForSecond(false);
+      onTurnChange?.("p2");
+      await logic.executeBotMove();
+      await logic.executeBotMove();
+      onTurnChange?.("p1");
+    } else {
+      // Jugador puso la 1ª pieza → esperar la 2ª
+      piecesThisTurnRef.current = next;
+      setPiecesThisTurn(next);
+      setWaitingForSecond(true);
+      onTurnChange?.("p1");
+    }
+  }, [logic.handleClick, logic.executeBotMove, onTurnChange]);
+
+  return { ...logic, handleClick, piecesThisTurn, waitingForSecond };
 };
