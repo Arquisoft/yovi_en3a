@@ -2,16 +2,7 @@ import { describe, it, expect, afterAll, afterEach, vi } from 'vitest'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
 import request from 'supertest'
-
-vi.mock('axios', () => {
-    const mockPost = vi.fn()
-    return {
-        default: {
-            post: mockPost,
-            get: vi.fn(),
-        }
-    }
-})
+import nock from 'nock'
 
 let mongoServer
 mongoServer = await MongoMemoryServer.create()
@@ -19,7 +10,9 @@ const uri = mongoServer.getUri()
 process.env.MONGODB_URI = uri
 
 const { default: app } = await import('../game-manager.js')
-const { default: axios } = await import('axios')
+
+const GAMEY = 'http://localhost:4000'
+const USERS = 'http://localhost:3000'
 
 afterAll(async () => {
     await mongoose.disconnect()
@@ -27,7 +20,8 @@ afterAll(async () => {
 }, 30000)
 
 afterEach(async () => {
-    vi.clearAllMocks()
+    nock.cleanAll()
+    vi.restoreAllMocks()
     const collections = mongoose.connection.collections
     for (const key in collections) {
         await collections[key].deleteMany({})
@@ -109,6 +103,28 @@ describe('GET /state/:id', () => {
         expect(res.status).toBe(404)
         expect(res.body).toHaveProperty('error', 'Game not found')
     })
+
+    it('returns 401 if userId is missing', async () => {
+        const res = await request(app)
+            .get('/state/123456789012345678901234')
+        expect(res.status).toBe(401)
+        expect(res.body).toHaveProperty('error', 'Unauthorized')
+    })
+
+    it('returns 403 if user is not the owner', async () => {
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        const otherUserId = new mongoose.Types.ObjectId().toString()
+        const res = await request(app)
+            .get(`/state/${gameId}`)
+            .set({ 'x-user-id': otherUserId })
+        expect(res.status).toBe(403)
+        expect(res.body).toHaveProperty('error', 'Forbidden')
+    })
 })
 
 describe('GET /list', () => {
@@ -135,7 +151,6 @@ describe('GET /list', () => {
 
 describe('POST /game/:id/resign', () => {
     it('resigns a game successfully', async () => {
-        axios.post.mockResolvedValueOnce({ data: {} })
 
         const createRes = await request(app)
             .post('/create/standard')
@@ -181,8 +196,6 @@ describe('POST /game/:id/resign', () => {
     })
 
     it('returns 400 if game is already resigned', async () => {
-        axios.post.mockResolvedValue({ data: {} })
-
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -201,7 +214,7 @@ describe('POST /game/:id/resign', () => {
 
 describe('POST /game/:id/move/player', () => {
     it('applies a player move successfully', async () => {
-        axios.post.mockResolvedValueOnce({ data: { game_over: false } })
+        nock(GAMEY).post('/v1/ybot/checkWin').reply(200, { game_over: false })
 
         const createRes = await request(app)
             .post('/create/standard')
@@ -267,8 +280,6 @@ describe('POST /game/:id/move/player', () => {
     })
 
     it('returns 400 if game is already resigned', async () => {
-        axios.post.mockResolvedValueOnce({ data: {} })
-
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -286,7 +297,7 @@ describe('POST /game/:id/move/player', () => {
     })
 
     it('returns 400 if move is invalid (cell already occupied)', async () => {
-        axios.post.mockResolvedValueOnce({ data: { game_over: false } })
+        nock(GAMEY).post('/v1/ybot/checkWin').reply(200, { game_over: false })
 
         const createRes = await request(app)
             .post('/create/standard')
@@ -321,6 +332,24 @@ describe('POST /game/:id/move/player', () => {
         expect(res.status).toBe(400)
         expect(res.body).toHaveProperty('error', 'Invalid move')
     })
+
+    it('player wins after their move', async () => {
+        nock(GAMEY).post('/v1/ybot/checkWin').reply(200, { game_over: true, winner: 0 })
+
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        const res = await request(app)
+            .post(`/game/${gameId}/move/player`)
+            .set(authHeader)
+            .send({ coords: { x: 0, y: 0 } })
+        expect(res.status).toBe(200)
+        expect(res.body).toHaveProperty('message', 'Game over')
+        expect(res.body).toHaveProperty('status', 'won')
+    })
 })
 
 describe('POST /game/:id/move/bot', () => {
@@ -354,8 +383,6 @@ describe('POST /game/:id/move/bot', () => {
     })
 
     it('returns 400 if game is already resigned', async () => {
-        axios.post.mockResolvedValueOnce({ data: {} })
-
         const createRes = await request(app)
             .post('/create/standard')
             .set(authHeader)
@@ -372,7 +399,7 @@ describe('POST /game/:id/move/bot', () => {
     })
 
     it('returns 503 if bot service is unavailable', async () => {
-        axios.post.mockRejectedValue(new Error('Bot unavailable'))
+        nock(GAMEY).post(`/v1/ybot/choose/random_bot`).replyWithError('Bot unavailable')
 
         const createRes = await request(app)
             .post('/create/standard')
@@ -385,5 +412,147 @@ describe('POST /game/:id/move/bot', () => {
             .set(authHeader)
         expect(res.status).toBe(503)
         expect(res.body).toHaveProperty('error', 'Bot unavailable')
+    })
+
+    it('bot moves successfully and game continues', async () => {
+        nock(GAMEY).post('/v1/ybot/choose/random_bot').reply(200, { coords: { x: 1, y: 0 } })
+        nock(GAMEY).post('/v1/ybot/checkWin').reply(200, { game_over: false })
+
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        // Put game in bot's turn
+        await mongoose.model('Game').findByIdAndUpdate(gameId, { 'yen.turn': 1 })
+
+        const res = await request(app)
+            .post(`/game/${gameId}/move/bot`)
+            .set(authHeader)
+        expect(res.status).toBe(200)
+        expect(res.body).toHaveProperty('message', 'Bot moved')
+        expect(res.body.yen.turn).toBe(0)
+    })
+
+    it('bot wins the game', async () => {
+        nock(GAMEY).post('/v1/ybot/choose/random_bot').reply(200, { coords: { x: 1, y: 0 } })
+        nock(GAMEY).post('/v1/ybot/checkWin').reply(200, { game_over: true, winner: 1 })
+
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        await mongoose.model('Game').findByIdAndUpdate(gameId, { 'yen.turn': 1 })
+
+        const res = await request(app)
+            .post(`/game/${gameId}/move/bot`)
+            .set(authHeader)
+        expect(res.status).toBe(200)
+        expect(res.body).toHaveProperty('message', 'Game over')
+        expect(res.body).toHaveProperty('status', 'lost')
+    })
+
+    it('returns 400 if bot produces invalid move', async () => {
+        nock(GAMEY).post('/v1/ybot/choose/random_bot').reply(200, { coords: { x: 99, y: 99 } })
+
+        const createRes = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        const gameId = createRes.body.gameId
+
+        await mongoose.model('Game').findByIdAndUpdate(gameId, { 'yen.turn': 1 })
+
+        const res = await request(app)
+            .post(`/game/${gameId}/move/bot`)
+            .set(authHeader)
+        expect(res.status).toBe(400)
+        expect(res.body).toHaveProperty('error', 'Bot produced invalid move')
+    })
+})
+
+describe('GET /api/gamey/play', () => {
+    it('returns bot coords for valid yen query params', async () => {
+        nock(GAMEY).post('/v1/ybot/choose/medium_bot').reply(200, { coords: { x: 1, y: 0 } })
+
+        const res = await request(app)
+            .get('/api/gamey/play')
+            .query({ layout: './..',  size: '3', turn: '0', 'players[0]': 'B', 'players[1]': 'R' })
+        expect(res.status).toBe(200)
+        expect(res.body).toHaveProperty('coords')
+    })
+
+    it('returns 400 if layout or size is missing', async () => {
+        const res = await request(app)
+            .get('/api/gamey/play')
+            .query({ turn: '0' })
+        expect(res.status).toBe(400)
+        expect(res.body).toHaveProperty('error')
+    })
+
+    it('returns error from gamey service', async () => {
+        nock(GAMEY).post('/v1/ybot/choose/medium_bot').reply(503, { error: 'Service unavailable' })
+
+        const res = await request(app)
+            .get('/api/gamey/play')
+            .query({ layout: './..',  size: '3', turn: '0' })
+        expect(res.status).toBe(503)
+        expect(res.body).toHaveProperty('error')
+    })
+})
+
+describe('500 errors — database failure', () => {
+    const Game = mongoose.model('Game')
+    const dbError = new Error('DB error')
+
+    it('POST /create returns 500', async () => {
+        vi.spyOn(Game.prototype, 'save').mockRejectedValueOnce(dbError)
+        const res = await request(app)
+            .post('/create/standard')
+            .set(authHeader)
+            .send({ botId: 'random_bot', boardSize: 5 })
+        expect(res.status).toBe(500)
+    })
+
+    it('GET /state returns 500', async () => {
+        vi.spyOn(Game, 'findById').mockRejectedValueOnce(dbError)
+        const res = await request(app)
+            .get('/state/123456789012345678901234')
+            .set(authHeader)
+        expect(res.status).toBe(500)
+    })
+
+    it('GET /list returns 500', async () => {
+        vi.spyOn(Game, 'find').mockRejectedValueOnce(dbError)
+        const res = await request(app).get('/list').set(authHeader)
+        expect(res.status).toBe(500)
+    })
+
+    it('POST /resign returns 500', async () => {
+        vi.spyOn(Game, 'findById').mockRejectedValueOnce(dbError)
+        const res = await request(app)
+            .post('/game/123456789012345678901234/resign')
+            .set(authHeader)
+        expect(res.status).toBe(500)
+    })
+
+    it('POST /move/player returns 500', async () => {
+        vi.spyOn(Game, 'findById').mockRejectedValueOnce(dbError)
+        const res = await request(app)
+            .post('/game/123456789012345678901234/move/player')
+            .set(authHeader)
+            .send({ coords: { x: 0, y: 0 } })
+        expect(res.status).toBe(500)
+    })
+
+    it('POST /move/bot returns 500', async () => {
+        vi.spyOn(Game, 'findById').mockRejectedValueOnce(dbError)
+        const res = await request(app)
+            .post('/game/123456789012345678901234/move/bot')
+            .set(authHeader)
+        expect(res.status).toBe(500)
     })
 })
