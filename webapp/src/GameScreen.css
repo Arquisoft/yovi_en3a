@@ -335,6 +335,15 @@
     width: 100% !important;
     flex-shrink: unset !important;
     display: block !important;
+    max-width: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Board container optimized for mobile with potential scrolling */
+  [data-mobile-order="board"] .board-skin {
+    margin: 0 auto;
+    flex-shrink: 0;
   }
 
   [data-mobile-order="tools"] {
@@ -376,6 +385,7 @@
   /* Style adjustments for mobile */
   .board-skin {
     border-radius: 8px;
+    padding: 0.75rem !important;
   }
 
   .moves-scroll {

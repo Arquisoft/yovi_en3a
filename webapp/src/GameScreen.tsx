@@ -33,7 +33,33 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [turnNumber, setTurnNumber] = useState(1);
     const [showCellNames, setShowCellNames] = useState(false);
     const [isMoveHistoryOpen, setIsMoveHistoryOpen] = useState(true);
+    const [cellSize, setCellSize] = useState(60);
     const navigate = useNavigate();
+
+    // Calculate responsive cell size based on viewport width
+    const calculateOptimalCellSize = () => {
+        const isTablet = window.innerWidth >= 769;
+        const availableWidth = isTablet 
+            ? Math.min(650, window.innerWidth - 400) // Leave space for sidebars on desktop
+            : window.innerWidth - 24; // 12px padding on each side for mobile
+
+        // For a triangular hex grid, approximate width = (boardSize - 1) * hexWidth + cellSize
+        // where hexWidth ≈ cellSize * 1.05
+        // Solve for cellSize: cellSize = (availableWidth) / ((boardSize - 1) * 1.05 + 1)
+        const optimalSize = availableWidth / ((boardSize - 1) * 1.05 + 1);
+        return Math.max(40, Math.floor(optimalSize)); // Min 40px for now, will add user preference later
+    };
+
+    useEffect(() => {
+        setCellSize(calculateOptimalCellSize());
+
+        const handleResize = () => {
+            setCellSize(calculateOptimalCellSize());
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [boardSize]);
 
     useEffect(() => {
         if (!gameId) return;
@@ -226,6 +252,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             ref={gameBoardRef}
                             gameIdProp={gameId}
                             boardSize={boardSize}
+                            cellSize={cellSize}
                             gameType={gameType}
                             showNames={showCellNames}
                             onCellPlayed={(player, playerName, coordinate) =>
