@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import HexBackground from './HexBackGround';
+
+
 
 const HowToPlay: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ const HowToPlay: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
+        <HexBackground />
       <div className="w-full max-w-lg">
 
         {/* Header — matches GameSelect header style */}

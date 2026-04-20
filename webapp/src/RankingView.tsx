@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, ArrowLeft, User, Target } from 'lucide-react';
 import HexBackground from './HexBackGround';
+import './RankingView.css';
 
 interface PlayerRank {
     userId: { _id: string; username: string; };
@@ -79,7 +80,7 @@ const RankingView: React.FC = () => {
                     {/* Podio */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end mb-12 px-2 md:px-4 h-auto md:h-64">
                         {podio[1] && (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center" data-podium="second">
                                 <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center mb-2 border-4 border-gray-500 shadow-lg">
                                     <Medal size={32} className="text-gray-800" />
                                 </div>
@@ -88,7 +89,7 @@ const RankingView: React.FC = () => {
                             </motion.div>
                         )}
                         {podio[0] && (
-                            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+                            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center" data-podium="first">
                                 <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-2 border-4 border-yellow-600 shadow-xl shadow-yellow-900/20">
                                     <Trophy size={40} className="text-yellow-900" />
                                 </div>
@@ -97,7 +98,7 @@ const RankingView: React.FC = () => {
                             </motion.div>
                         )}
                         {podio[2] && (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center" data-podium="third">
                                 <div className="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center mb-2 border-4 border-orange-600 shadow-lg">
                                     <Medal size={28} className="text-orange-900" />
                                 </div>
