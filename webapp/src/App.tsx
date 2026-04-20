@@ -26,7 +26,10 @@ function App() {
             <ProtectedRoute><MenuView /></ProtectedRoute>
           } />
           <Route path="/select-game" element={
-            <ProtectedRoute><GameSelect onBack={() => {}} /></ProtectedRoute>
+            <ProtectedRoute><GameSelect onBack={() => {}} mode="bot" /></ProtectedRoute>
+          } />
+          <Route path="/multiplayer" element={
+            <ProtectedRoute><GameSelect onBack={() => {}} mode="multiplayer" /></ProtectedRoute>
           } />
           <Route path="/how-to-play" element={
             <ProtectedRoute><HowToPlay /></ProtectedRoute>

@@ -1,0 +1,94 @@
+.dr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px 14px;
+  background: rgba(8, 11, 20, 0.82);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  min-width: 110px;
+  user-select: none;
+  transition: border-color 0.35s, box-shadow 0.35s;
+}
+
+.dr-wrapper.dr-player {
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(59, 130, 246, 0.18);
+}
+
+.dr-wrapper.dr-bot {
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(239, 68, 68, 0.18);
+}
+
+/* ── Die face ── */
+.dr-die {
+  width: 68px;
+  height: 68px;
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  padding: 9px;
+  gap: 3px;
+  box-sizing: border-box;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  transition: background-color 0.28s ease;
+}
+
+/* ── Dots ── */
+.dr-dot {
+  border-radius: 50%;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  transition: background 0.08s;
+}
+
+.dr-dot-on {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
+}
+
+/* ── Result label ── */
+.dr-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.3s, opacity 0.3s;
+}
+
+/* ── Rolling shake ── */
+@keyframes dr-shake {
+  0%   { transform: rotate(0deg)   scale(1.0); }
+  12%  { transform: rotate(-20deg) scale(0.92); }
+  28%  { transform: rotate(16deg)  scale(1.06); }
+  44%  { transform: rotate(-12deg) scale(0.96); }
+  60%  { transform: rotate(9deg)   scale(1.03); }
+  76%  { transform: rotate(-5deg)  scale(0.99); }
+  100% { transform: rotate(0deg)   scale(1.0); }
+}
+
+.dr-rolling {
+  animation: dr-shake 0.42s ease-in-out infinite;
+}
+
+/* ── Pop on settle ── */
+@keyframes dr-pop {
+  0%   { transform: scale(1.4) rotate(-8deg); opacity: 0.7; }
+  45%  { transform: scale(0.87) rotate(3deg);  opacity: 1; }
+  72%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.dr-pop {
+  animation: dr-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

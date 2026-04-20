@@ -56,19 +56,28 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         return () => { if (audio) { audio.pause(); audio.currentTime = 0; } };
     }, []);
 
+    // Tipos de juego que gestionan los turnos ellos mismos via onTurnChange
+    const SELF_MANAGED_TURNS = ["fortune", "master"];
+    const autoTurn = !gameType || !SELF_MANAGED_TURNS.includes(gameType);
+
     const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
         sidePanelRef.current?.addMove(player, playerName, coordinate);
         const newMove: Move = { player, playerName, coordinate, timestamp: new Date() };
         setMoves(prev => [...prev, newMove]);
+
         if (player === "p1") {
             setPiecesP1(p => p + 1);
             sidePanelRef.current?.incrementTurn();
             setTurnNumber(t => t + 1);
-            setCurrentTurn("p2");
+            if (autoTurn) setCurrentTurn("p2");
         } else {
             setPiecesP2(p => p + 1);
-            setCurrentTurn("p1");
+            if (autoTurn) setCurrentTurn("p1");
         }
+    };
+
+    const handleTurnChange = (turn: "p1" | "p2") => {
+        setCurrentTurn(turn);
     };
 
     const handleExit = () => {
@@ -84,11 +93,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         <div className="min-h-screen bg-[#080b14] flex flex-col relative overflow-hidden" style={{
             fontFamily: "'Courier New', monospace"
         }}>
-            {/* HexBackground al fondo */}
             <HexBackground />
 
             {/* Todo el contenido por encima del fondo */}
-            <div className="relative z-10 flex flex-col flex-1 w-full">
+            <div className="relative z-10 flex flex-col flex-1  w-full">
 
                 {/* ── Header ── */}
                 <header className="w-full flex items-center justify-between px-6 py-3 border-b border-white/5">
@@ -224,6 +232,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                 handleCellPlayed(player as "p1" | "p2", playerName, coordinate)
                             }
                             onGameOver={(winner) => setGameOver(winner)}
+                            onTurnChange={handleTurnChange}
                         />
                     </main>
 

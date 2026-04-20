@@ -1,10 +1,10 @@
-/*import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
 import { useMasterLogic } from "../hooks/useMasterLogic";
 import HexGrid from "../HexGrid";
 
 const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
-  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver }, ref) => {
+  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver, onTurnChange }, ref) => {
     const {
       cellRefs,
       initialOwners,
@@ -12,19 +12,25 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
       handleRequestSelectCell,
       gameBoardRef,
       piecesThisTurn,
-      blocked,
-    } = useMasterLogic(gameIdProp, boardSize, onCellPlayed, onGameOver);
+      waitingForSecond,
+    } = useMasterLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange);
 
     useImperativeHandle(ref, () => gameBoardRef);
 
     return (
-      <div style={{ position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
         <div style={{
-          position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
-          color: "white", background: "rgba(0,0,0,0.5)", padding: "4px 14px",
-          borderRadius: 8, fontSize: 14, zIndex: 10,
+          padding: "4px 14px",
+          background: "rgba(0,0,0,0.5)",
+          borderRadius: 8,
+          fontSize: 13,
+          color: "white",
+          fontFamily: "monospace",
+          whiteSpace: "nowrap",
         }}>
-          {blocked ? "🤖 Bot is thinking..." : `Place piece ${piecesThisTurn + 1} of 2`}
+          {waitingForSecond
+            ? `🟦 Place piece 2 of 2`
+            : `🟦 Place piece 1 of 2`}
         </div>
         <HexGrid
           boardSize={boardSize}
@@ -32,7 +38,6 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
           cellRefs={cellRefs}
           initialOwners={initialOwners}
           gameId={gameIdProp}
-          disabledCells={blocked ? new Set(["__all__"]) : new Set()}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}
@@ -44,4 +49,4 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
 );
 
 MasterBoard.displayName = "MasterBoard";
-export default MasterBoard;*/
+export default MasterBoard;

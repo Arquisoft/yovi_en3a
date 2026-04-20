@@ -8,12 +8,22 @@ export interface BoardProps {
   boardSize?: number;
   cellSize?: number;
   gameIdProp?: string;
+  showNames?: boolean;
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
   onGameOver?: (winner: "p1" | "p2") => void;
+  onTurnChange?: (turn: "p1" | "p2") => void; // ← añadido
 }
 
 export interface GameBoardRef {
   selectCellByCoordinates: (x: number, y: number, z: number, player: "p1" | "p2") => boolean;
+  makeRandomMove?: () => void;
+}
+
+export interface GameLogicOptions {
+  onBeforeMove?: () => boolean;
+  onAfterPlayerMove?: (coord: Coordinates) => void;
+  onAfterBotMove?: (coord: Coordinates) => void;
+  skipBotAfterMove?: boolean;
 }
 
 export const parseLayout = (layout: string, boardSize: number): Map<string, "p1" | "p2"> => {

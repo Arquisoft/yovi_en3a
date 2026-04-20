@@ -74,25 +74,9 @@ app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MAN
 //app.use('/api/gamey', (req,res) => proxyRequest(GAMEY_SERVICE_URL, req, res))
 
 // Used for playing against the desired bot of our game
-app.get('/api/gamey/play', async (req, res) => {
-    const { botId = 'medium_bot', ...yen } = req.body;
-
-    if (!yen.layout || !yen.size) {
-        return res.status(400).json({ error: 'yen (layout, size) is required' });
-    }
-
-    try {
-        const response = await axios.post(
-            `${GAMEY_SERVICE_URL}/v1/ybot/choose/${botId}`,
-            yen,
-            { headers: { 'Content-Type': 'application/json' } }
-        );
-        res.json({ coords: response.data.coords });
-    } catch (error) {
-        const status = error.response?.status || 500;
-        const data = error.response?.data || { error: 'Gamey service error' };
-        res.status(status).json(data);
-    }
+app.get('/play', (req, res) => {
+    req.path = '/api/gamey/play';
+    proxyRequest(GAME_MANAGER_URL, req, res);
 });
 
 
