@@ -28,7 +28,6 @@ const MatchHistoryView: React.FC = () => {
 
                 const data = await res.json();
                 if (res.ok) {
-                    // Si el backend devuelve el array directamente o dentro de un objeto
                     const historyData = Array.isArray(data) ? data : (data.history || data.games || []);
                     setMatches(historyData);
                 }
@@ -59,12 +58,9 @@ const MatchHistoryView: React.FC = () => {
                 ) : (
                     <div className="grid gap-4">
                         {matches.map((match, index) => {
-                            // 1. Mapeo de lógica según tu JSON real
+
                             const isWin = match.status === 'won';
                             const isOngoing = match.status === 'ongoing';
-                            const isLost = match.status === 'lost';
-
-                            // 2. Corregir el "Invalid Date": tu JSON usa 'createdAt'
                             const date = match.createdAt ? new Date(match.createdAt).toLocaleDateString() : 'No date';
 
                             return (
