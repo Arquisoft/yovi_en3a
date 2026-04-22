@@ -4,10 +4,12 @@ import mongoose from 'mongoose'
 import request from 'supertest'
 import nock from 'nock'
 
-let mongoServer
-mongoServer = await MongoMemoryServer.create()
-const uri = mongoServer.getUri()
-process.env.MONGODB_URI = uri
+let mongoServer = null
+
+if (!process.env.MONGODB_URI) {
+    mongoServer = await MongoMemoryServer.create()
+    process.env.MONGODB_URI = mongoServer.getUri()
+}
 
 const { default: app } = await import('../game-manager.js')
 
@@ -16,7 +18,7 @@ const USERS = 'http://localhost:3000'
 
 afterAll(async () => {
     await mongoose.disconnect()
-    await mongoServer.stop()
+    if (mongoServer) await mongoServer.stop()
 }, 30000)
 
 afterEach(async () => {
