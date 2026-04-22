@@ -12,6 +12,7 @@ const MockUser = vi.fn().mockImplementation(function(data) {
   this.save = vi.fn().mockResolvedValue(true)
 })
 MockUser.findOne = vi.fn()
+MockUser.findById = vi.fn()
 globalThis.MockUser = MockUser
 
 const MockStats = vi.fn().mockImplementation(function() {
@@ -39,3 +40,23 @@ const mockJwt = { sign: vi.fn().mockReturnValue('mocked_token') }
 globalThis.mockJwt = mockJwt
 const jwtPath = require.resolve('jsonwebtoken')
 require.cache[jwtPath] = { id: jwtPath, filename: jwtPath, loaded: true, exports: mockJwt }
+
+const MockHistory = vi.fn().mockImplementation(function(data) {
+  Object.assign(this, data);
+  this.save = vi.fn().mockResolvedValue(this);
+});
+
+MockHistory.find = vi.fn().mockReturnValue({
+  sort: vi.fn().mockReturnThis(),
+});
+MockHistory.findById = vi.fn();
+
+globalThis.MockHistory = MockHistory;
+
+const historyPath = require.resolve('./models/history.js');
+require.cache[historyPath] = { 
+  id: historyPath, 
+  filename: historyPath, 
+  loaded: true, 
+  exports: MockHistory 
+};

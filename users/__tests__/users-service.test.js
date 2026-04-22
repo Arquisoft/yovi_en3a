@@ -1,11 +1,13 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import request from 'supertest'
+import mongoose from 'mongoose'
 
 const { default: app } = await import('../users-service.js')
 
 const User = globalThis.MockUser
 const bcrypt = globalThis.mockBcrypt
 const Stats = globalThis.MockStats
+const History = globalThis.MockHistory
 
 describe('POST /register', () => {
   afterEach(() => vi.clearAllMocks())
@@ -285,4 +287,121 @@ describe('GET /stats/ranking', () => {
       const res = await request(app).get('/stats/ranking')
       expect(res.status).toBe(500)
     })
+})
+
+describe('GET /stats/ranking - Extended Logic', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  it('returns user position when user is outside the top 20', async () => {
+    const mockRanking = Array.from({ length: 30 }, (_, i) => ({
+      userId: new mongoose.Types.ObjectId().toString(),
+      wins: 100 - i
+    }))
+    
+    const currentUserId = new mongoose.Types.ObjectId().toString()
+    mockRanking[29].userId = currentUserId
+
+    Stats.find.mockReturnValueOnce({
+      sort: vi.fn().mockResolvedValue(mockRanking)
+    })
+
+    Stats.find.mockReturnValueOnce({
+      sort: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      populate: vi.fn().mockResolvedValue(mockRanking.slice(0, 20))
+    })
+
+    Stats.findOne.mockReturnValue({
+      populate: vi.fn().mockResolvedValue({ userId: { username: 'user30' }, wins: 71 })
+    })
+
+    const res = await request(app)
+      .get('/stats/ranking')
+      .set('x-user-id', currentUserId)
+
+    expect(res.status).toBe(200)
+    expect(res.body.userPosition).not.toBeNull()
+    expect(res.body.userPosition.position).toBe(30)
+  })
+})
+
+describe('POST /history/add', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  const validHistoryData = {
+    userId: validUserId,
+    result: 'won',
+    botId: 'beginner_bot',
+    boardSize: 9,
+    gameType: 'classic'
+  }
+
+  it('adds history entry successfully', async () => {
+    User.findById.mockResolvedValue({ _id: validUserId })
+    History.prototype.save = vi.fn().mockResolvedValue(true)
+
+    const res = await request(app)
+      .post('/history/add')
+      .send(validHistoryData)
+
+    expect(res.status).toBe(201)
+    expect(res.body).toHaveProperty('message', 'History entry created successful')
+  })
+
+  it('returns 400 if required fields are missing', async () => {
+    const res = await request(app).post('/history/add').send({ userId: validUserId })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 if result or botId is invalid', async () => {
+    const invalidData = { ...validHistoryData, result: 'invalid_res', botId: 'hacker_bot' }
+    const res = await request(app).post('/history/add').send(invalidData)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 404 if user does not exist', async () => {
+    User.findById.mockResolvedValue(null)
+    const res = await request(app).post('/history/add').send(validHistoryData)
+    expect(res.status).toBe(404)
+    expect(res.body.error).toBe('User not found')
+  })
+
+  it('returns 500 on database error', async () => {
+    User.findById.mockRejectedValue(new Error('DB connection failed'))
+    const res = await request(app).post('/history/add').send(validHistoryData)
+    expect(res.status).toBe(500)
+  })
+})
+
+describe('GET /history/:userId', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  it('returns user history successfully', async () => {
+    User.findById.mockResolvedValue({ _id: validUserId })
+    const mockHistory = [
+      { result: 'won', botId: 'medium_bot', playedAt: new Date() },
+      { result: 'lost', botId: 'random_bot', playedAt: new Date() }
+    ]
+    
+    History.find.mockReturnValue({
+      sort: vi.fn().mockResolvedValue(mockHistory)
+    })
+
+    const res = await request(app).get(`/history/${validUserId}`)
+    
+    expect(res.status).toBe(200)
+    expect(res.body.history).toHaveLength(2)
+  })
+
+  it('returns 400 for invalid userId format', async () => {
+    const res = await request(app).get('/history/not-a-mongo-id')
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBe('Invalid userId')
+  })
+
+  it('returns 404 if user does not exist', async () => {
+    User.findById.mockResolvedValue(null)
+    const res = await request(app).get(`/history/${validUserId}`)
+    expect(res.status).toBe(404)
+  })
 })
