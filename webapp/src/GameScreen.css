@@ -393,6 +393,111 @@
   }
 }
 
+/* ── Mobile Landscape Orientation ── */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  header {
+    position: absolute !important;
+    height: auto;
+    visibility: hidden;
+  }
+
+  header button {
+    visibility: visible !important;
+    position: fixed !important;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 100;
+  }
+
+  .game-layout-container {
+    flex-direction: row !important;
+    height: 100vh;
+    gap: 0.5rem !important;
+  }
+
+  /* Make sidebars narrower in landscape */
+  .game-layout-left-sidebar {
+    flex: 0 0 auto;
+    width: 140px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .game-layout-right-sidebar {
+    flex: 0 0 auto;
+    width: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Board takes remaining space in center */
+  [data-mobile-order="board"] {
+    order: 0 !important;
+    flex: 1;
+    width: auto !important;
+    height: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow: auto;
+  }
+
+  /* Reorder elements as sidebar columns, not vertical stack */
+  [data-mobile-order="timer"] {
+    order: unset !important;
+    width: 100%;
+  }
+
+  [data-mobile-order="cards"] {
+    order: unset !important;
+    width: 100%;
+    flex-direction: column !important;
+  }
+
+  [data-mobile-order="cards"] > * {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  [data-mobile-order="tools"] {
+    display: none !important;
+  }
+
+  [data-mobile-order="history"] {
+    display: none !important;
+  }
+
+  [data-mobile-order="info"] {
+    display: none !important;
+  }
+
+  /* Compact player cards for landscape */
+  .player-cards-container {
+    flex-direction: column !important;
+  }
+
+  .player-cards-container > * {
+    flex: 0 0 auto !important;
+  }
+
+  /* Compact board skin */
+  .board-skin {
+    padding: 0.5rem !important;
+  }
+
+  /* Hide separators in landscape */
+  .game-layout-left-sidebar > .bg-white\/5,
+  .game-layout-right-sidebar > .bg-white\/5 {
+    display: none !important;
+  }
+}
+
 /* ── Mobile/Tablet Responsive Layout ── */
 @media (max-width: 1024px) {
   .game-container {

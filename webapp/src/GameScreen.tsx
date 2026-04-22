@@ -36,18 +36,39 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [cellSize, setCellSize] = useState(60);
     const navigate = useNavigate();
 
-    // Calculate responsive cell size based on viewport width
+    // Calculate responsive cell size based on viewport width and orientation
     const calculateOptimalCellSize = () => {
         const isTablet = window.innerWidth >= 769;
-        const availableWidth = isTablet 
-            ? Math.min(650, window.innerWidth - 400) // Leave space for sidebars on desktop
-            : window.innerWidth - 24; // 12px padding on each side for mobile
+        const isLandscape = window.innerHeight < window.innerWidth;
+        
+        let availableWidth: number;
+        let availableHeight: number;
 
-        // For a triangular hex grid, approximate width = (boardSize - 1) * hexWidth + cellSize
-        // where hexWidth ≈ cellSize * 1.05
-        // Solve for cellSize: cellSize = (availableWidth) / ((boardSize - 1) * 1.05 + 1)
-        const optimalSize = availableWidth / ((boardSize - 1) * 1.05 + 1);
-        return Math.max(40, Math.floor(optimalSize)); // Min 40px for now, will add user preference later
+        if (isTablet) {
+            // Desktop: preserve sidebar space
+            availableWidth = Math.min(650, window.innerWidth - 400);
+            availableHeight = window.innerHeight - 120; // Header + padding
+        } else if (isLandscape) {
+            // Mobile landscape: maximize both dimensions
+            availableWidth = window.innerWidth - 24;
+            availableHeight = window.innerHeight - 80; // Header + minimal padding
+        } else {
+            // Mobile portrait: prioritize width, constrain height
+            availableWidth = window.innerWidth - 24;
+            availableHeight = window.innerHeight - 80;
+        }
+
+        // Calculate cell size based on width constraint
+        // gridWidth ≈ (boardSize - 1) * hexWidth + cellSize, where hexWidth = cellSize * 1.05
+        const widthBasedSize = availableWidth / ((boardSize - 1) * 1.05 + 1);
+
+        // Calculate cell size based on height constraint
+        // gridHeight ≈ (boardSize - 1) * hexHeight + cellSize, where hexHeight = cellSize * 0.8
+        const heightBasedSize = availableHeight / ((boardSize - 1) * 0.8 + 1);
+
+        // Use the smaller of the two to ensure it fits both dimensions
+        const optimalSize = Math.min(widthBasedSize, heightBasedSize);
+        return Math.max(40, Math.floor(optimalSize)); // Min 40px for now
     };
 
     useEffect(() => {
