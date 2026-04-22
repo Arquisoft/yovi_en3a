@@ -202,7 +202,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                 )}
 
                 {/* ── Main layout: Desktop 3-column, Mobile vertical stack ── */}
-                <div className="game-layout-container">
+                <div className="game-layout-container" data-game-type={gameType}>
 
                     {/* Left sidebar: Player cards, timers, info */}
                     <aside className="game-layout-left-sidebar">

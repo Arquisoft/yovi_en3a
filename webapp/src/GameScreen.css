@@ -382,6 +382,11 @@
     display: none !important;
   }
 
+  /* Hide player cards in fortune mode on mobile */
+  [data-game-type="fortune"] [data-mobile-order="cards"] {
+    display: none !important;
+  }
+
   /* Style adjustments for mobile */
   .board-skin {
     border-radius: 8px;
