@@ -27,6 +27,8 @@ jobs:
     - run: npm --prefix gatewayservice run test:coverage
     - run: npm --prefix gamemanager ci
     - run: npm --prefix gamemanager run test:coverage
+      env:
+        MONGOMS_VERSION: "7.0.14"
     - name: Install cargo-llvm-cov
       run: cargo install cargo-llvm-cov --locked
     - name: Generate gamey code coverage
