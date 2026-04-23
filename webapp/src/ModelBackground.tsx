@@ -3,6 +3,7 @@ import HexBackground from './HexBackGround';
 import GameSVG from './GameSVG';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import './ModelBackground.css';
 
 interface ModelBackgroundProps {
   children: React.ReactNode;
@@ -24,16 +25,16 @@ const ModelBackground: React.FC<ModelBackgroundProps> = ({ children }) => {
 
       <div style={{
         position: 'relative', zIndex: 1,
-        display: 'grid',
-        gridTemplateColumns: '1fr 1px 380px',
-        gap: '4rem',
+        minHeight: '100vh',
+        display: 'flex',
         alignItems: 'center',
-        maxWidth: '1000px',
-        width: '100%',
-        padding: '2rem',
+        justifyContent: 'center',
       }}>
+        <div className="model-background-container" style={{
+          position: 'relative', zIndex: 1,
+        }}>
         {/* Left — hex board illustration */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+        <div className="model-background-left">
           <GameSVG />
           <p style={{
             color: 'rgba(255,255,255,0.25)',
@@ -47,7 +48,7 @@ const ModelBackground: React.FC<ModelBackgroundProps> = ({ children }) => {
         </div>
 
         {/* Divider */}
-        <div style={{ background: 'rgba(255,255,255,0.07)', height: '300px', alignSelf: 'center' }} />
+        <div className="model-background-divider" />
 
         {/* Right — dynamic content */}
         <AnimatePresence mode="wait">
@@ -57,11 +58,12 @@ const ModelBackground: React.FC<ModelBackgroundProps> = ({ children }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}
+            className="model-background-right"
           >
             {children}
           </motion.div>
         </AnimatePresence>
+        </div>
       </div>
     </div>
   );

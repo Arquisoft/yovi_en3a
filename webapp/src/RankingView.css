@@ -1,0 +1,15 @@
+/* ── Podium mobile reordering ── */
+@media screen and (max-width: 768px) {
+  /* On mobile, reorder podium to display 1st -> 2nd -> 3rd vertically */
+  [data-podium="first"] {
+    order: 1;
+  }
+
+  [data-podium="second"] {
+    order: 2;
+  }
+
+  [data-podium="third"] {
+    order: 3;
+  }
+}
