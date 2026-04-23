@@ -63,6 +63,12 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack, mode = "bot" }) => {
   );
 
   const handleSelect = async (gameId: string, size: number = 7, bot: string = "random_bot") => {
+    if (gameId === "pie" && mode === "multiplayer") {
+      navigate(`/game/local-${Date.now()}/${size}/pie`, {
+        state: { isMultiplayer: true },
+      });
+      return;
+    }
     setLoading(gameId);
     try {
       const token =
@@ -78,7 +84,9 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack, mode = "bot" }) => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      navigate(`/game/${data.gameId}/${size}/${gameId}`);
+      navigate(`/game/${data.gameId}/${size}/${gameId}`, {
+        state: { isMultiplayer: mode === "multiplayer" },
+      });
     } catch (err) {
       console.error("Error creating game:", err);
     } finally {

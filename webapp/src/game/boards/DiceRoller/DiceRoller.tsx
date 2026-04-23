@@ -6,6 +6,7 @@ type DiceResult = "player" | "bot" | null;
 interface DiceRollerProps {
   isRolling: boolean;
   diceResult: DiceResult;
+  isMultiplayer?: boolean;
 }
 
 /**
@@ -25,8 +26,8 @@ const BG_ROLLING = "#2d3748";
 const BG_PLAYER  = "#1d4ed8";
 const BG_BOT     = "#991b1b";
 
-export default function DiceRoller({ isRolling, diceResult }: DiceRollerProps) {
-  const [face, setFace]     = useState(1);
+export default function DiceRoller({ isRolling, diceResult, isMultiplayer = false }: DiceRollerProps) {
+  const [face, setFace]       = useState(1);
   const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export default function DiceRoller({ isRolling, diceResult }: DiceRollerProps) {
   }, [isRolling, diceResult]);
 
   const bgColor =
-    isRolling            ? BG_ROLLING :
+    isRolling               ? BG_ROLLING :
     diceResult === "player" ? BG_PLAYER  :
     diceResult === "bot"    ? BG_BOT     :
     BG_ROLLING;
@@ -61,13 +62,13 @@ export default function DiceRoller({ isRolling, diceResult }: DiceRollerProps) {
     (!isRolling && diceResult === "bot"    ? " dr-bot"    : "");
 
   const label =
-    isRolling            ? "Lanzando..." :
-    diceResult === "player" ? "¡Tu turno!" :
-    diceResult === "bot"    ? "Turno del Bot" :
+    isRolling               ? "Rolling..." :
+    diceResult === "player" ? "Player 1's turn!" :
+    diceResult === "bot"    ? (isMultiplayer ? "Player 2's turn!" : "Bot's turn") :
     "";
 
   const labelColor =
-    isRolling            ? "#9ca3af" :
+    isRolling               ? "#9ca3af" :
     diceResult === "player" ? "#93c5fd" :
     "#fca5a5";
 

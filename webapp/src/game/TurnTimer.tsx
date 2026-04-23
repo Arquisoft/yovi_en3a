@@ -6,9 +6,10 @@ interface TurnTimerProps {
   gameId?: string
   totalSeconds?: number
   onExpire: () => void
+  label?: string
 }
 
-export function TurnTimer({ gameId, totalSeconds = 20, onExpire }: TurnTimerProps) {
+export function TurnTimer({ gameId, totalSeconds = 20, onExpire, label = "Your turn" }: TurnTimerProps) {
   const storageKey = `turnTimer_${gameId ?? "local"}`
   const onExpireRef = useRef(onExpire)
   onExpireRef.current = onExpire
@@ -96,7 +97,7 @@ export function TurnTimer({ gameId, totalSeconds = 20, onExpire }: TurnTimerProp
           className="text-[0.6rem] uppercase tracking-widest ml-auto"
           style={{ color: isUrgent ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.2)" }}
         >
-          tu turno
+          {label}
         </span>
       </div>
 

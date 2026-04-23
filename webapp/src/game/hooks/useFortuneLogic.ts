@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 
@@ -9,21 +9,28 @@ export const useFortuneLogic = (
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
   onGameOver: BoardProps["onGameOver"],
-  onTurnChange: BoardProps["onTurnChange"]
+  onTurnChange: BoardProps["onTurnChange"],
+  isMultiplayer = false
 ) => {
   const [diceResult, setDiceResult] = useState<DiceResult | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [playerCanMove, setPlayerCanMove] = useState(false);
+  const [isP2TurnLocal, setIsP2TurnLocal] = useState(false);
+  const isP2TurnLocalRef = useRef(false);
 
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
     onBeforeMove: () => playerCanMove,
     onAfterPlayerMove: () => setPlayerCanMove(false),
     skipBotAfterMove: true,
+    isMultiplayer,
   });
 
   const rollDice = useCallback(() => {
     setIsRolling(true);
     setPlayerCanMove(false);
+    isP2TurnLocalRef.current = false;
+    setIsP2TurnLocal(false);
+
     setTimeout(() => {
       const result: DiceResult = Math.random() < 0.5 ? "player" : "bot";
       setDiceResult(result);
@@ -34,17 +41,39 @@ export const useFortuneLogic = (
         setPlayerCanMove(true);
       } else {
         onTurnChange?.("p2");
-        logic.executeBotMove().then(() => {
-          setTimeout(() => rollDice(), 600);
-        });
+        if (isMultiplayer) {
+          isP2TurnLocalRef.current = true;
+          setIsP2TurnLocal(true);
+        } else {
+          logic.executeBotMove().then(() => {
+            setTimeout(() => rollDice(), 600);
+          });
+        }
       }
     }, 800);
-  }, [logic.executeBotMove, onTurnChange]);
+  }, [logic.executeBotMove, onTurnChange, isMultiplayer]);
 
-  const handleClick = useCallback(async (coordinates: any, name: string) => {
-    await logic.handleClick(coordinates, name);
-    setTimeout(() => rollDice(), 600);
-  }, [logic.handleClick, rollDice]);
+  const handleClick = useCallback((coordinates: any, name: string) => {
+    if (isMultiplayer) {
+      if (isP2TurnLocalRef.current) {
+        logic.executeP2Move(coordinates, name);
+        isP2TurnLocalRef.current = false;
+        setIsP2TurnLocal(false);
+        setTimeout(() => rollDice(), 600);
+      } else if (playerCanMove) {
+        logic.executeP1MoveLocal(coordinates, name);
+        setPlayerCanMove(false);
+        setTimeout(() => rollDice(), 600);
+      }
+    } else {
+      if (!playerCanMove) {
+        return;
+      }
+
+      logic.handleClick(coordinates, name);
+      setTimeout(() => rollDice(), 600);
+    }
+  }, [logic, rollDice, playerCanMove, isMultiplayer]);
 
   useEffect(() => {
     rollDice();
@@ -57,5 +86,6 @@ export const useFortuneLogic = (
     isRolling,
     playerCanMove,
     rollDice,
+    isP2TurnLocal,
   };
 };

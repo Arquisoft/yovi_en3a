@@ -4,7 +4,7 @@ import { useMasterLogic } from "../hooks/useMasterLogic";
 import HexGrid from "../HexGrid";
 
 const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
-  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver, onTurnChange }, ref) => {
+  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver, onTurnChange, isMultiplayer = false }, ref) => {
     const {
       cellRefs,
       initialOwners,
@@ -13,9 +13,13 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
       gameBoardRef,
       piecesThisTurn,
       waitingForSecond,
-    } = useMasterLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange);
+      whosTurn,
+      isP2Turn,
+    } = useMasterLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
+
+    const activeTurn = isMultiplayer ? whosTurn : (isP2Turn ? "p2" : "p1");
 
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
@@ -28,9 +32,14 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
           fontFamily: "monospace",
           whiteSpace: "nowrap",
         }}>
-          {waitingForSecond
-            ? `🟦 Place piece 2 of 2`
-            : `🟦 Place piece 1 of 2`}
+          {isMultiplayer
+            ? (activeTurn === "p1"
+                ? `🟦 Player 1 — Place piece ${piecesThisTurn + 1} of 2`
+                : `🟥 Player 2 — Place piece ${piecesThisTurn + 1} of 2`)
+            : (waitingForSecond
+                ? `🟦 Place piece 2 of 2`
+                : `🟦 Place piece 1 of 2`)
+          }
         </div>
         <HexGrid
           boardSize={boardSize}

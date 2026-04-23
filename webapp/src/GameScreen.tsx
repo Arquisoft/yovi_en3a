@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard, { type GameBoardRef } from './game/GameBoard';
@@ -20,6 +20,8 @@ interface GameScreenProps {
 
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const { gameId, size, gameType } = useParams();
+    const location = useLocation();
+    const isMultiplayer = (location.state as any)?.isMultiplayer ?? false;
     const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
 
     const sidePanelRef = useRef<SidePanelRef>(null);
@@ -88,6 +90,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         gameBoardRef.current?.makeRandomMove?.();
     };
 
+    const handleP2TurnTimeout = () => {
+        gameBoardRef.current?.makeRandomP2Move?.();
+    };
+
+    const handleGameOver = (winner: "p1" | "p2") => {
+        if (isMultiplayer && gameId) {
+            try { localStorage.removeItem(`mp_board_${gameId}`); } catch {}
+        }
+        setGameOver(winner);
+    };
+
     return (
         <div className="min-h-screen bg-[#080b14] flex flex-col relative overflow-hidden" style={{
             fontFamily: "'Courier New', monospace"
@@ -137,10 +150,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                 <Trophy className={`h-12 w-12 ${gameOver === "p1" ? "text-yellow-400" : "text-white/20"}`} />
                             </div>
                             <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Courier New', monospace" }}>
-                                {gameOver === "p1" ? "You Win!" : "You Lose!"}
+                                {isMultiplayer
+                                    ? (gameOver === "p1" ? "Player 1 Wins!" : "Player 2 Wins!")
+                                    : (gameOver === "p1" ? "You Win!" : "You Lose!")
+                                }
                             </h2>
                             <p className="text-white/30 text-sm mb-6">
-                                {gameOver === "p1" ? "Congratulations, well played!" : "Better luck next time."}
+                                {isMultiplayer
+                                    ? (gameOver === "p1" ? "Blue player connected all three edges!" : "Red player connected all three edges!")
+                                    : (gameOver === "p1" ? "Congratulations, well played!" : "Better luck next time.")
+                                }
                             </p>
                             <Button
                                 onClick={handleExit}
@@ -158,14 +177,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                     {/* Left sidebar */}
                     <aside className="flex flex-col gap-3 w-52 shrink-0 pt-1">
                         <PlayerCard
-                            name="Player 1"
+                            name={"Player 1"}
                             playerNumber={1}
                             isCurrentTurn={currentTurn === "p1" && !gameOver}
                             piecesPlaced={piecesP1}
                             isWinner={gameOver === "p1"}
                         />
                         <PlayerCard
-                            name="Player 2"
+                            name={isMultiplayer ? "Player 2" : "Bot"}
                             playerNumber={2}
                             isCurrentTurn={currentTurn === "p2" && !gameOver}
                             piecesPlaced={piecesP2}
@@ -175,10 +194,20 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         <GameTimer isRunning={!gameOver} />
                         {currentTurn === "p1" && !gameOver && (
                             <TurnTimer
-                                key={turnNumber}
+                                key={`p1-${turnNumber}`}
                                 gameId={gameId}
                                 totalSeconds={20}
                                 onExpire={handleTurnTimeout}
+                                label={isMultiplayer ? "Player 1's turn" : "Your turn"}
+                            />
+                        )}
+                        {isMultiplayer && currentTurn === "p2" && !gameOver && (
+                            <TurnTimer
+                                key={`p2-${turnNumber}`}
+                                gameId={gameId ? `${gameId}-p2` : undefined}
+                                totalSeconds={20}
+                                onExpire={handleP2TurnTimeout}
+                                label="Player 2's turn"
                             />
                         )}
                         <Separator className="bg-white/5" />
@@ -216,10 +245,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             boardSize={boardSize}
                             gameType={gameType}
                             showNames={showCellNames}
+                            isMultiplayer={isMultiplayer}
                             onCellPlayed={(player, playerName, coordinate) =>
                                 handleCellPlayed(player as "p1" | "p2", playerName, coordinate)
                             }
-                            onGameOver={(winner) => setGameOver(winner)}
+                            onGameOver={(winner) => handleGameOver(winner as "p1" | "p2")}
                             onTurnChange={handleTurnChange}
                         />
                     </main>
