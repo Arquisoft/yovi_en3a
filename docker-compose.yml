@@ -99,6 +99,10 @@ services:
     container_name: grafana
     ports:
       - "9091:3000"
+    environment:
+      - GF_SERVER_ROOT_URL=https://yovi-en3a.duckdns.org/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_FEATURE_TOGGLES_ENABLE=disablePluginsBackgroundInstaller
     volumes:
       - ./users/monitoring/grafana/provisioning:/etc/grafana/provisioning
     networks:

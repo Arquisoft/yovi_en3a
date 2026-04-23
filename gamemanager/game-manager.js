@@ -3,6 +3,10 @@ const app = express();
 const port = 5000;
 const axios = require('axios');
 const mongoose = require('mongoose');
+const promBundle = require('express-prom-bundle');
+
+const metricsMiddleware = promBundle({ includeMethod: true });
+app.use(metricsMiddleware);
 const Game = require('./models/game');
 
 const { GameFactory } = require('./models/gameFactory');

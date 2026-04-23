@@ -33,6 +33,8 @@ jobs:
           npm ci
 
       - name: Run tests
+        env:
+          MONGOMS_VERSION: "7.0.14"
         run: |
           cd ${{ matrix.service }}
           npm test
@@ -215,6 +217,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: [docker-push-users, docker-push-webapp, docker-push-gamey, docker-push-gatewayservice, docker-push-game-manager]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy monitoring config to VM
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: "users/monitoring"
+          target: "~/"
+
       - name: Deploy over SSH
         uses: fifsky/ssh-action@master
         with:
