@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { BarChart3, Trophy, Target, Hash, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { BarChart3, Trophy, Target, Hash, ArrowLeft, Loader2, AlertCircle, ChevronRight, History } from 'lucide-react';
 import { motion } from "framer-motion";
 import HexBackground from './HexBackGround';
 
@@ -165,6 +165,19 @@ const StatsView: React.FC = () => {
                                 />
                                 <StatCard title="Victories" value={stats.wins} icon={<Trophy size={20} className="text-green-500" />} color="text-green-400" />
                                 <StatCard title="Defeats" value={stats.losses} icon={<Target size={20} className="text-red-500" />} color="text-red-400" />
+                                <StatCard
+                                    title="Match History"
+                                    value={
+                                        <button
+                                            onClick={() => navigate('/match-history')}
+                                            className="mt-2 group flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-white transition-colors bg-[#1c2128] hover:bg-[#30363d] px-4 py-2 rounded-lg border border-[#30363d]"
+                                        >
+                                            View Details
+                                            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                        </button>
+                                    }
+                                    icon={<History size={20} className="text-purple-400" />}
+                                />
                             </div>
                         </div>
                     )}

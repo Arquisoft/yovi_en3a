@@ -86,36 +86,36 @@ const RegisterForm: React.FC = () => {
       {/* Form */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-        <Label htmlFor="username" className="rf-label">Username</Label>
-        <Input id="username" className="rf-input" value={username} onChange={(e) => setUsername(e.target.value)} />
-       </div>
+          <Label htmlFor="username" className="rf-label">Username</Label>
+          <Input id="username" className="rf-input" value={username} onChange={(e) => setUsername(e.target.value)} />
+        </div>
 
-       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-       <Label htmlFor="email" className="rf-label">Email</Label>
-       <Input id="email" type="email" className="rf-input" value={email} onChange={(e) => setEmail(e.target.value)} />
-       </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <Label htmlFor="email" className="rf-label">Email</Label>
+          <Input id="email" type="email" className="rf-input" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-       <Label htmlFor="password" className="rf-label">Password</Label>
-       <Input id="password" type="password" className="rf-input" value={password} onChange={(e) => setPassword(e.target.value)} />
-      </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <Label htmlFor="password" className="rf-label">Password</Label>
+          <Input id="password" type="password" className="rf-input" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-        <Label htmlFor="passwordConfirm" className="rf-label">Confirm Password</Label>
-        <Input id="passwordConfirm" type="password" className="rf-input" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
-      </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <Label htmlFor="passwordConfirm" className="rf-label">Confirm Password</Label>
+          <Input id="passwordConfirm" type="password" className="rf-input" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} />
+        </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
             <Label htmlFor="age" className="rf-label">Age (optional)</Label>
-            <Input  id="age" className="rf-input" type="number" value={age} min="0" onChange={(e) => setAge(e.target.value)} />
+            <Input id="age" className="rf-input" type="number" value={age} min="0" onChange={(e) => setAge(e.target.value)} />
           </div>
 
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
             <Label htmlFor="country" className="rf-label">Country (optional)</Label>
             <CountryDropdown
-              id="country" 
+              id="country"
               priorityOptions={['ES', 'US', 'GB', 'DE', 'FR']}
               value={country}
               onChange={setCountry}

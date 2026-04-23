@@ -91,9 +91,12 @@ describe('StatsView Component', () => {
 
         render(<MemoryRouter><StatsView /></MemoryRouter>);
 
-        const backBtn = await screen.findByRole('button'); // El botón con ArrowLeft
-        await user.click(backBtn);
+        // Buscamos específicamente el botón que tiene el icono de volver
+        // Si no tiene texto, puedes buscarlo por su posición o añadirle un aria-label en el componente
+        const buttons = await screen.findAllByRole('button');
+        const backBtn = buttons[0]; // Asumiendo que el de volver es el primero (el de arriba a la izquierda)
 
+        await user.click(backBtn);
         expect(mockNavigate).toHaveBeenCalledWith('/menu');
     });
 
@@ -110,6 +113,25 @@ describe('StatsView Component', () => {
         await waitFor(() => {
             expect(screen.getByText('Unranked')).toBeInTheDocument();
         });
+    });
+
+    test('navigates to match history when clicking view details button', async () => {
+        const user = userEvent.setup();
+        //Mock de las respuesta de la API para match history
+        (global.fetch as any).mockResolvedValue({
+            ok: true,
+            json: async () => mockStats,
+        });
+
+        render(<MemoryRouter><StatsView /></MemoryRouter>);
+
+        // Buscamos "View Details" 
+        const historyBtn = await screen.findByRole('button', { name: /view details/i });
+
+        await user.click(historyBtn);
+
+
+        expect(mockNavigate).toHaveBeenCalledWith('/match-history');
     });
 
 });
