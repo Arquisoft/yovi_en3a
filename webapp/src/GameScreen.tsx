@@ -38,28 +38,39 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [cellSize, setCellSize] = useState(60);
     const navigate = useNavigate();
 
+    // Calculate responsive cell size based on viewport width and orientation
     const calculateOptimalCellSize = () => {
         const isTablet = window.innerWidth >= 769;
         const isLandscape = window.innerHeight < window.innerWidth;
-
+        
         let availableWidth: number;
         let availableHeight: number;
 
         if (isTablet) {
+            // Desktop: preserve sidebar space
             availableWidth = Math.min(650, window.innerWidth - 400);
-            availableHeight = window.innerHeight - 120;
+            availableHeight = window.innerHeight - 120; // Header + padding
         } else if (isLandscape) {
+            // Mobile landscape: maximize both dimensions
             availableWidth = window.innerWidth - 24;
-            availableHeight = window.innerHeight - 80;
+            availableHeight = window.innerHeight - 80; // Header + minimal padding
         } else {
+            // Mobile portrait: prioritize width, constrain height
             availableWidth = window.innerWidth - 24;
             availableHeight = window.innerHeight - 80;
         }
 
+        // Calculate cell size based on width constraint
+        // gridWidth ≈ (boardSize - 1) * hexWidth + cellSize, where hexWidth = cellSize * 1.05
         const widthBasedSize = availableWidth / ((boardSize - 1) * 1.05 + 1);
+
+        // Calculate cell size based on height constraint
+        // gridHeight ≈ (boardSize - 1) * hexHeight + cellSize, where hexHeight = cellSize * 0.8
         const heightBasedSize = availableHeight / ((boardSize - 1) * 0.8 + 1);
+
+        // Use the smaller of the two to ensure it fits both dimensions
         const optimalSize = Math.min(widthBasedSize, heightBasedSize);
-        return Math.max(40, Math.floor(optimalSize));
+        return Math.max(40, Math.floor(optimalSize)); // Min 40px for now
     };
 
     useEffect(() => {
@@ -133,7 +144,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         }}>
             <HexBackground />
 
-            <div className="relative z-10 flex flex-col flex-1 w-full">
+            {/* Todo el contenido por encima del fondo */}
+            <div className="relative z-10 flex flex-col flex-1  w-full">
 
                 {/* ── Header ── */}
                 <header className="w-full flex items-center justify-between px-6 py-3 border-b border-white/5">
@@ -200,15 +212,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                 {/* ── Main layout: Desktop 3-column, Mobile vertical stack ── */}
                 <div className="game-layout-container" data-game-type={gameType}>
 
-                    {/* Left sidebar */}
+                    {/* Left sidebar: Player cards, timers, info */}
                     <aside className="game-layout-left-sidebar">
-
-                        {/* Game Timer — hidden on desktop, shown on mobile at top */}
+                        {/* MOBILE ORDER: 1. Game Timer - at top */}
                         <div className="game-timer-mobile-top" data-mobile-order="timer">
                             <GameTimer isRunning={!gameOver} />
                         </div>
 
-                        {/* Player Cards */}
+                        {/* 2. Player Cards - side by side on mobile */}
                         <div className="player-cards-container" data-mobile-order="cards">
                             <div className="flex-1 min-w-0">
                                 <PlayerCard
@@ -297,10 +308,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         />
                     </main>
 
-                    {/* Right sidebar */}
+                    {/* Right sidebar: Move history, tools */}
                     <aside className="game-layout-right-sidebar">
-
-                        {/* Toggle coordinates */}
+                        {/* 4. Tool bar - Toggle buttons */}
                         <div className="game-layout-tools" data-mobile-order="tools">
                             <Button
                                 variant="ghost"
@@ -313,7 +323,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             </Button>
                         </div>
 
-                        {/* Move history — collapsible */}
+                        {/* 6. Move History - Collapsible */}
                         <div className="rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden" data-mobile-order="history">
                             <button
                                 onClick={() => setIsMoveHistoryOpen(!isMoveHistoryOpen)}

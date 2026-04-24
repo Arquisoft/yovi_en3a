@@ -57,3 +57,40 @@
   padding: 0;
   font: inherit;
 }
+
+/* ── Responsive Design ── */
+@media (max-width: 768px) {
+  .login-form,
+  .register-form {
+    max-width: 100%;
+    margin: 30px auto;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-form,
+  .register-form {
+    margin: 20px auto;
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .login-form h2,
+  .register-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+
+  .login-form input,
+  .register-form input {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 0.5rem;
+  }
+
+  .login-form label,
+  .register-form label {
+    font-size: 0.9rem;
+  }
+}

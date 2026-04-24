@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, ArrowLeft, User, Target } from 'lucide-react';
 import HexBackground from './HexBackGround';
+import './RankingView.css';
 
 interface PlayerRank {
     userId: { _id: string; username: string; };
@@ -63,23 +64,23 @@ const RankingView: React.FC = () => {
                 <div className="w-full max-w-4xl">
 
                     {/* Header */}
-                    <div className="flex items-center gap-4 mb-10">
+                    <div className="flex items-start md:items-center gap-3 md:gap-4 mb-8 md:mb-10">
                         <button
                             onClick={() => navigate('/menu')}
-                            className="p-2 hover:bg-[#161b22] rounded-lg transition-all border border-[#30363d]"
+                            className="p-2 hover:bg-[#161b22] rounded-lg transition-all border border-[#30363d] flex-shrink-0"
                         >
-                            <ArrowLeft size={24} />
+                            <ArrowLeft size={20} className="md:w-6 md:h-6" />
                         </button>
-                        <div>
-                            <h1 className="text-3xl font-bold">Global Leaderboard</h1>
-                            <p className="text-gray-400">The best Hex players in the world</p>
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-2xl md:text-3xl font-bold break-words">Global Leaderboard</h1>
+                            <p className="text-xs md:text-sm text-gray-400">The best Hex players in the world</p>
                         </div>
                     </div>
 
                     {/* Podio */}
-                    <div className="grid grid-cols-3 gap-2 items-end mb-12 px-4 h-64">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end mb-12 px-2 md:px-4 h-auto md:h-64">
                         {podio[1] && (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center" data-podium="second">
                                 <div className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center mb-2 border-4 border-gray-500 shadow-lg">
                                     <Medal size={32} className="text-gray-800" />
                                 </div>
@@ -88,7 +89,7 @@ const RankingView: React.FC = () => {
                             </motion.div>
                         )}
                         {podio[0] && (
-                            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+                            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center" data-podium="first">
                                 <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-2 border-4 border-yellow-600 shadow-xl shadow-yellow-900/20">
                                     <Trophy size={40} className="text-yellow-900" />
                                 </div>
@@ -97,7 +98,7 @@ const RankingView: React.FC = () => {
                             </motion.div>
                         )}
                         {podio[2] && (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center" data-podium="third">
                                 <div className="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center mb-2 border-4 border-orange-600 shadow-lg">
                                     <Medal size={28} className="text-orange-900" />
                                 </div>
@@ -108,14 +109,14 @@ const RankingView: React.FC = () => {
                     </div>
 
                     {/* Tabla */}
-                    <div className="bg-[#161b22]/80 backdrop-blur-sm rounded-xl border border-[#30363d] overflow-hidden mb-6">
-                        <table className="w-full text-left">
+                    <div className="bg-[#161b22]/80 backdrop-blur-sm rounded-xl border border-[#30363d] overflow-x-auto mb-6">
+                        <table className="w-full text-left text-xs md:text-sm">
                             <thead className="bg-[#0d1117]/80 border-b border-[#30363d]">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase">Rank</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase">Player</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase text-center">Wins</th>
-                                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase text-right">Win Rate</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 font-semibold text-gray-400 uppercase">Rank</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 font-semibold text-gray-400 uppercase">Player</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 font-semibold text-gray-400 uppercase text-center">Wins</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 font-semibold text-gray-400 uppercase text-right">Win Rate</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#30363d]">
@@ -134,20 +135,20 @@ const RankingView: React.FC = () => {
                                                 ? 'bg-blue-600/20 border-l-4 border-l-blue-500 hover:bg-blue-600/30'
                                                 : 'hover:bg-[#1c2128]'}`}
                                         >
-                                            <td className={`px-6 py-4 font-mono ${isMe ? 'text-blue-400 font-bold' : 'text-gray-400'}`}>#{position}</td>
-                                            <td className="px-6 py-4 flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isMe ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'}`}>
-                                                    <User size={16} />
+                                            <td className={`px-3 md:px-6 py-3 md:py-4 font-mono ${isMe ? 'text-blue-400 font-bold' : 'text-gray-400'}`}>#{position}</td>
+                                            <td className="px-3 md:px-6 py-3 md:py-4 flex items-center gap-2 md:gap-3">
+                                                <div className={`w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isMe ? 'bg-blue-500 text-white' : 'bg-blue-500/10 text-blue-400'}`}>
+                                                    <User size={14} className="md:w-4 md:h-4" />
                                                 </div>
-                                                <span className={`font-medium ${isMe ? 'text-blue-100' : ''}`}>
-                                                    {player.userId.username} {isMe && <span className="text-[10px] ml-2 bg-blue-500 px-1.5 py-0.5 rounded text-white uppercase">You</span>}
+                                                <span className={`font-medium truncate ${isMe ? 'text-blue-100' : ''}`}>
+                                                    {player.userId.username} {isMe && <span className="hidden sm:inline text-[10px] ml-2 bg-blue-500 px-1.5 py-0.5 rounded text-white uppercase">You</span>}
                                                 </span>
                                             </td>
-                                            <td className={`px-6 py-4 text-center font-bold ${isMe ? 'text-blue-300' : 'text-green-400'}`}>{player.wins}</td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex flex-col items-end gap-1.5">
+                                            <td className={`px-3 md:px-6 py-3 md:py-4 text-center font-bold ${isMe ? 'text-blue-300' : 'text-green-400'}`}>{player.wins}</td>
+                                            <td className="px-3 md:px-6 py-3 md:py-4 text-right">
+                                                <div className="flex flex-col items-end gap-0.5 md:gap-1.5">
                                                     <span className={`text-xs font-mono ${isMe ? 'text-blue-300 font-bold' : 'text-gray-400'}`}>{winRateFormatted}%</span>
-                                                    <div className="w-24 h-1.5 bg-gray-800 rounded-full overflow-hidden border border-white/5">
+                                                    <div className="w-12 md:w-24 h-1 md:h-1.5 bg-gray-800 rounded-full overflow-hidden border border-white/5">
                                                         <motion.div
                                                             initial={{ width: 0 }}
                                                             animate={{ width: `${winRate}%` }}
@@ -169,28 +170,28 @@ const RankingView: React.FC = () => {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-4 flex items-center justify-between shadow-lg backdrop-blur-sm"
+                            className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0 shadow-lg backdrop-blur-sm"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="bg-blue-500 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center font-bold">
+                            <div className="flex items-center gap-3 md:gap-4 flex-1">
+                                <div className="bg-blue-500 text-white w-12 h-12 rounded-lg flex flex-col items-center justify-center font-bold flex-shrink-0">
                                     <span className="text-[10px] uppercase leading-none opacity-80">Rank</span>
                                     <span className="text-lg">#{userRank.position}</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-white flex items-center gap-2">
-                                        Your Standing <Target size={14} className="text-blue-400" />
+                                    <h3 className="font-bold text-white flex items-center gap-2 text-sm md:text-base">
+                                        Your Standing <Target size={14} className="text-blue-400 flex-shrink-0" />
                                     </h3>
                                     <p className="text-xs text-gray-400 italic">Keep playing to climb the leaderboard!</p>
                                 </div>
                             </div>
-                            <div className="flex gap-8 text-right">
+                            <div className="flex gap-6 md:gap-8 text-right w-full md:w-auto">
                                 <div>
                                     <p className="text-xs text-gray-400 uppercase font-semibold">Wins</p>
-                                    <p className="text-xl font-bold text-green-400">{userRank.wins}</p>
+                                    <p className="text-lg md:text-xl font-bold text-green-400">{userRank.wins}</p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-400 uppercase font-semibold">Win Rate</p>
-                                    <p className="text-xl font-bold text-white">
+                                    <p className="text-lg md:text-xl font-bold text-white">
                                         {((userRank.wins / userRank.gamesPlayed) * 100).toFixed(1)}%
                                     </p>
                                 </div>

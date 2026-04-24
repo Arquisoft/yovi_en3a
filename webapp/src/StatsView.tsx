@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { BarChart3, Trophy, Target, Hash, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
+import { BarChart3, Trophy, Target, Hash, ArrowLeft, Loader2, AlertCircle, ChevronRight, History } from 'lucide-react';
 import { motion } from "framer-motion";
 import HexBackground from './HexBackGround';
 
@@ -85,16 +85,16 @@ const StatsView: React.FC = () => {
                 <div className="max-w-5xl mx-auto">
 
                     {/* Header */}
-                    <div className="flex items-center gap-4 mb-10">
+                    <div className="flex items-start md:items-center gap-3 md:gap-4 mb-8 md:mb-10">
                         <button
                             onClick={() => navigate('/menu')}
-                            className="p-2 hover:bg-[#161b22] border border-transparent hover:border-[#30363d] rounded-lg transition-all"
+                            className="p-2 hover:bg-[#161b22] border border-transparent hover:border-[#30363d] rounded-lg transition-all flex-shrink-0"
                         >
-                            <ArrowLeft size={24} />
+                            <ArrowLeft size={20} className="md:w-6 md:h-6" />
                         </button>
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Statistics</h1>
-                            <p className="text-gray-400 text-sm">Real-time breakdown of your competitive history</p>
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">Statistics</h1>
+                            <p className="text-xs md:text-sm text-gray-400">Real-time breakdown of your competitive history</p>
                         </div>
                     </div>
 
@@ -113,17 +113,17 @@ const StatsView: React.FC = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                             {/* Chart */}
-                            <div className="lg:col-span-1 bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] p-6 rounded-2xl shadow-xl">
-                                <h3 className="text-gray-400 text-xs font-bold uppercase mb-6 tracking-widest">Win/Loss Ratio</h3>
-                                <div className="h-[280px] w-full">
+                            <div className="lg:col-span-1 bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] p-4 md:p-6 rounded-2xl shadow-xl">
+                                <h3 className="text-gray-400 text-xs font-bold uppercase mb-4 md:mb-6 tracking-widest">Win/Loss Ratio</h3>
+                                <div className="h-[240px] md:h-[280px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
                                                 data={chartData}
                                                 cx="50%"
                                                 cy="50%"
-                                                innerRadius={70}
-                                                outerRadius={90}
+                                                innerRadius={50}
+                                                outerRadius={70}
                                                 paddingAngle={8}
                                                 dataKey="value"
                                                 stroke="none"
@@ -134,14 +134,14 @@ const StatsView: React.FC = () => {
                                             </Pie>
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: '#161b22', border: '1px solid #30363d', borderRadius: '12px' }}
-                                                itemStyle={{ fontSize: '14px' }}
+                                                itemStyle={{ fontSize: '12px' }}
                                             />
                                             <Legend iconType="circle" />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="text-center mt-4">
-                                    <p className="text-2xl font-bold">
+                                <div className="text-center mt-3 md:mt-4">
+                                    <p className="text-xl md:text-2xl font-bold">
                                         {stats.gamesPlayed > 0 ? ((stats.wins / stats.gamesPlayed) * 100).toFixed(0) : 0}%
                                     </p>
                                     <p className="text-xs text-gray-500 uppercase">Overall Win Rate</p>
@@ -149,7 +149,7 @@ const StatsView: React.FC = () => {
                             </div>
 
                             {/* Stats Grid */}
-                            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                                 <StatCard
                                     title="Global Rank"
                                     value={myPosition ? `#${myPosition}` : "Unranked"}
@@ -165,6 +165,19 @@ const StatsView: React.FC = () => {
                                 />
                                 <StatCard title="Victories" value={stats.wins} icon={<Trophy size={20} className="text-green-500" />} color="text-green-400" />
                                 <StatCard title="Defeats" value={stats.losses} icon={<Target size={20} className="text-red-500" />} color="text-red-400" />
+                                <StatCard
+                                    title="Match History"
+                                    value={
+                                        <button
+                                            onClick={() => navigate('/match-history')}
+                                            className="mt-2 group flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-white transition-colors bg-[#1c2128] hover:bg-[#30363d] px-4 py-2 rounded-lg border border-[#30363d]"
+                                        >
+                                            View Details
+                                            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                        </button>
+                                    }
+                                    icon={<History size={20} className="text-purple-400" />}
+                                />
                             </div>
                         </div>
                     )}
@@ -175,14 +188,14 @@ const StatsView: React.FC = () => {
 };
 
 const StatCard = ({ title, value, icon, color = "text-white" }: any) => (
-    <div className="bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] p-6 rounded-2xl flex flex-col justify-between hover:bg-[#1c2128]/80 transition-colors group">
-        <div className="flex justify-between items-center mb-6">
-            <span className="text-gray-400 text-xs font-bold uppercase tracking-widest">{title}</span>
-            <div className="p-2 bg-[#0d1117] rounded-lg group-hover:scale-110 transition-transform">
+    <div className="bg-[#161b22]/80 backdrop-blur-sm border border-[#30363d] p-4 md:p-6 rounded-2xl flex flex-col justify-between hover:bg-[#1c2128]/80 transition-colors group">
+        <div className="flex justify-between items-start md:items-center mb-4 md:mb-6 gap-2">
+            <span className="text-gray-400 text-xs font-bold uppercase tracking-widest flex-1">{title}</span>
+            <div className="p-2 bg-[#0d1117] rounded-lg group-hover:scale-110 transition-transform flex-shrink-0">
                 {icon}
             </div>
         </div>
-        <div className={`text-4xl font-mono font-bold ${color}`}>{value}</div>
+        <div className={`text-2xl md:text-4xl font-mono font-bold ${color} break-words`}>{value}</div>
     </div>
 );
 

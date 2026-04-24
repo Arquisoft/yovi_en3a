@@ -10,14 +10,19 @@
   },
   "author": "",
   "license": "ISC",
+  "mongodbMemoryServer": {
+    "version": "7.0.14"
+  },
   "dependencies": {
     "axios": "^1.6.0",
     "express": "^5.2.1",
+    "express-prom-bundle": "^7.0.0",
     "mongoose": "^9.2.1"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.15",
     "mongodb-memory-server": "^11.0.1",
+    "nock": "^14.0.12",
     "supertest": "^7.1.4",
     "vitest": "^4.0.15"
   }

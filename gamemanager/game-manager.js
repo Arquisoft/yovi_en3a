@@ -3,6 +3,10 @@ const app = express();
 const port = 5000;
 const axios = require('axios');
 const mongoose = require('mongoose');
+const promBundle = require('express-prom-bundle');
+
+const metricsMiddleware = promBundle({ includeMethod: true });
+app.use(metricsMiddleware);
 const Game = require('./models/game');
 
 const { GameFactory } = require('./models/gameFactory');
@@ -329,14 +333,21 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api/gamey/play', async (req, res) => {
-    const { bot_id: botId = 'medium_bot', size, turn, players: rawPlayers, ...rest } = req.query;
-    const players = rawPlayers
-        ? (Array.isArray(rawPlayers) ? rawPlayers : Object.values(rawPlayers))
-        : ['B', 'R'];
-    const yen = { ...rest, size: parseInt(size, 10), turn: parseInt(turn, 10), players };
-    
+    const { bot_id: botId = 'medium_bot', position } = req.query;
+
+    if (!position) {
+        return res.status(400).json({ error: '`position` query parameter is required' });
+    }
+
+    let yen;
+    try {
+        yen = typeof position === 'string' ? JSON.parse(position) : position;
+    } catch {
+        return res.status(400).json({ error: 'Invalid JSON in `position` parameter' });
+    }
+
     if (!yen.layout || !yen.size) {
-        return res.status(400).json({ error: 'yen (layout, size) is required' });
+        return res.status(400).json({ error: '`position` must include at least `layout` and `size`' });
     }
 
     try {

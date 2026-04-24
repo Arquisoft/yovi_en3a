@@ -75,22 +75,22 @@ app.use('/api/game-manager', authMiddleware, (req, res) => proxyRequest(GAME_MAN
 
 // Used for playing against the desired bot of our game
 app.get('/play', (req, res) => {
-    try {
-        axios({
-            method: 'GET',
-            url: `${GAME_MANAGER_URL}/api/gamey/play`,
-            params: req.query,
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => res.status(response.status).json(response.data))
-        .catch(error => {
-            const status = error.response?.status || 500;
-            const data = error.response?.data || { error: 'Internal gateway error' };
-            res.status(status).json(data);
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal gateway error' });
+    if (!req.query.position) {
+        return res.status(400).json({ error: '`position` query parameter is required' });
     }
+
+    axios({
+        method: 'GET',
+        url: `${GAME_MANAGER_URL}/api/gamey/play`,
+        params: req.query,
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => res.status(response.status).json(response.data))
+    .catch(error => {
+        const status = error.response?.status || 500;
+        const data = error.response?.data || { error: 'Internal gateway error' };
+        res.status(status).json(data);
+    });
 });
 
 
