@@ -5,9 +5,10 @@ import FortuneBoard from "./FortuneBoard";
 import TabuBoard from "./TabuBoard";
 import WhyNotBoard from "./WhyNotBoard";
 import HoleyBoard from "./HoleyBoard";
+import PieBoard from "./PieBoard";
 import { type BoardProps, type GameBoardRef } from "./Types";
 
-export const BOARD_MAP: Record <
+export const BOARD_MAP: Record<
   string,
   ForwardRefExoticComponent<BoardProps & RefAttributes<GameBoardRef>>
 > = {
@@ -17,4 +18,5 @@ export const BOARD_MAP: Record <
   tabu: TabuBoard,
   whynot: WhyNotBoard,
   holey: HoleyBoard,
+  pie: PieBoard,
 };

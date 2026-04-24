@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import './GameScreen.css';
 import SidePanel, { type SidePanelRef } from './game/SidePanel';
 import GameBoard, { type GameBoardRef } from './game/GameBoard';
@@ -20,6 +20,8 @@ interface GameScreenProps {
 
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const { gameId, size, gameType } = useParams();
+    const location = useLocation();
+    const isMultiplayer = (location.state as any)?.isMultiplayer ?? false;
     const [boardSize] = useState<number>(size ? Number.parseInt(size) : 7);
 
     const sidePanelRef = useRef<SidePanelRef>(null);
@@ -73,11 +75,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
     useEffect(() => {
         setCellSize(calculateOptimalCellSize());
-
-        const handleResize = () => {
-            setCellSize(calculateOptimalCellSize());
-        };
-
+        const handleResize = () => setCellSize(calculateOptimalCellSize());
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [boardSize]);
@@ -103,7 +101,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         return () => { if (audio) { audio.pause(); audio.currentTime = 0; } };
     }, []);
 
-    // Tipos de juego que gestionan los turnos ellos mismos via onTurnChange
     const SELF_MANAGED_TURNS = ["fortune", "master"];
     const autoTurn = !gameType || !SELF_MANAGED_TURNS.includes(gameType);
 
@@ -123,17 +120,22 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         }
     };
 
-    const handleTurnChange = (turn: "p1" | "p2") => {
-        setCurrentTurn(turn);
-    };
+    const handleTurnChange = (turn: "p1" | "p2") => setCurrentTurn(turn);
 
     const handleExit = () => {
         if (onExit) onExit();
         else navigate(-1);
     };
 
-    const handleTurnTimeout = () => {
-        gameBoardRef.current?.makeRandomMove?.();
+    const handleTurnTimeout = () => gameBoardRef.current?.makeRandomMove?.();
+
+    const handleP2TurnTimeout = () => gameBoardRef.current?.makeRandomP2Move?.();
+
+    const handleGameOver = (winner: "p1" | "p2") => {
+        if (isMultiplayer && gameId) {
+            try { localStorage.removeItem(`mp_board_${gameId}`); } catch {}
+        }
+        setGameOver(winner);
     };
 
     return (
@@ -186,10 +188,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                 <Trophy className={`h-12 w-12 ${gameOver === "p1" ? "text-yellow-400" : "text-white/20"}`} />
                             </div>
                             <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Courier New', monospace" }}>
-                                {gameOver === "p1" ? "You Win!" : "You Lose!"}
+                                {isMultiplayer
+                                    ? (gameOver === "p1" ? "Player 1 Wins!" : "Player 2 Wins!")
+                                    : (gameOver === "p1" ? "You Win!" : "You Lose!")
+                                }
                             </h2>
                             <p className="text-white/30 text-sm mb-6">
-                                {gameOver === "p1" ? "Congratulations, well played!" : "Better luck next time."}
+                                {isMultiplayer
+                                    ? (gameOver === "p1" ? "Blue player connected all three edges!" : "Red player connected all three edges!")
+                                    : (gameOver === "p1" ? "Congratulations, well played!" : "Better luck next time.")
+                                }
                             </p>
                             <Button
                                 onClick={handleExit}
@@ -224,7 +232,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <PlayerCard
-                                    name="Player 2"
+                                    name={isMultiplayer ? "Player 2" : "Bot"}
                                     playerNumber={2}
                                     isCurrentTurn={currentTurn === "p2" && !gameOver}
                                     piecesPlaced={piecesP2}
@@ -235,21 +243,36 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
                         <Separator className="bg-white/5" />
 
-                        {/* 5. Turn Timer */}
+                        {/* Game Timer — desktop */}
+                        <GameTimer isRunning={!gameOver} />
+
+                        {/* Turn Timers */}
                         {currentTurn === "p1" && !gameOver && (
                             <div data-mobile-order="turn-timer">
-                            <TurnTimer
-                                key={turnNumber}
-                                gameId={gameId}
-                                totalSeconds={20}
-                                onExpire={handleTurnTimeout}
-                            />
+                                <TurnTimer
+                                    key={`p1-${turnNumber}`}
+                                    gameId={gameId}
+                                    totalSeconds={20}
+                                    onExpire={handleTurnTimeout}
+                                    label={isMultiplayer ? "Player 1's turn" : "Your turn"}
+                                />
+                            </div>
+                        )}
+                        {isMultiplayer && currentTurn === "p2" && !gameOver && (
+                            <div data-mobile-order="turn-timer">
+                                <TurnTimer
+                                    key={`p2-${piecesP2}`}
+                                    gameId={gameId ? `${gameId}-p2` : undefined}
+                                    totalSeconds={20}
+                                    onExpire={handleP2TurnTimeout}
+                                    label="Player 2's turn"
+                                />
                             </div>
                         )}
 
                         <Separator className="bg-white/5" />
 
-                        {/* 7. Info Box */}
+                        {/* Info box */}
                         <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2" data-mobile-order="info">
                             <p className="text-[0.6rem] uppercase tracking-widest text-white/20 font-bold">Info</p>
                             <div className="flex justify-between text-xs">
@@ -276,10 +299,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             cellSize={cellSize}
                             gameType={gameType}
                             showNames={showCellNames}
+                            isMultiplayer={isMultiplayer}
                             onCellPlayed={(player, playerName, coordinate) =>
                                 handleCellPlayed(player as "p1" | "p2", playerName, coordinate)
                             }
-                            onGameOver={(winner) => setGameOver(winner)}
+                            onGameOver={(winner) => handleGameOver(winner as "p1" | "p2")}
                             onTurnChange={handleTurnChange}
                         />
                     </main>
@@ -309,11 +333,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                                     Move History
                                 </h3>
                                 <div className="text-white/40">
-                                    {isMoveHistoryOpen ? (
-                                        <ChevronUp className="w-4 h-4" />
-                                    ) : (
-                                        <ChevronDown className="w-4 h-4" />
-                                    )}
+                                    {isMoveHistoryOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                 </div>
                             </button>
                             {isMoveHistoryOpen && (

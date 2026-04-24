@@ -16,20 +16,22 @@ export const useTabuLogic = (
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
   onGameOver: BoardProps["onGameOver"],
-  onTurnChange: BoardProps["onTurnChange"]
+  onTurnChange: BoardProps["onTurnChange"],
+  isMultiplayer = false
 ) => {
   const [tabuCells, setTabuCells] = useState<Set<string>>(new Set());
 
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
     onBeforeMove: () => true,
-    onAfterPlayerMove: () => {
-      setTabuCells(new Set());
+    onAfterPlayerMove: (coord: Coordinates) => {
+      setTabuCells(getAdjacentKeys(coord));
       onTurnChange?.("p2");
     },
     onAfterBotMove: (coord: Coordinates) => {
       setTabuCells(getAdjacentKeys(coord));
       onTurnChange?.("p1");
     },
+    isMultiplayer,
   });
 
   const highlightCells = new Map<string, string>();

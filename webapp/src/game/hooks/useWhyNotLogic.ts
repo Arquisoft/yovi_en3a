@@ -6,7 +6,8 @@ export const useWhyNotLogic = (
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
   onGameOver: BoardProps["onGameOver"],
-  onTurnChange: BoardProps["onTurnChange"]
+  onTurnChange: BoardProps["onTurnChange"],
+  isMultiplayer = false
 ) => {
   const invertedOnGameOver = (winner: "p1" | "p2") => {
     onGameOver?.(winner === "p1" ? "p2" : "p1");
@@ -15,6 +16,7 @@ export const useWhyNotLogic = (
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, invertedOnGameOver, {
     onAfterPlayerMove: () => onTurnChange?.("p2"),
     onAfterBotMove: () => onTurnChange?.("p1"),
+    isMultiplayer,
   });
 
   return { ...logic };
