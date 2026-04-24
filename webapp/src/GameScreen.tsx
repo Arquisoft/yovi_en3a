@@ -250,7 +250,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                         {isMultiplayer && currentTurn === "p2" && !gameOver && (
                             <div data-mobile-order="turn-timer">
                                 <TurnTimer
-                                    key={`p2-${turnNumber}`}
+                                    key={`p2-${piecesP2}`}
                                     gameId={gameId ? `${gameId}-p2` : undefined}
                                     totalSeconds={20}
                                     onExpire={handleP2TurnTimeout}

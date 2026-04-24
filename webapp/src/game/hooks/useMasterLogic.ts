@@ -63,15 +63,50 @@ export const useMasterLogic = (
     }
   }, [logic, onTurnChange, isMultiplayer]);
 
+  const randomCoord = () => {
+    const all: any[] = [];
+    for (let row = 0; row < boardSize; row++) {
+      const x = boardSize - 1 - row;
+
+      for (let y = 0; y <= row; y++) {
+        all.push({ x, y, z: row - y });
+      }
+    }
+
+    const available = all.filter(c => !logic.playedCoords.current.has(`${c.x}-${c.y}-${c.z}`));
+
+    if (available.length === 0) { 
+      return null;
+    }
+
+    return available[Math.floor(Math.random() * available.length)];
+  };
+
+  const makeRandomMove = useCallback(() => {
+    if (isMultiplayer && whosTurnRef.current !== "p1") { 
+      return;
+    }
+
+    const coord = randomCoord();
+    if (!coord) {
+      return;
+    }
+
+    handleClick(coord, `(${coord.x},${coord.y},${coord.z})`);
+  }, [handleClick]);
+
   const makeRandomP2Move = useCallback(() => {
     if (!isMultiplayer || whosTurnRef.current !== "p2") {
       return;
     }
-    
-    logic.makeRandomP2Move();
-    piecesThisTurnRef.current = 0; setPiecesThisTurn(0); setWaitingForSecond(false);
-    whosTurnRef.current = "p1"; setWhosTurn("p1"); onTurnChange?.("p1");
-  }, [logic, onTurnChange, isMultiplayer]);
+
+    const coord = randomCoord();
+    if (!coord) {
+      return;
+    }
+
+    handleClick(coord, `(${coord.x},${coord.y},${coord.z})`);
+  }, [handleClick, isMultiplayer]);
 
   return {
     ...logic,
@@ -79,6 +114,6 @@ export const useMasterLogic = (
     piecesThisTurn,
     waitingForSecond,
     whosTurn,
-    gameBoardRef: { ...logic.gameBoardRef, makeRandomP2Move },
+    gameBoardRef: { ...logic.gameBoardRef, makeRandomMove, makeRandomP2Move },
   };
 };

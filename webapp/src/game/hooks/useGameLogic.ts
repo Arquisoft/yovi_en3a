@@ -5,19 +5,18 @@ import { type Coordinates, type GameBoardRef, type GameLogicOptions, parseLayout
 import { type HexCellRef } from "../HexCell";
 import { flushSync } from "react-dom";
 
-// Se tuvo que añadir aqui por el local no hace llamadas al backend
 export const checkYWin = (cells: Set<string>): boolean => {
   const queue: string[] = [];
   const visited = new Set<string>();
   for (const key of cells) {
     if (Number(key.split("-")[1]) === 0) { 
-      queue.push(key); visited.add(key); 
+      queue.push(key); 
+      visited.add(key);
     }
   }
   if (queue.length === 0) {
     return false;
   }
-
   let touchesB = false, touchesC = false, head = 0;
   while (head < queue.length) {
     const curr = queue[head++];
@@ -25,7 +24,7 @@ export const checkYWin = (cells: Set<string>): boolean => {
     if (z === 0) {
       touchesB = true;
     }
-    if (x === 0) {
+    if (x === 0) { 
       touchesC = true;
     }
     if (touchesB && touchesC) {
@@ -47,11 +46,9 @@ interface SavedState {
   p2: string[];
   isP2Turn: boolean;
 }
-
 function loadState(key: string): SavedState | null {
   try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; }
 }
-
 function saveState(key: string, s: SavedState) {
   try { localStorage.setItem(key, JSON.stringify(s)); } catch {}
 }
@@ -80,8 +77,8 @@ export const useGameLogic = (
   const [isP2Turn, setIsP2Turn] = useState(false);
 
   useEffect(() => {
-    if (!gameId) {
-      return;
+    if (!gameId) { 
+        return;
     }
 
     if (optionsRef.current?.isMultiplayer) {
@@ -159,8 +156,8 @@ export const useGameLogic = (
     p2CellsRef.current.add(key);
     onCellPlayed?.("p2", "Player 2", name);
 
-    if (checkYWin(p2CellsRef.current)) { 
-      onGameOver?.("p2"); return; 
+    if (checkYWin(p2CellsRef.current)) {
+       onGameOver?.("p2"); return; 
     }
 
     isP2TurnRef.current = false;
@@ -170,10 +167,9 @@ export const useGameLogic = (
   }, [onCellPlayed, onGameOver, storageKey]);
 
   const executeMove = useCallback(async (coordinates: Coordinates, name: string) => {
-    if (!gameId) {
-      return;
-    }
-    
+    if (!gameId) { 
+        return;
+      }
     const token = localStorage.getItem("token");
     const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
 
@@ -211,7 +207,7 @@ export const useGameLogic = (
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
 
-    if (!botRes.ok) {
+    if (!botRes.ok) { 
       return;
     }
 
@@ -277,12 +273,12 @@ export const useGameLogic = (
         executeP1MoveLocal(coordinates, name);
       }
     } else {
-      if (!gameId) {
+      if (!gameId) { 
         return;
       }
       if (optionsRef.current?.onBeforeMove?.() === false) {
         return;
-      }
+      } 
 
       executeMove(coordinates, name);
     }
@@ -292,7 +288,9 @@ export const useGameLogic = (
     const all: Coordinates[] = [];
     for (let row = 0; row < boardSize; row++) {
       const x = boardSize - 1 - row;
-      for (let y = 0; y <= row; y++) all.push({ x, y, z: row - y });
+      for (let y = 0; y <= row; y++) {
+        all.push({ x, y, z: row - y }); 
+      }
     }
     return all.filter(c => !playedCoords.current.has(`${c.x}-${c.y}-${c.z}`));
   }, [boardSize]);
@@ -301,11 +299,16 @@ export const useGameLogic = (
     const available = availableCoords();
     if (available.length === 0) {
       return;
-    } 
-    
+    }
+
     const coord = available[Math.floor(Math.random() * available.length)];
-    executeMove(coord, `(${coord.x},${coord.y},${coord.z})`);
-  }, [availableCoords, executeMove]);
+    const name = `(${coord.x},${coord.y},${coord.z})`;
+    if (optionsRef.current?.isMultiplayer) {
+      executeP1MoveLocal(coord, name);
+    } else {
+      executeMove(coord, name);
+    }
+  }, [availableCoords, executeMove, executeP1MoveLocal]);
 
   const makeRandomP2Move = useCallback(() => {
     const available = availableCoords();
