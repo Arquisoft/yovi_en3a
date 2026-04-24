@@ -482,7 +482,7 @@ describe('GET /api/gamey/play', () => {
 
         const res = await request(app)
             .get('/api/gamey/play')
-            .query({ layout: './..',  size: '3', turn: '0', 'players[0]': 'B', 'players[1]': 'R' })
+            .query({ position: JSON.stringify({ layout: './..',  size: 3, turn: 0, players: ['B', 'R'] }) })
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('coords')
     })
@@ -500,7 +500,7 @@ describe('GET /api/gamey/play', () => {
 
         const res = await request(app)
             .get('/api/gamey/play')
-            .query({ layout: './..',  size: '3', turn: '0' })
+            .query({ position: JSON.stringify({ layout: './..',  size: 3, turn: 0, players: ['B', 'R'] }) })
         expect(res.status).toBe(503)
         expect(res.body).toHaveProperty('error')
     })
