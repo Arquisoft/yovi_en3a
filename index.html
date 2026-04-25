@@ -515,7 +515,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_technical_debts">11.2. Technical Debts</a></li>
 </ul>
 </li>
-<li><a href="#section-glossary">12. Glossary</a></li>
+<li><a href="#section-testing">12. Testing</a>
+<ul class="sectlevel2">
+<li><a href="#_unit_and_integration_tests">12.1. Unit and Integration Tests</a></li>
+<li><a href="#_end_to_end_tests">12.2. End-to-End Tests</a></li>
+<li><a href="#_load_testing">12.3. Load Testing</a></li>
+</ul>
+</li>
+<li><a href="#section-glossary">13. Glossary</a></li>
 </ul>
 </div>
 </div>
@@ -934,9 +941,24 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 <div class="sect2">
 <h3 id="_business_context">3.1. Business Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Business%20context.png" alt="Business context" width="393" height="452">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+skinparam linetype ortho
+
+actor User
+actor "External Bots" as Bots
+
+node "YOVI" {
+    rectangle "Frontend" as Frontend
+    rectangle "Backend" as Backend
+    database "MongoDB" as DB
+}
+
+User &lt;--&gt; Frontend : Accesses and uses the application
+Frontend &lt;--&gt; Backend : Communicates via API calls with
+Backend &lt;--&gt; DB : Save / Retrieve documents
+Bots &lt;--&gt; Backend : Retrieve information via API calls</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -995,9 +1017,33 @@ The title of the table is the name of your system, the three columns contain the
 </div>
 <div class="sect2">
 <h3 id="_technical_context">3.2. Technical Context</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Technical%20context.png" alt="Technical context" width="502" height="645">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+skinparam linetype ortho
+
+actor User
+actor "External Bots" as Bots
+
+node "YOVI" {
+    rectangle "Web Frontend" as Frontend
+    rectangle "Gateway Service" as Gateway
+    rectangle "Users Service" as Service
+    rectangle "Game Manager" as Manager
+    rectangle "GameY" as Game
+    database "MongoDB" as DB
+}
+
+User --&gt; Frontend : HTTPS requests
+Frontend --&gt; Gateway : API calls
+Gateway --&gt; Service : Redirects to Users Service
+Gateway --&gt; Manager : Redirects to Game Manager
+Gateway --&gt; Game : External bot access
+Bots --&gt; Gateway : API Call
+Service &lt;--&gt; DB : Save / Retrieve user data
+Manager &lt;--&gt; DB : Save / Retrieve board data
+Manager &lt;--&gt; Game : Game operations
+Manager --&gt; Service : Update user stats</pre>
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1355,9 +1401,33 @@ In the best case you will get away with examples or simple signatures.</p>
 </div>
 </div>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/YOVI%20System%20Architecture%20-%20Level%201.png" alt="YOVI System Architecture   Level 1" width="593" height="845">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "User" as user
+
+rectangle "YOVI System" {
+
+  node "WebApp" as Web
+  node [Gateway Service] as gateway
+  node "Game Manager" as GameSvc
+  node "User Service" as UserSvc
+  node "Gamey Engine" as GameEngine
+  database "MongoDB" as db
+
+
+}
+
+user --&gt; Web : Browser (HTTPS)
+
+Web --&gt; gateway: HTTP REST\nall requests\nport 8000
+gateway--&gt; UserSvc : HTTP REST\nuser auth &amp; registration\nport 3000
+gateway--&gt; GameSvc: HTTP REST\ngame management\nport 5000
+GameSvc--&gt; GameEngine: HTTP POST\nfetch bot move &amp; check win\nport 4000
+GameSvc--&gt; UserSvc: HTTP POST\nupdate user stats\nport 3000
+UserSvc --&gt; db: user data persistence\nport 27017
+GameSvc--&gt; db: game state persistence\nport 27017</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1499,9 +1569,32 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_gamey">5.2.1. White Box Gamey</h4>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Gamey%20Engine%20-%20Internal%20Structure.png" alt="Gamey Engine   Internal Structure" width="613" height="639">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+node "Game Manager" as game_mgr
+rectangle "Gamey" as gamey {
+  'component [Yen Notation] as yen
+
+  component [Bot Registry] as bots
+  port "CLI" as cli
+  component "Bot Server\n(HTTP)" as api
+  component [Core Game Logic] as core
+
+
+
+}
+
+"Developer" as dev
+
+
+'yen --- core
+core --&gt; bots
+api --&gt; core
+api --&gt; bots
+api -u0)- game_mgr: HTTP POST\n /choose \n /checkWin
+cli --&gt; core: local play \n(not for regular users)
+cli -u0)- dev: terminal</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1586,9 +1679,52 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_webapp">5.2.2. White Box WebApp</h4>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/WebApp%20-%20Internal%20Structure%20and%20Navigation.png" alt="WebApp   Internal Structure and Navigation" width="1637" height="967">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+
+actor "Player" as player
+
+rectangle "WebApp" as webapp {
+  [Landing Page] as Landing
+  [Login Form] as Login
+  [Register Form] as Register
+  [Menu View] as Menu
+  [How To Play] as HTP
+  [Game Selection] as GameSelect
+  [Game UI] as GameUI
+  [Stats View] as Stats
+  [Ranking View] as Ranking
+}
+
+node "Gateway Service" as Gateway
+node "User Service" as UserSvc
+node "Game Manager" as GameMgr
+
+player --&gt; Landing
+Landing --&gt; Login
+Landing --&gt; Register
+
+Login --&gt; Gateway: HTTP POST /api/users/login\nAuthenticate user\nport 8000
+Register --&gt; Gateway: HTTP POST /api/users/register\nCreate new account\nport 8000
+
+Login --&gt; Menu
+Menu --&gt; HTP
+Menu --&gt; GameSelect
+Menu --&gt; Stats
+Menu --&gt; Ranking
+
+Stats --&gt; Gateway: HTTP GET /api/users/stats\nFetch user statistics\nport 8000
+Ranking --&gt; Gateway: HTTP GET /api/users/ranking\nFetch leaderboard\nport 8000
+
+GameSelect --&gt; Gateway: HTTP POST /api/game-manager/create/:gameName\nInitialize game session\nport 8000
+GameSelect --&gt; GameUI
+
+GameUI --&gt; Gateway: HTTP POST /api/game-manager/move\nSubmit player move\n(authentication required)\nport 8000
+
+Gateway --&gt; UserSvc: HTTP REST\nport 3000
+Gateway --&gt; GameMgr: HTTP REST\nport 5000</pre>
 </div>
 </div>
 <div class="dlist">
@@ -1724,9 +1860,30 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user registers in the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Register.png" alt="Sequence diagram   Register" width="808" height="536">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -&gt; Webapp : Fill registration form\n{ username, email, password }
+Webapp -&gt; Gateway : POST /api/users/register
+Gateway -&gt; Service : POST /register\n{ username, email, password }
+Service --&gt; Service : Validate input\nHash password (bcrypt)\nStore in MongoDB
+
+alt Success
+    Service --&gt; Gateway : { message: "User created" }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show welcome message\nRedirect to login
+else Error
+    Service --&gt; Gateway : { error: "User already exists" }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show error message
+end</pre>
 </div>
 </div>
 </div>
@@ -1735,9 +1892,31 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user logs into the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Login.png" alt="Sequence diagram   Login" width="765" height="548">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+hide footbox
+
+actor User
+participant "Webapp" as Webapp
+participant "Gateway Service" as Gateway
+participant "Users Service" as Service
+
+User -&gt; Webapp : Fill login form\n{ username, password }
+Webapp -&gt; Gateway : POST /api/users/login
+Gateway -&gt; Service : POST /login\n{ username, password }
+Service --&gt; Service : Validate credentials\nCompare password (bcrypt)
+
+alt Success
+    Service --&gt; Gateway : { token: JWT, userId }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; Webapp : Store JWT in session
+    Webapp -&gt; User : Redirect to main menu
+else Error
+    Service --&gt; Gateway : { error: "Invalid credentials" }
+    Gateway --&gt; Webapp : Forward response
+    Webapp -&gt; User : Show error message
+end</pre>
 </div>
 </div>
 </div>
@@ -1746,9 +1925,42 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user plays a game, including interactions with the web app, game core, and bot service.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop " width="1000" height="932">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+
+actor "Player" as User
+participant "WebApp" as Web
+participant "Gateway Service" as Gateway
+participant "Game Manager" as GameCore
+participant "Gamey Engine" as Bot
+
+User -&gt; Web : Start Game\nSelect difficulty &amp; board size
+Web -&gt; Gateway : POST /api/game-manager/create/standard\n{ botId, boardSize }
+Gateway -&gt; GameCore : POST /create/standard\n{ botId, boardSize }
+GameCore -&gt; GameCore : Create game\nStore in MongoDB
+GameCore --&gt; Gateway : { gameId, yen, status }
+Gateway --&gt; Web : { gameId, yen, status }
+Web --&gt; User : Game started
+
+loop until game over
+
+    User -&gt; Web : make move\n{ x, y, z }
+    Web -&gt; Gateway : POST /api/game-manager/game/:id/move\n{ coords }
+    Gateway -&gt; GameCore : POST /game/:id/move\n{ coords }
+    GameCore -&gt; GameCore : apply player move\ncheck if game over
+
+    GameCore -&gt; Bot : POST /v1/ybot/choose/{botId}\n{ yen }
+    Bot --&gt; GameCore : { coords }
+    GameCore -&gt; GameCore : apply bot move\ncheck if game over
+
+    GameCore --&gt; Gateway : { yen, status }
+    Gateway --&gt; Web : { yen, status }
+    Web --&gt; User : show updated board
+
+end
+
+Web --&gt; User : Game Over</pre>
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1815,9 +2027,21 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 <div class="paragraph">
 <p>This level zooms into the internal structure of the production environment hosted on Azure.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/deployment-lv1.png" alt="deployment lv1" width="796" height="146">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startuml
+!theme plain
+
+node "Developer Machine" as dev
+cloud "GitHub (yovi_en3a)" as ghcr
+node "Azure VM" as azure
+actor "User" as user
+
+dev -&gt; ghcr : push image
+ghcr -&gt; azure : pull image
+user -&gt; azure : access webapp
+@enduml</pre>
 </div>
 </div>
 <div class="sect3">
@@ -1905,9 +2129,79 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="paragraph">
 <p><strong>Azure connections</strong></p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="905" height="411">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startuml
+' =========================
+' Configuración de estilo
+' =========================
+skinparam backgroundColor white
+skinparam roundcorner 5
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam DefaultFontName "Arial"
+skinparam nodesep 50
+skinparam ranksep 40
+
+' =========================
+' Estilo de contenedores
+' =========================
+skinparam node {
+    BackgroundColor #fdfdfd
+    BorderColor black
+    FontColor black
+    FontSize 12
+    StereotypeAlignment center
+}
+
+' =========================
+' Estilo de actores (cabeza pintada)
+' =========================
+skinparam actor {
+    BackgroundColor #3399FF  ' Azul oscuro
+    BorderColor #1F4E79
+    FontColor black
+    FontStyle bold
+    FontSize 12
+}
+skinparam actorStyle classic  ' Para que la cabeza sea visible y uniforme
+
+' =========================
+' Actores externos
+' =========================
+actor "User" as user
+actor "External Bot" as bot
+
+' =========================
+' Contenedor Azure VM con fondo azul claro
+' =========================
+node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
+
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;webapp&lt;/b&gt;&lt;/size&gt;\nPort 8080" as webapp
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;gatewayservice&lt;/b&gt;&lt;/size&gt;\nPort 8000" as gateway
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;users API&lt;/b&gt;&lt;/size&gt;\nPort 3000" as users
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;game-manager&lt;/b&gt;&lt;/size&gt;\nPort 5000" as manager
+    node "«container»\n&lt;size:14&gt;&lt;b&gt;gamey API&lt;/b&gt;&lt;/size&gt;\nPort 4000" as gamey
+
+    database "«container»\n&lt;size:14&gt;&lt;b&gt;MongoDB&lt;/b&gt;&lt;/size&gt;\nPort 27017" as mongodb
+}
+
+' =========================
+' Flujos
+' =========================
+user -right-&gt; webapp : HTTPS / REST
+bot -right-&gt; gateway : REST / JSON (Bot)
+webapp -right-&gt; gateway : REST / JSON
+gateway -down-&gt; users : REST / JSON
+gateway -down-&gt; manager : REST / JSON
+gateway -[bold]-&gt; gamey : REST / JSON (Bot)
+manager -right-&gt; gamey : REST / JSON (YEN)
+manager -left-&gt; users : REST / JSON (Stats)
+users -down-&gt; mongodb : MongoDB Driver
+manager -down-&gt; mongodb : MongoDB Driver
+
+@enduml</pre>
 </div>
 </div>
 </div>
@@ -2323,9 +2617,34 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="./images/quality-tree.png" alt="quality tree" width="603" height="868">
+<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
+@startmindmap
+* Quality
+** Performance
+*** Low-latency bot computation (Q1)
+*** Fast API response time (Q2)
+** Usability
+*** Intuitive onboarding flow (Q3)
+*** Inline validation feedback (Q4)
+** Scalability
+*** Concurrent bot requests (Q5)
+*** Growing number of players (Q6)
+** Interoperability
+*** External bot API (Q7)
+*** YEN notation as common language (Q8)
+** Maintainability
+*** Modular microservice structure (Q9)
+*** Independent deployability (Q10)
+** Security
+*** JWT authentication (Q11)
+*** Secure password storage (Q12)
+*** Duplicate registration prevention (Q15)
+** Testability
+*** Unit and integration tests (Q13)
+*** CI/CD pipeline (Q14)
+@endmindmap</pre>
 </div>
 </div>
 <hr>
@@ -2982,7 +3301,340 @@ more easily measure or decide whether they are fulfilled.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="section-glossary">12. Glossary</h2>
+<h2 id="section-testing">12. Testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section describes the testing strategy applied across the system, covering unit and integration tests for each microservice, end-to-end tests for the full application flow, and load testing results for performance validation.</p>
+</div>
+<hr>
+<div class="sect2">
+<h3 id="_unit_and_integration_tests">12.1. Unit and Integration Tests</h3>
+<div class="sect3">
+<h4 id="_users_service">12.1.1. users-service</h4>
+<div class="paragraph">
+<p>The users-service test suite uses Vitest with mocked MongoDB models (MockUser, MockStats, MockHistory) and a mocked bcrypt dependency, allowing tests to run without a real database.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Endpoint</th>
+<th class="tableblock halign-left valign-top">Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /register</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Successful creation with valid data; optional fields (age, country); 409 on duplicate username/email; 400 on missing, too short, or invalid username; 400 on invalid email; 400 on weak password (too short, no numbers, no letters)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /login</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Successful login returning JWT; 401 on wrong password; 404 on unknown user</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /stats/update</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Stats updated correctly; 404 on unknown user; 400 on invalid payload</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /stats/:userId</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns stats for existing user; 404 on unknown user</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /stats/ranking</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns ranked list; correct ordering by wins and win rate</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /history/add</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Game history entry added; 404 on unknown user</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /history/:userId</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns game history; 404 on unknown user</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_game_manager">12.1.2. game-manager</h4>
+<div class="paragraph">
+<p>The game-manager test suite uses Vitest with MongoMemoryServer for an in-memory MongoDB instance and nock to intercept HTTP calls to the bot server (gamey) and users service, ensuring full isolation.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Endpoint</th>
+<th class="tableblock halign-left valign-top">Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /health</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns service status</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /create/:gameName</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Creates game successfully; 400 on missing userId, invalid userId, or unknown game type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /state/:id</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns current game state; 404 on unknown game</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /list</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns list of games for the authenticated user</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /game/:id/resign</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Marks game as resigned; 404 on unknown game</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /game/:id/move/player</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Accepts valid player move; 400 on occupied cell; 400 on out-of-bounds coordinates; detects win condition</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST /game/:id/move/bot</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Calls gamey and applies bot move; handles gamey errors gracefully</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>500 errors</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Database failure scenarios return 500 with error body</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_gateway_service">12.1.3. gateway-service</h4>
+<div class="paragraph">
+<p>The gateway-service test suite uses Vitest and supertest and focuses on the service&#8217;s own status endpoint.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Endpoint</th>
+<th class="tableblock halign-left valign-top">Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET /status</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Returns { status: "ok", service: "gatewayservice" }</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_gamey_bot_server_rust">12.1.4. gamey (bot server — Rust)</h4>
+<div class="paragraph">
+<p>The gamey service is written in Rust and tested with the built-in cargo test framework. Tests are split into two files.</p>
+</div>
+<div class="paragraph">
+<p><strong>bot_server_tests.rs</strong> — HTTP layer tests using Axum&#8217;s *tower::ServiceExt:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Test</th>
+<th class="tableblock halign-left valign-top">Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_status_endpoint_returns_ok</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET /status returns 200 with body "OK"</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_endpoint_with_valid_request</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST /v1/ybot/choose/random_bot with valid YEN returns a valid move response</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_endpoint_with_partially_filled_board</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot chooses a cell from the remaining available ones</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_endpoint_with_invalid_api_version</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unknown API version returns 404</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_endpoint_with_unknown_bot</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unknown bot ID returns 404</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_endpoint_with_invalid_json</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Malformed JSON body returns 422</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_endpoint_with_missing_content_type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Missing <strong>Content-Type</strong> header returns 415</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_with_custom_bot_registry</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Custom bot registry is used correctly</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_choose_with_empty_bot_registry</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Empty registry returns 404</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_unknown_route_returns_404</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unknown routes return 404</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_wrong_method_on_status_endpoint</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wrong HTTP method returns 405</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>test_get_on_choose_endpoint_returns_method_not_allowed</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET on choose endpoint returns 405</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>core_tests.rs</strong> — Game logic unit tests for GameY;</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Test group</th>
+<th class="tableblock halign-left valign-top">Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Initialization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Correct board size, starting player, cell count, and available cells for various board sizes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Basic moves</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Player alternation, available cell count decreasing after moves, move tracking</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Win detection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Player 0 and Player 1 win by connecting all three sides; no false positives; edge cases (size 1 and size 2 boards)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">YEN serialization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Game state correctly serialised and deserialised using YEN notation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CLI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command-line interface arguments parsed correctly</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_end_to_end_tests">12.2. End-to-End Tests</h3>
+<div class="paragraph">
+<p>The E2E suite uses Cucumber.js with Playwright to test the full application through the browser. Each feature file corresponds to a user-facing flow.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Feature</th>
+<th class="tableblock halign-left valign-top">Scenarios covered</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Register</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Successful registration with valid data; error shown on duplicate username</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Login</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Successful login redirects to menu; wrong credentials show error message</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Menu</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"How to Play" page accessible; logout redirects to landing page</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Game</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Game board visible after selecting Standard mode; exit game redirects to menu; complete game ends with game-over screen and back-to-menu navigation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stats &amp; Ranking</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Personal stats page accessible; global ranking page accessible</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Security</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unauthenticated users are redirected to login when accessing /menu, /select, /stats, and /ranking</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_load_testing">12.3. Load Testing</h3>
+<div class="paragraph">
+<p>Load tests are written in Gatling and validate system performance under sustained concurrent load. Results are linked below.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 50%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Simulation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Report</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>RegisterSimulation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20 users ramped over 30s (register flow including duplicate check)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../../docs/load-testing/registersimulation-20260404163651617/index.html">View report</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>LoginSimulation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2 users/sec over 60s (login flow)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../../docs/load-testing/loginsimulation-20260404163144340/index.html">View report</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>RankingAndStatsSimulation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3 and 2 users/sec over 60s  (ranking and personal stats endpoints)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../../docs/load-testing/rankingandstatssimulation-20260404163345532/index.html">View report</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>BotAPISimulation</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13 users/sec over 60s (all three bot types in parallel)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../../docs/load-testing/botapisimulation-20260404162846844/index.html">View report</a></p></td>
+</tr>
+</tbody>
+</table>
+<div style="page-break-after: always;"></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="section-glossary">13. Glossary</h2>
 <div class="sectionbody">
 <div class="sidebarblock arc42help">
 <div class="content">
@@ -3136,7 +3788,7 @@ more easily measure or decide whether they are fulfilled.</p>
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-06 19:04:45 +0100
+Last updated 2026-04-25 12:54:39 +0200
 </div>
 </div>
 </body>
