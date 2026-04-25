@@ -228,16 +228,6 @@ endif::arc42help[]
 | **Priority** | High
 |===
 
-.Load Testing Results
-[cols="1,2,1",options="header"]
-|===
-| Simulation | Description | Report
-| `RegisterSimulation` | 20 users ramped over 30s, register + duplicate check | link:../../docs/load-testing/registersimulation-20260404163651617/index.html[View report]
-| `LoginSimulation` | 2 users/sec over 60s, login flow | link:../../docs/load-testing/loginsimulation-20260404163144340/index.html[View report]
-| `RankingAndStatsSimulation` | 3 and 2 users/sec over 60s, ranking and personal stats | link:../../docs/load-testing/rankingandstatssimulation-20260404163345532/index.html[View report]
-| `BotAPISimulation` | 13 users/sec over 60s, all three bots in parallel | link:../../docs/load-testing/botapisimulation-20260404162846844/index.html[View report]
-|===
-
 ifdef::arc42help[]
 [role="arc42help"]
 ****
