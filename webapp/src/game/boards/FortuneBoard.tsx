@@ -16,15 +16,10 @@ const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
       isRolling,
       playerCanMove,
       isP2TurnLocal,
+      lockedCells,
     } = useFortuneLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
-
-    const disabledCells: Set<string> = isRolling
-      ? new Set(["__all__"])
-      : isMultiplayer
-        ? (!playerCanMove && !isP2TurnLocal ? new Set(["__all__"]) : new Set())
-        : (!playerCanMove ? new Set(["__all__"]) : new Set());
 
     const status = isRolling ? "rolling"
       : isMultiplayer ? (isP2TurnLocal ? "p2" : playerCanMove ? "p1" : "waiting")
@@ -58,7 +53,7 @@ const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
           cellRefs={cellRefs}
           initialOwners={initialOwners}
           gameId={gameIdProp}
-          disabledCells={disabledCells}
+          disabledCells={lockedCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}

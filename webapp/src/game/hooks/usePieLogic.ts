@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { type BoardProps, type Coordinates } from "../boards/Types";
 import { type HexCellRef } from "../HexCell";
 import { checkYWin } from "./useGameLogic";
+import { generateAllCellKeys } from "./cellLockingUtils";
 
 type PiePhase = "p1_first" | "p2_choice" | "playing";
 
@@ -117,6 +118,9 @@ export const usePieLogic = (
     onTurnChange?.("p2");
   }, [selectCell, onTurnChange]);
 
+  // Lock cells when player 2 is choosing (they get to accept/reject p1's first move)
+  const lockedCells = phase === "p2_choice" ? generateAllCellKeys(boardSize) : new Set<string>();
+
   return {
     cellRefs,
     playedCoords,
@@ -127,5 +131,6 @@ export const usePieLogic = (
     handleKeep,
     handleSwap,
     handleRequestSelectCell,
+    lockedCells,
   };
 };

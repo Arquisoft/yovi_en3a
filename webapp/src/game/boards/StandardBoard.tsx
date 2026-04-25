@@ -5,7 +5,7 @@ import HexGrid from "../HexGrid";
 
 const StandardBoard = forwardRef<GameBoardRef, BoardProps>(
   ({ boardSize = 7, cellSize = 60, gameIdProp, showNames = true, isMultiplayer = false, onCellPlayed, onGameOver, onTurnChange }, ref) => {
-    const { cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef, isP2Turn } =
+    const { cellRefs, initialOwners, handleClick, handleRequestSelectCell, gameBoardRef, isP2Turn, lockedCells } =
       useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
         isMultiplayer,
         onAfterPlayerMove: () => onTurnChange?.("p2"),
@@ -34,6 +34,7 @@ const StandardBoard = forwardRef<GameBoardRef, BoardProps>(
           initialOwners={initialOwners}
           gameId={gameIdProp}
           showNames={showNames}
+          disabledCells={lockedCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
+import { generateAllCellKeys } from "./cellLockingUtils";
 
 type DiceResult = "player" | "bot";
 
@@ -79,6 +80,14 @@ export const useFortuneLogic = (
     rollDice();
   }, []);
 
+  // Lock cells when rolling dice, during bot processing, or when player can't move
+  // For multiplayer, also lock when waiting for the other player
+  const shouldLockAllCells = isRolling || logic.isProcessing || 
+    (!isMultiplayer && !playerCanMove) ||
+    (isMultiplayer && !playerCanMove && !isP2TurnLocal);
+  
+  const lockedCells = shouldLockAllCells ? generateAllCellKeys(boardSize) : new Set<string>();
+
   return {
     ...logic,
     handleClick,
@@ -87,5 +96,6 @@ export const useFortuneLogic = (
     playerCanMove,
     rollDice,
     isP2TurnLocal,
+    lockedCells,
   };
 };

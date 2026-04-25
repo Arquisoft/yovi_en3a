@@ -14,6 +14,7 @@ const HoleyBoard = forwardRef<GameBoardRef, BoardProps>(
       holeCells,
       highlightCells,
       isP2Turn,
+      lockedCells,
     } = useHoleyLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
@@ -39,7 +40,7 @@ const HoleyBoard = forwardRef<GameBoardRef, BoardProps>(
           cellRefs={cellRefs}
           initialOwners={initialOwners}
           gameId={gameIdProp}
-          disabledCells={holeCells}
+          disabledCells={lockedCells}
           highlightCells={highlightCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
