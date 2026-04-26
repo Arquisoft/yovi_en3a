@@ -15,6 +15,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
       handleKeep,
       handleSwap,
       handleRequestSelectCell,
+      lockedCells,
     } = usePieLogic(boardSize, onCellPlayed, onGameOver, onTurnChange);
 
     useImperativeHandle(ref, () => ({
@@ -134,7 +135,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
           initialOwners={new Map()}
           gameId={gameIdProp}
           showNames={showNames}
-          disabledCells={phase === "p2_choice" ? new Set(["__all__"]) : new Set()}
+          disabledCells={lockedCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}

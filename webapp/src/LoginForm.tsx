@@ -31,7 +31,7 @@ const LoginForm: React.FC = () => {
         setResponseMessage(data.message);
         setUsername('');
         setPassword('');
-        setTimeout(() => navigate('/menu'), 1000);
+        setTimeout(() => navigate('/menu'), 200);
       } else {
         setError(data.error || 'Server error');
       }

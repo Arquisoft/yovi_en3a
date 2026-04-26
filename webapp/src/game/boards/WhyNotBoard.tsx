@@ -12,6 +12,7 @@ const WhyNotBoard = forwardRef<GameBoardRef, BoardProps>(
       handleRequestSelectCell,
       gameBoardRef,
       isP2Turn,
+      lockedCells,
     } = useWhyNotLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
@@ -43,6 +44,7 @@ const WhyNotBoard = forwardRef<GameBoardRef, BoardProps>(
           initialOwners={initialOwners}
           gameId={gameIdProp}
           showNames={showNames}
+          disabledCells={lockedCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}

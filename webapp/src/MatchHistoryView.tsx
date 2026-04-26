@@ -104,9 +104,22 @@ const MatchHistoryView: React.FC = () => {
                                         </div>
                                     </div>
 
+                                    <div>
+                                        {isOngoing ? (
+                                            <button
+                                                onClick={() => {
 
-                                    <div className="text-[10px] font-mono text-gray-600">
-                                        ID: {match.gameId?.slice(-6).toUpperCase() || 'N/A'}
+                                                    navigate(`/game/${match.gameId}/${match.boardSize}/${match.gameId.includes('standard') ? 'standard' : 'variant'}`);
+                                                }}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-all"
+                                            >
+                                                Resume
+                                            </button>
+                                        ) : (
+                                            <div className="text-[15px] font-mono text-gray-600 text-right">
+                                                FINISHED
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             );

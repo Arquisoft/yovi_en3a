@@ -19,5 +19,7 @@ export const useWhyNotLogic = (
     isMultiplayer,
   });
 
+  // lockedCells is already included from logic via spread operator
   return { ...logic };
 };
+//};

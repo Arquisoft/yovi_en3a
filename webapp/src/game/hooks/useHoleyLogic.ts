@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 import { gatewayUrl } from "../../lib/config";
+import { generateAllCellKeys } from "./cellLockingUtils";
 
 // Genera una funcion a partir de un número (mulberry32)
 function seededRandom(seed: number) {
@@ -98,5 +99,8 @@ export const useHoleyLogic = (
   const highlightCells = new Map<string, string>();
   holeCells.forEach((key) => highlightCells.set(key, "#6b7280"));
 
-  return { ...logic, holeCells, highlightCells };
+  // Combine hole cells with locked cells from processing
+  const lockedCells = new Set<string>([...holeCells, ...logic.lockedCells]);
+
+  return { ...logic, holeCells, highlightCells, lockedCells };
 };

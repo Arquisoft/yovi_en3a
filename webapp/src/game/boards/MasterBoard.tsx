@@ -15,6 +15,7 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
       waitingForSecond,
       whosTurn,
       isP2Turn,
+      lockedCells,
     } = useMasterLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
@@ -47,6 +48,7 @@ const MasterBoard = forwardRef<GameBoardRef, BoardProps>(
           cellRefs={cellRefs}
           initialOwners={initialOwners}
           gameId={gameIdProp}
+          disabledCells={lockedCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}
