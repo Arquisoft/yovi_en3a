@@ -112,10 +112,19 @@ describe('MatchHistoryView Component', () => {
         });
     });
 
-    it('debe formatear el ID de la partida correctamente (últimos 6 caracteres)', async () => {
+    it('debe mostrar el botón "Resume" si la partida está en estado "ongoing"', async () => {
+        // 1. Preparamos un mock de partida con estado 'ongoing'
+        const ongoingMatch = {
+            gameId: "match-123456",
+            status: 'ongoing',
+            botId: "medium_bot",
+            boardSize: 7,
+            createdAt: new Date().toISOString()
+        };
+
         (global.fetch as any).mockResolvedValueOnce({
             ok: true,
-            json: async () => [mockMatches[0]],
+            json: async () => [ongoingMatch],
         });
 
         render(
@@ -124,10 +133,12 @@ describe('MatchHistoryView Component', () => {
             </MemoryRouter>
         );
 
+        // 2. Verificamos que el botón "Resume" aparece en pantalla
         await waitFor(() => {
-            // El ID original es "match-123456", slice(-6) debería ser "123456"
-            expect(screen.getByText(/ID: 123456/i)).toBeTruthy();
+            const resumeButton = screen.getByRole('button', { name: /resume/i });
+            expect(resumeButton).toBeTruthy();
         });
+
     });
 
     it('debe manejar errores de red de la API sin romper el componente', async () => {

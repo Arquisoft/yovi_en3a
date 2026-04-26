@@ -35,12 +35,12 @@ interface GameSelectProps {
 // hasBot: disponible para jugar contra bot
 // configurable: muestra panel de tamaño + dificultad en modo bot
 const VARIANTES = [
-  { id: "master",  label: "Master",   description: "Each player places two pieces per turn",           bot: "medium_bot", hasBot: true,  configurable: true  },
-  { id: "fortune", label: "Fortune",  description: "A dice decides who plays next",                    bot: "medium_bot", hasBot: true,  configurable: true  },
-  { id: "pie",     label: "Pie Rule", description: "A player chooses where, the other decides who goes first", bot: "random_bot", hasBot: false, configurable: false },
-  { id: "tabu",    label: "Tabu",     description: "Forbidden to place adjacent to opponent's last move", bot: "random_bot", hasBot: false, configurable: false },
-  { id: "holey",   label: "Holey",    description: "The board has holes where pieces cannot be placed", bot: "random_bot", hasBot: false, configurable: false },
-  { id: "whynot",  label: "Why Not",  description: "First player to connect three edges loses",        bot: "random_bot", hasBot: false, configurable: false },
+  { id: "master", label: "Master", description: "Each player places two pieces per turn", bot: "medium_bot", hasBot: true, configurable: true },
+  { id: "fortune", label: "Fortune", description: "A dice decides who plays next", bot: "medium_bot", hasBot: true, configurable: true },
+  { id: "pie", label: "Pie Rule", description: "A player chooses where, the other decides who goes first", bot: "random_bot", hasBot: false, configurable: false },
+  { id: "tabu", label: "Tabu", description: "Forbidden to place adjacent to opponent's last move", bot: "random_bot", hasBot: false, configurable: false },
+  { id: "holey", label: "Holey", description: "The board has holes where pieces cannot be placed", bot: "random_bot", hasBot: false, configurable: false },
+  { id: "whynot", label: "Why Not", description: "First player to connect three edges loses", bot: "random_bot", hasBot: false, configurable: false },
 ];
 
 const GameSelect: React.FC<GameSelectProps> = ({ onBack, mode = "bot" }) => {
@@ -132,67 +132,67 @@ const GameSelect: React.FC<GameSelectProps> = ({ onBack, mode = "bot" }) => {
 
         {/* STANDARD MODE */}
         <section className="standard-section">
-            <button
-              onClick={() => {
-                playTick();
-                setIsStandardOpen(!isStandardOpen);
-              }}
-              className={`mode-card ${isStandardOpen ? "mode-card-active" : ""}`}
-            >
-              <span className="mode-card-icon">🏆</span>
-              <div className="mode-card-info">
-                <span className="mode-card-label">Standard Mode</span>
-                <span className="mode-card-desc">The classic hex experience.</span>
-              </div>
-              <span className="mode-card-arrow">{isStandardOpen ? "▲" : "▼"}</span>
-            </button>
+          <button
+            onClick={() => {
+              playTick();
+              setIsStandardOpen(!isStandardOpen);
+            }}
+            className={`mode-card ${isStandardOpen ? "mode-card-active" : ""}`}
+          >
+            <span className="mode-card-icon">🏆</span>
+            <div className="mode-card-info">
+              <span className="mode-card-label">Standard Mode</span>
+              <span className="mode-card-desc">The classic hex experience.</span>
+            </div>
+            <span className="mode-card-arrow">{isStandardOpen ? "▲" : "▼"}</span>
+          </button>
 
-            {isStandardOpen && (
-              <div className="config-panel">
-                <div>
-                  <label className="config-label">Board Size: {standardSize}x{standardSize}</label>
-                  <div className="size-selector-grid">
-                    {[5, 7, 9, 11].map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => { playTick(); setStandardSize(s); }}
-                        className={`size-option-btn ${standardSize === s ? "is-selected" : ""}`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {mode === "bot" && (
-                  <div>
-                    <label className="config-label">Difficulty</label>
-                    <select
-                      value={standardDifficulty}
-                      onChange={(e) => setStandardDifficulty(e.target.value)}
-                      className="difficulty-dropdown"
+          {isStandardOpen && (
+            <div className="config-panel">
+              <div>
+                <label className="config-label">Board Size: {standardSize}x{standardSize}</label>
+                <div className="size-selector-grid">
+                  {[5, 7, 9, 11].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => { playTick(); setStandardSize(s); }}
+                      className={`size-option-btn ${standardSize === s ? "is-selected" : ""}`}
                     >
-                      <option value="random_bot">Easy</option>
-                      <option value="beginner_bot">Medium</option>
-                      <option value="medium_bot">Hard</option>
-                    </select>
-                  </div>
-                )}
-                <button
-                  onClick={() => { playTick(); handleSelect("standard", standardSize, standardDifficulty); }}
-                  disabled={loading !== null}
-                  className="btn-primary-start"
-                >
-                  {loading === "standard" ? "Creating..." : "Start Standard"}
-                </button>
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </section>
+              {mode === "bot" && (
+                <div>
+                  <label className="config-label">Difficulty</label>
+                  <select
+                    value={standardDifficulty}
+                    onChange={(e) => setStandardDifficulty(e.target.value)}
+                    className="difficulty-dropdown"
+                  >
+                    <option value="random_bot">Easy</option>
+                    <option value="beginner_bot">Medium</option>
+                    <option value="medium_bot">Hard</option>
+                  </select>
+                </div>
+              )}
+              <button
+                onClick={() => { playTick(); handleSelect("standard", standardSize, standardDifficulty); }}
+                disabled={loading !== null}
+                className="btn-primary-start"
+              >
+                {loading === "standard" ? "Creating..." : "Start Standard"}
+              </button>
+            </div>
+          )}
+        </section>
 
         <div className="variant-divider">
-            <div className="divider-line"></div>
-            <span className="divider-text">Variants</span>
-            <div className="divider-line"></div>
-          </div>
+          <div className="divider-line"></div>
+          <span className="divider-text">Variants</span>
+          <div className="divider-line"></div>
+        </div>
 
         {/* VARIANTS LIST */}
         <div className="variants-list">
