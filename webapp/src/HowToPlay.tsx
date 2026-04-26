@@ -71,7 +71,7 @@ const HowToPlay: React.FC = () => {
               <Badge style={{ backgroundColor: "#6366f1", color: "#fff" }}>Standard</Badge>
               <p className="text-gray-300 text-sm leading-relaxed">
                 Classic rules, no time limit. Choose from board sizes 5, 7, 9 or 11
-                and bot difficulties ranging from easy to medium to hard.
+                and bot difficulties ranging from easy to medium to hard, all other game modes are based on this one.
               </p>
             </CardContent>
           </Card>
@@ -80,7 +80,7 @@ const HowToPlay: React.FC = () => {
             <CardContent className="px-5 py-4 flex items-start gap-3">
               <Badge style={{ backgroundColor: "#6366f1", color: "#fff" }}>Master</Badge>
               <p className="text-gray-300 text-sm leading-relaxed">
-                Two moves per turn. Not yet implemented.
+                Every turn each player makes two moves.
               </p>
             </CardContent>
           </Card>
@@ -89,7 +89,7 @@ const HowToPlay: React.FC = () => {
             <CardContent className="px-5 py-4 flex items-start gap-3">
               <Badge style={{ backgroundColor: "#6366f1", color: "#fff" }}>Fortune</Badge>
               <p className="text-gray-300 text-sm leading-relaxed">
-                In every turn which player moves is chosen randomly. Not yet implemented.
+                In every turn which player moves is chosen randomly by a dice roll.
               </p>
             </CardContent>
           </Card>
@@ -122,7 +122,7 @@ const HowToPlay: React.FC = () => {
             <CardContent className="px-5 py-4 flex items-start gap-3">
               <Badge style={{ backgroundColor: "#6366f1", color: "#fff" }}>Holey</Badge>
               <p className="text-gray-300 text-sm leading-relaxed">
-                The board has holes. Not yet implemented.
+                The board has holes where pieces cannot be placed, the amount of holes is determined by the board size. 
               </p>
             </CardContent>
           </Card>
@@ -131,7 +131,7 @@ const HowToPlay: React.FC = () => {
             <CardContent className="px-5 py-4 flex items-start gap-3">
               <Badge style={{ backgroundColor: "#6366f1", color: "#fff" }}>Why Not</Badge>
               <p className="text-gray-300 text-sm leading-relaxed">
-                The first to connect all three sides loses. Not yet implemented.
+                The first to connect all three sides loses, not wins. 
               </p>
             </CardContent>
           </Card>
