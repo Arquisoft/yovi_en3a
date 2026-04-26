@@ -4,6 +4,7 @@ import { gatewayUrl } from "../../lib/config";
 import { type Coordinates, type GameBoardRef, type GameLogicOptions, parseLayout } from "../boards/Types";
 import { type HexCellRef } from "../HexCell";
 import { flushSync } from "react-dom";
+import { generateAllCellKeys } from "./cellLockingUtils";
 
 export const checkYWin = (cells: Set<string>): boolean => {
   const queue: string[] = [];
@@ -75,6 +76,7 @@ export const useGameLogic = (
   const p2CellsRef = useRef<Set<string>>(new Set());
   const isP2TurnRef = useRef(false);
   const [isP2Turn, setIsP2Turn] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (!gameId) { 
@@ -201,13 +203,15 @@ export const useGameLogic = (
       return;
     }
 
+    setIsProcessing(true);
     const layoutBeforeBot = currentLayoutRef.current;
     const botRes = await fetch(`${gatewayUrl}/api/game-manager/game/${gameId}/move/bot`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
 
-    if (!botRes.ok) { 
+    if (!botRes.ok) {
+      setIsProcessing(false);
       return;
     }
 
@@ -216,7 +220,9 @@ export const useGameLogic = (
       currentLayoutRef.current = botData.yen.layout;
     }
     if (botData.status === "won" || botData.status === "lost") {
-      onGameOver?.(botData.status === "won" ? "p1" : "p2"); return;
+      onGameOver?.(botData.status === "won" ? "p1" : "p2");
+      setIsProcessing(false);
+      return;
     }
 
     if (layoutBeforeBot && botData.yen?.layout) {
@@ -232,10 +238,12 @@ export const useGameLogic = (
         }
       });
     }
+    setIsProcessing(false);
   }, [gameId]);
 
   const executeBotMove = useCallback(async (layoutBeforeOverride?: string) => {
     if (!gameId) return;
+    setIsProcessing(true);
     const token = localStorage.getItem("token");
     const layoutBefore = layoutBeforeOverride ?? currentLayoutRef.current;
 
@@ -243,12 +251,17 @@ export const useGameLogic = (
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setIsProcessing(false);
+      return;
+    }
 
     const data = await res.json();
     if (data.yen?.layout) currentLayoutRef.current = data.yen.layout;
     if (data.status === "won" || data.status === "lost") {
-      onGameOver?.(data.status === "won" ? "p1" : "p2"); return;
+      onGameOver?.(data.status === "won" ? "p1" : "p2");
+      setIsProcessing(false);
+      return;
     }
 
     data.yen.layout.split("/").forEach((row: string, rowIndex: number) => {
@@ -262,6 +275,7 @@ export const useGameLogic = (
         }
       }
     });
+    setIsProcessing(false);
   }, [gameId]);
 
   const handleClick = (coordinates: Coordinates, name: string) => {
@@ -326,6 +340,8 @@ export const useGameLogic = (
     makeRandomP2Move,
   };
 
+  const lockedCells = isProcessing ? generateAllCellKeys(boardSize) : new Set<string>();
+
   return {
     gameId, cellRefs, initialOwners, handleClick, handleRequestSelectCell,
     gameBoardRef, makeRandomMove, makeRandomP2Move,
@@ -333,5 +349,6 @@ export const useGameLogic = (
     currentLayoutRef, playedCoords, selectCell,
     isP2Turn, isP2TurnRef, setIsP2Turn,
     p1CellsRef, p2CellsRef,
+    isProcessing, lockedCells,
   };
 };

@@ -37,5 +37,8 @@ export const useTabuLogic = (
   const highlightCells = new Map<string, string>();
   tabuCells.forEach((key) => highlightCells.set(key, "#ef4444"));
 
-  return { ...logic, tabuCells, highlightCells };
+  // Combine tabu cells with locked cells from processing
+  const lockedCells = new Set<string>([...tabuCells, ...logic.lockedCells]);
+
+  return { ...logic, tabuCells, highlightCells, lockedCells };
 };

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
+import { generateAllCellKeys } from "./cellLockingUtils";
 
 export const useMasterLogic = (
   gameIdProp: BoardProps["gameIdProp"],
@@ -13,6 +14,7 @@ export const useMasterLogic = (
   const [piecesThisTurn, setPiecesThisTurn] = useState(0);
   const [waitingForSecond, setWaitingForSecond] = useState(false);
   const [whosTurn, setWhosTurn] = useState<"p1" | "p2">("p1");
+  const [isProcessingBotMoves, setIsProcessingBotMoves] = useState(false);
   const whosTurnRef = useRef<"p1" | "p2">("p1");
   const piecesThisTurnRef = useRef(0);
 
@@ -51,9 +53,11 @@ export const useMasterLogic = (
       if (next >= 2) {
         piecesThisTurnRef.current = 0; setPiecesThisTurn(0); setWaitingForSecond(false);
         onTurnChange?.("p2");
+        setIsProcessingBotMoves(true);
         Promise.resolve().then(async () => {
           await logic.executeBotMove();
           await logic.executeBotMove();
+          setIsProcessingBotMoves(false);
           onTurnChange?.("p1");
         });
       } else {
@@ -114,6 +118,7 @@ export const useMasterLogic = (
     piecesThisTurn,
     waitingForSecond,
     whosTurn,
+    lockedCells: isProcessingBotMoves ? generateAllCellKeys(boardSize) : logic.lockedCells,
     gameBoardRef: { ...logic.gameBoardRef, makeRandomMove, makeRandomP2Move },
   };
 };

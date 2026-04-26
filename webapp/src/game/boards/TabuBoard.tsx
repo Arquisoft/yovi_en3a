@@ -14,6 +14,7 @@ const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
       tabuCells,
       highlightCells,
       isP2Turn,
+      lockedCells,
     } = useTabuLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
@@ -51,7 +52,7 @@ const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
           cellRefs={cellRefs}
           initialOwners={initialOwners}
           gameId={gameIdProp}
-          disabledCells={tabuCells}
+          disabledCells={lockedCells}
           highlightCells={highlightCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
