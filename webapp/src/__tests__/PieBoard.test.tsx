@@ -32,6 +32,7 @@ describe('PieBoard Component', () => {
         handleKeep: mockHandleKeep,
         handleSwap: mockHandleSwap,
         handleRequestSelectCell: vi.fn(),
+        lockedCells: new Set(),
     };
 
     beforeEach(() => {
@@ -58,6 +59,7 @@ describe('PieBoard Component', () => {
         vi.mocked(logicHook.usePieLogic).mockReturnValue({
             ...mockDefaultLogic,
             phase: 'p2_choice',
+            lockedCells: new Set(['__all__']), // Bloquear todas las celdas en esta fase
         } as any);
 
         render(
