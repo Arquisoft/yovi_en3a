@@ -30,6 +30,7 @@ describe('HoleyBoard Component', () => {
         holeCells: new Set(['0,0,0']), // Simulamos una celda con hueco
         highlightCells: new Set(['1,-1,0']), // Simulamos una celda resaltada
         isP2Turn: false,
+        lockedCells: new Set(['0,0,0']), // lockedCells debe incluir los huecos
     };
 
     beforeEach(() => {

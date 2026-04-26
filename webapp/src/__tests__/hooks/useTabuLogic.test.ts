@@ -28,6 +28,7 @@ describe('useTabuLogic', () => {
                     config?.onAfterPlayerMove?.(coord);
                 },
                 gameBoardRef: { reset: vi.fn() },
+                lockedCells: new Set<string>(),
             } as any;
         });
     });

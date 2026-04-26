@@ -29,6 +29,7 @@ describe('TabuBoard - Celdas Bloqueadas', () => {
         tabuCells: new Set(),
         highlightCells: new Set(),
         isP2Turn: false,
+        lockedCells: new Set(),
     };
 
     beforeEach(() => {
@@ -41,6 +42,7 @@ describe('TabuBoard - Celdas Bloqueadas', () => {
         vi.mocked(logicHook.useTabuLogic).mockReturnValue({
             ...mockDefaultLogic,
             tabuCells: tabuSet,
+            lockedCells: tabuSet, // lockedCells debe incluir las celdas tabú
         } as any);
 
         render(

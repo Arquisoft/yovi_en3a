@@ -40,6 +40,7 @@ describe('useHoleyLogic', () => {
             handleRequestSelectCell: vi.fn(),
             executeBotMove: vi.fn().mockResolvedValue(undefined),
             gameBoardRef: { reset: vi.fn() },
+            lockedCells: new Set<string>(),
         } as any);
     });
 
