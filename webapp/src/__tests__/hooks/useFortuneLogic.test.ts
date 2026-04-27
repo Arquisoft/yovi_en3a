@@ -101,29 +101,39 @@ describe('useFortuneLogic', () => {
         expect(mockOnTurnChange).toHaveBeenCalledWith('p2');
     });
 
-    it('handleClick debe llamar a la lógica y reiniciar el ciclo del dado', () => {
+    it('handleClick debe llamar a la lógica y reiniciar el ciclo del dado', async () => {
         vi.spyOn(Math, 'random').mockReturnValue(0.1); // Turno jugador
 
         const { result } = renderHook(() =>
-            useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange)
+            useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange, false) // ✅ Explícitamente false para single player
         );
 
         // Pasamos el tiempo del dado inicial
-        act(() => {
+        await act(async () => {
             vi.advanceTimersByTime(800);
         });
 
+        expect(result.current.playerCanMove).toBe(true);
+        expect(result.current.diceResult).toBe('player');
+        expect(result.current.isRolling).toBe(false);
+
         // El jugador hace clic
-        act(() => {
+        await act(async () => {
             result.current.handleClick({ x: 0, y: 0, z: 0 }, 'cell');
         });
 
         expect(mockGameLogicBase.handleClick).toHaveBeenCalled();
+        
+        // El playerCanMove debe cambiar a false después del click
+        expect(result.current.playerCanMove).toBe(false);
 
         // Verificamos que tras el movimiento (600ms), el dado vuelve a rodar
-        act(() => {
+        await act(async () => {
             vi.advanceTimersByTime(600);
+            // Dar tiempo para que el setTimeout interno se ejecute
+            await Promise.resolve();
         });
+        
         expect(result.current.isRolling).toBe(true);
     });
 });

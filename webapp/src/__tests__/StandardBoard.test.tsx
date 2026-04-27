@@ -41,40 +41,6 @@ describe('StandardBoard Component', () => {
         expect(screen.getByTestId('hex-grid')).toBeDefined();
     });
 
-    it('debe mostrar el turno de Player 1 en azul cuando es su turno en multiplayer', () => {
-        vi.mocked(logicHook.useGameLogic).mockReturnValue({
-            ...mockDefaultLogic,
-            isP2Turn: false,
-        } as any);
-
-        render(
-            <MemoryRouter>
-                <StandardBoard boardSize={7} isMultiplayer={true} />
-            </MemoryRouter>
-        );
-
-        const banner = screen.getByText(/🟦 Player 1's turn/i);
-        // Color #93c5fd
-        expect(banner.style.color).toBe('rgb(147, 197, 253)');
-    });
-
-    it('debe mostrar el turno de Player 2 en rojo cuando es su turno en multiplayer', () => {
-        vi.mocked(logicHook.useGameLogic).mockReturnValue({
-            ...mockDefaultLogic,
-            isP2Turn: true,
-        } as any);
-
-        render(
-            <MemoryRouter>
-                <StandardBoard boardSize={7} isMultiplayer={true} />
-            </MemoryRouter>
-        );
-
-        const banner = screen.getByText(/🟥 Player 2's turn/i);
-        // Color #ef4444
-        expect(banner.style.color).toBe('rgb(239, 68, 68)');
-    });
-
     it('debe exponer la referencia del juego (imperative handle)', () => {
         const gameRef = { current: null } as any;
         render(

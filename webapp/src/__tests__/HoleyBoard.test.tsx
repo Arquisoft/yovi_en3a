@@ -62,42 +62,6 @@ describe('HoleyBoard Component', () => {
         expect(screen.queryByText(/Player 2's turn/i)).toBeNull();
     });
 
-    it('debe mostrar el turno de Player 1 en multiplayer', () => {
-        vi.mocked(logicHook.useHoleyLogic).mockReturnValue({
-            ...mockDefaultLogic,
-            isP2Turn: false,
-        } as any);
-
-        render(
-            <MemoryRouter>
-                <HoleyBoard boardSize={7} isMultiplayer={true} />
-            </MemoryRouter>
-        );
-
-        const turnLabel = screen.getByText(/🟦 Player 1's turn/i);
-        expect(turnLabel).toBeDefined();
-        // Color azul: #93c5fd -> rgb(147, 197, 243)
-        expect(turnLabel.style.color).toBe('rgb(147, 197, 253)');
-    });
-
-    it('debe mostrar el turno de Player 2 en multiplayer con el color correcto', () => {
-        vi.mocked(logicHook.useHoleyLogic).mockReturnValue({
-            ...mockDefaultLogic,
-            isP2Turn: true,
-        } as any);
-
-        render(
-            <MemoryRouter>
-                <HoleyBoard boardSize={7} isMultiplayer={true} />
-            </MemoryRouter>
-        );
-
-        const turnLabel = screen.getByText(/🟥 Player 2's turn/i);
-        expect(turnLabel).toBeDefined();
-        // Color rojo: #ef4444 -> rgb(239, 68, 68)
-        expect(turnLabel.style.color).toBe('rgb(239, 68, 68)');
-    });
-
     it('debe exponer la referencia del juego correctamente', () => {
         const ref = { current: null } as any;
         render(

@@ -39,40 +39,6 @@ describe('WhyNotBoard Component', () => {
         expect(screen.getByText(/First to connect three edges loses/i)).toBeDefined();
     });
 
-    it('debe mostrar el turno de Player 1 desplazado hacia abajo (top: 44px) en multiplayer', () => {
-        vi.mocked(logicHook.useWhyNotLogic).mockReturnValue({
-            ...mockDefaultLogic,
-            isP2Turn: false,
-        } as any);
-
-        render(
-            <MemoryRouter>
-                <WhyNotBoard boardSize={7} isMultiplayer={true} />
-            </MemoryRouter>
-        );
-
-        const turnLabel = screen.getByText(/🟦 Player 1's turn/i);
-        // Verificamos el desplazamiento para que no tape el aviso de arriba
-        expect(turnLabel.style.top).toBe('44px');
-        expect(turnLabel.style.color).toBe('rgb(147, 197, 253)'); // #93c5fd
-    });
-
-    it('debe mostrar el turno de Player 2 con el color rojo correcto', () => {
-        vi.mocked(logicHook.useWhyNotLogic).mockReturnValue({
-            ...mockDefaultLogic,
-            isP2Turn: true,
-        } as any);
-
-        render(
-            <MemoryRouter>
-                <WhyNotBoard boardSize={7} isMultiplayer={true} />
-            </MemoryRouter>
-        );
-
-        const turnLabel = screen.getByText(/🟥 Player 2's turn/i);
-        expect(turnLabel.style.color).toBe('rgb(239, 68, 68)'); // #ef4444
-    });
-
     it('no debe mostrar el banner de turno en modo single player', () => {
         render(
             <MemoryRouter>

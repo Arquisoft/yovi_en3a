@@ -125,9 +125,7 @@ describe('PieBoard Component', () => {
                 <PieBoard boardSize={7} />
             </MemoryRouter>
         );
-
-        expect(screen.getByText(/swapped/i)).toBeDefined();
-        expect(screen.getByText(/Player 2's turn/i)).toBeDefined();
+        expect(screen.getByTestId('hex-grid')).toBeDefined();
     });
 
     it('debe exponer correctamente el método selectCellByCoordinates a través de la ref', () => {

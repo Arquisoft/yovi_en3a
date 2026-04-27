@@ -14,8 +14,27 @@ vi.mock('../game/HexGrid', () => ({
     default: () => <div data-testid="hex-grid">HexGrid Mock</div>,
 }));
 
-vi.mock('./DiceRoller', () => ({
-    default: ({ statusText }: any) => <div data-testid="dice-roller">{statusText}</div>,
+// Mock realista del DiceRoller que refleja su comportamiento real
+vi.mock('../game/boards/DiceRoller/DiceRoller', () => ({
+    default: ({ isRolling, diceResult, isMultiplayer }: any) => {
+        let statusText = '';
+        let color = '#93c5fd';
+
+        if (isRolling) {
+            statusText = '🎲 Rolling...';
+        } else if (diceResult === 'player') {
+            statusText = isMultiplayer ? "🟦 Player 1's turn!" : '🟦 Your turn!';
+        } else if (diceResult === 'bot') {
+            statusText = isMultiplayer ? "🟥 Player 2's turn" : '🤖 Bot is thinking...';
+            color = '#ef4444';
+        }
+
+        return (
+            <div data-testid="dice-roller" style={{ color }}>
+                {statusText}
+            </div>
+        );
+    },
 }));
 
 describe('FortuneBoard Component', () => {
@@ -30,11 +49,11 @@ describe('FortuneBoard Component', () => {
         isRolling: true,
         playerCanMove: false,
         isP2TurnLocal: false,
+        lockedCells: new Set(),
     };
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // Usamos 'as any' para evitar conflictos de tipos con el hook real
         vi.mocked(logicHook.useFortuneLogic).mockReturnValue(mockDefaultLogic as any);
     });
 
@@ -71,11 +90,12 @@ describe('FortuneBoard Component', () => {
         vi.mocked(logicHook.useFortuneLogic).mockReturnValue({
             ...mockDefaultLogic,
             isRolling: false,
+            diceResult: 'bot',
             isP2TurnLocal: true,
-            isMultiplayer: true,
+            lockedCells: new Set(),
         } as any);
 
-        render(
+        const { container } = render(
             <MemoryRouter>
                 <FortuneBoard boardSize={7} isMultiplayer={true} />
             </MemoryRouter>
