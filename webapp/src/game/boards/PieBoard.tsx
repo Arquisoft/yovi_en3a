@@ -58,10 +58,6 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
       },
     }));
 
-    const bannerColor = currentTurnPlayer === "p1" ? "#93c5fd" : "#ef4444";
-    const bannerEmoji = currentTurnPlayer === "p1" ? "🟦" : "🟥";
-    const playerLabel = currentTurnPlayer === "p1" ? "Player 1" : "Player 2";
-
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
 

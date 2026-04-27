@@ -18,24 +18,32 @@ const WhyNotBoard = forwardRef<GameBoardRef, BoardProps>(
     useImperativeHandle(ref, () => gameBoardRef);
 
     return (
-      <div style={{ position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+        {/* Warning banner */}
         <div style={{
-          position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
-          color: "#facc15", background: "rgba(0,0,0,0.5)", padding: "4px 14px",
-          borderRadius: 8, fontSize: 13, zIndex: 10, whiteSpace: "nowrap",
+          padding: "6px 16px",
+          background: "rgba(0,0,0,0.55)",
+          borderRadius: 8,
+          fontFamily: "monospace",
+          fontSize: 13,
+          color: "#facc15",
         }}>
           ⚠️ First to connect three edges loses
         </div>
+
+        {/* Multiplayer turn indicator */}
         {isMultiplayer && (
           <div style={{
-            position: "absolute", top: 44, left: "50%", transform: "translateX(-50%)",
-            color: isP2Turn ? "#ef4444" : "#93c5fd",
-            background: "rgba(0,0,0,0.4)", padding: "4px 14px",
-            borderRadius: 8, fontSize: 13, zIndex: 10, whiteSpace: "nowrap",
+            padding: "4px 14px",
+            background: "rgba(0,0,0,0.4)",
+            borderRadius: 8,
             fontFamily: "monospace",
+            fontSize: 13,
+            color: isP2Turn ? "#ef4444" : "#93c5fd",
           }}>
           </div>
         )}
+
         <HexGrid
           boardSize={boardSize}
           cellSize={cellSize}

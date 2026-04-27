@@ -19,33 +19,35 @@ const TabuBoard = forwardRef<GameBoardRef, BoardProps>(
 
     useImperativeHandle(ref, () => gameBoardRef);
 
-    const turnLabel = isMultiplayer
-      ? (isP2Turn ? "🟥 Player 2's turn" : "🟦 Player 1's turn") : null;
-
     return (
-      <div style={{ position: "relative" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+        {/* Tabu warning banner */}
         {tabuCells.size > 0 && (
           <div style={{
-            position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
-            color: "#ef4444", background: "rgba(0,0,0,0.5)", padding: "4px 14px",
-            borderRadius: 8, fontSize: 14, zIndex: 10, whiteSpace: "nowrap",
+            padding: "6px 16px",
+            background: "rgba(0,0,0,0.55)",
+            borderRadius: 8,
+            fontFamily: "monospace",
+            fontSize: 13,
+            color: "#ef4444",
           }}>
             🚫 Tabu cells highlighted in red
           </div>
         )}
+
+        {/* Multiplayer turn indicator */}
         {isMultiplayer && (
           <div style={{
-            textAlign: "center", marginBottom: 8,
+            padding: "4px 14px",
+            background: "rgba(0,0,0,0.4)",
+            borderRadius: 8,
+            fontFamily: "monospace",
+            fontSize: 13,
             color: isP2Turn ? "#ef4444" : "#93c5fd",
-            fontFamily: "monospace", fontSize: 13,
-            background: "rgba(0,0,0,0.4)", padding: "4px 14px",
-            borderRadius: 8, display: "inline-block",
-            position: "absolute", top: tabuCells.size > 0 ? 48 : 12,
-            left: "50%", transform: "translateX(-50%)", zIndex: 10,
           }}>
-            {turnLabel}
           </div>
         )}
+
         <HexGrid
           boardSize={boardSize}
           cellSize={cellSize}
