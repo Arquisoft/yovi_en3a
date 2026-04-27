@@ -4,7 +4,7 @@ import "./GameSelect.css";
 import HexBackground from "../BackgroundComponents/HexBackGround";
 import { gatewayUrl } from "../lib/config";
 import { motion } from "framer-motion";
-import useTickSound from "../Hooks/useTickSound";
+import useTickSound from "../hooks/useTickSound";
 
 interface GameSelectProps {
   onBack: () => void;

@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import HexBackground from "./BackgroundComponents/HexBackGround";
 import "./game/GameSelect.css";
-import useTickSound from "./Hooks/useTickSound";
+import useTickSound from "./hooks/useTickSound";
 
 
 const MenuView: React.FC = () => {

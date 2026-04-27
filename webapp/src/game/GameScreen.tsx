@@ -1,16 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import './GameScreen.css';
-import SidePanel, { type SidePanelRef } from './GameAddons/SidePanel';
+import SidePanel, { type SidePanelRef } from './gameAddons/SidePanel';
 import GameBoard, { type GameBoardRef } from './GameBoard';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { gatewayUrl } from '../lib/config';
-import { PlayerCard } from './GameAddons/PlayerCard';
-import { MoveHistory, type Move } from './GameAddons/MoveHistory';
-import { GameTimer } from './GameAddons/GameTimer';
-import { TurnTimer } from './GameAddons/TurnTimer';
+import { PlayerCard } from './gameAddons/PlayerCard';
+import { MoveHistory, type Move } from './gameAddons/MoveHistory';
+import { GameTimer } from './gameAddons/GameTimer';
+import { TurnTimer } from './gameAddons/TurnTimer';
 import { Trophy, LogOut, Gamepad2, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import HexBackground from '../BackgroundComponents/HexBackGround';
 

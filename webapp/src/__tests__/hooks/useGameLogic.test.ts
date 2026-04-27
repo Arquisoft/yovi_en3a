@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { checkYWin, useGameLogic } from '../../Game/Hooks/useGameLogic';
+import { checkYWin, useGameLogic } from '../../game/hooks/useGameLogic';
 
 vi.mock('react-router-dom', () => ({
   useParams: vi.fn().mockReturnValue({ gameId: 'url-game-id' }),
@@ -67,10 +67,10 @@ const makeFetchMock = (ok: boolean, data: unknown) =>
 const localStorageMock = () => {
   const store: Record<string, string> = {};
   return {
-    getItem: vi.fn((k: string) => store[k] ?? null),
-    setItem: vi.fn((k: string, v: string) => { store[k] = v; }),
-    removeItem: vi.fn((k: string) => { delete store[k]; }),
-    clear: vi.fn(() => Object.keys(store).forEach(k => delete store[k])),
+    getItem: (k: string): string | null => store[k] ?? null,
+    setItem: (k: string, v: string): void => { store[k] = v; },
+    removeItem: (k: string): void => { delete store[k]; },
+    clear: (): void => { Object.keys(store).forEach(k => delete store[k]); },
   };
 };
 
@@ -130,9 +130,10 @@ describe('useGameLogic – multiplayer local mode', () => {
 
   it('restores board state from localStorage if saved', () => {
     const saved = { p1: ['3-0-1'], p2: ['2-1-1'], isP2Turn: true };
-    ls.getItem.mockImplementation((k: string) =>
+    const mockGetItem = vi.fn((k: string) =>
       k === 'mp_board_mp-game' ? JSON.stringify(saved) : null
     );
+    ls.getItem = mockGetItem;
 
     const { result } = renderHook(() =>
       useGameLogic('mp-game', 4, undefined, undefined, { isMultiplayer: true })
