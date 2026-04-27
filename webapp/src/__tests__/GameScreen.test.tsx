@@ -2,7 +2,7 @@ import { vi, describe, expect, beforeEach, test } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
-import { GameScreen } from '../Game/GameScreen';
+import { GameScreen } from '../game/GameScreen';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // ── Mocks globales ──────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ describe('GameScreen Component', () => {
         // El SidePanel está oculto, verificamos el header y otros elementos visibles
         expect(screen.getByText('Y-Game')).toBeInTheDocument();
         // Move History puede estar colapsado, verifica que el botón existe
-        const moveHistoryButton = screen.getByText('Move History');
+        const moveHistoryButton = screen.getByRole('button', { name: /move history/i });
         expect(moveHistoryButton).toBeInTheDocument();
     });
 

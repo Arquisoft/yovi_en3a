@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useHoleyLogic } from "../Hooks/useHoleyLogic";
+import { useHoleyLogic } from "../hooks/useHoleyLogic";
 import HexGrid from "../HexGrid";
 
 const HoleyBoard = forwardRef<GameBoardRef, BoardProps>(

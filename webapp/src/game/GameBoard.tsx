@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { BOARD_MAP } from "./Boards/index";
-import { type BoardProps, type GameBoardRef } from "./Boards/Types";
+import { BOARD_MAP } from "./boards/index";
+import { type BoardProps, type GameBoardRef } from "./boards/Types";
 
 export type { GameBoardRef, BoardProps };
 

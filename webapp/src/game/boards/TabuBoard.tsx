@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useTabuLogic } from "../Hooks/useTabuLogic";
+import { useTabuLogic } from "../hooks/useTabuLogic";
 import HexGrid from "../HexGrid";
 
 const TabuBoard = forwardRef<GameBoardRef, BoardProps>(

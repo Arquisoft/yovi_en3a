@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { usePieLogic } from "../Hooks/usePieLogic";
+import { usePieLogic } from "../hooks/usePieLogic";
 import HexGrid from "../HexGrid";
 
 const PieBoard = forwardRef<GameBoardRef, BoardProps>(

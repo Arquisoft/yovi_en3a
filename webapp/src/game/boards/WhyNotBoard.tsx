@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useWhyNotLogic } from "../Hooks/useWhyNotLogic";
+import { useWhyNotLogic } from "../hooks/useWhyNotLogic";
 import HexGrid from "../HexGrid";
 
 const WhyNotBoard = forwardRef<GameBoardRef, BoardProps>(
