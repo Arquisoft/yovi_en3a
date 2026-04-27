@@ -2,7 +2,7 @@ import { vi, describe, expect, beforeEach, test } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
-import { GameScreen } from '../GameScreen';
+import { GameScreen } from '../Game/GameScreen';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // ── Mocks globales ──────────────────────────────────────────────────────────

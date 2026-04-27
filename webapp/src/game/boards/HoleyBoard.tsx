@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useHoleyLogic } from "../hooks/useHoleyLogic";
+import { useHoleyLogic } from "../Hooks/useHoleyLogic";
 import HexGrid from "../HexGrid";
 
 const HoleyBoard = forwardRef<GameBoardRef, BoardProps>(
@@ -11,7 +11,6 @@ const HoleyBoard = forwardRef<GameBoardRef, BoardProps>(
       handleClick,
       handleRequestSelectCell,
       gameBoardRef,
-      holeCells,
       highlightCells,
       isP2Turn,
       lockedCells,
@@ -31,7 +30,6 @@ const HoleyBoard = forwardRef<GameBoardRef, BoardProps>(
             position: "absolute", top: 12,
             left: "50%", transform: "translateX(-50%)", zIndex: 10,
           }}>
-            {isP2Turn ? "🟥 Player 2's turn" : "🟦 Player 1's turn"}
           </div>
         )}
         <HexGrid

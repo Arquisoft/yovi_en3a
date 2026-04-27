@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import React, { createRef } from "react";
-import HexCell from "../game/HexCell";
-import type { HexCellRef } from "../game/HexCell";
+import { createRef } from "react";
+import HexCell from "../Game/HexCell";
+import type { HexCellRef } from "../Game/HexCell";
 import '@testing-library/jest-dom/vitest';
 
 describe("HexCell Component", () => {

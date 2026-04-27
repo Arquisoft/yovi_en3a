@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useTabuLogic } from '../../game/hooks/useTabuLogic';
-import * as gameLogicModule from '../../game/hooks/useGameLogic';
+import { useTabuLogic } from '../../Game/Hooks/useTabuLogic';
+import * as gameLogicModule from '../../Game/Hooks/useGameLogic';
 
 // 1. Mock de la dependencia base
 vi.mock('../../game/hooks/useGameLogic', () => ({
@@ -18,7 +18,7 @@ describe('useTabuLogic', () => {
 
         // 2. Configuramos el mock de useGameLogic
         // Simulamos que al llamar a handleClick, el hook base ejecutaría los callbacks
-        vi.mocked(gameLogicModule.useGameLogic).mockImplementation((id, size, played, over, config) => {
+        vi.mocked(gameLogicModule.useGameLogic).mockImplementation((_id, _size, _played, _over, config) => {
             return {
                 cellRefs: { current: new Map() },
                 initialOwners: new Map(),

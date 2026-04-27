@@ -1,5 +1,5 @@
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps } from "../boards/Types";
+import { type BoardProps } from "../Boards/Types";
 
 export const useWhyNotLogic = (
   gameIdProp: BoardProps["gameIdProp"],

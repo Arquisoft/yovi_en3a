@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useMasterLogic } from '../../game/hooks/useMasterLogic';
-import * as gameLogicModule from '../../game/hooks/useGameLogic';
+import { useMasterLogic } from '../../Game/Hooks/useMasterLogic';
+import * as gameLogicModule from '../../Game/Hooks/useGameLogic';
 
 // 1. Mock del hook base
 vi.mock('../../game/hooks/useGameLogic', () => ({

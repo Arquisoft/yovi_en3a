@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { BarChart3, Trophy, Target, Hash, ArrowLeft, Loader2, AlertCircle, ChevronRight, History } from 'lucide-react';
-import { motion } from "framer-motion";
-import HexBackground from './HexBackGround';
+import HexBackground from '../BackgroundComponents/HexBackGround';
 
 interface UserStats {
     userId: string;
@@ -16,7 +15,7 @@ interface UserStats {
 const StatsView: React.FC = () => {
     const [stats, setStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const error: string | null = null;
     const navigate = useNavigate();
     const [myPosition, setMyPosition] = useState<number | null>(null);
 

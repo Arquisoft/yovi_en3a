@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps, type Coordinates } from "../boards/Types";
+import { type BoardProps, type Coordinates } from "../Boards/Types";
 
 const getAdjacentKeys = (coord: Coordinates): Set<string> => {
   const { x, y, z } = coord;

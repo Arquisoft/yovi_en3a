@@ -1,10 +1,19 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { usePieLogic } from "../hooks/usePieLogic";
+import { usePieLogic } from "../Hooks/usePieLogic";
 import HexGrid from "../HexGrid";
 
 const PieBoard = forwardRef<GameBoardRef, BoardProps>(
-  ({ boardSize = 7, cellSize = 60, gameIdProp, showNames = false, onCellPlayed, onGameOver, onTurnChange }, ref) => {
+  ({ 
+    boardSize = 7, 
+    cellSize = 60, 
+    gameIdProp, 
+    showNames = false, 
+    onCellPlayed, 
+    onGameOver, 
+    onTurnChange,
+    onSwap  // ✅ Desestructurar el nuevo prop
+  }, ref) => {
     const {
       cellRefs,
       playedCoords,
@@ -16,7 +25,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
       handleSwap,
       handleRequestSelectCell,
       lockedCells,
-    } = usePieLogic(boardSize, onCellPlayed, onGameOver, onTurnChange);
+    } = usePieLogic(boardSize, onCellPlayed, onGameOver, onTurnChange, onSwap);  // ✅ Pasar onSwap
 
     useImperativeHandle(ref, () => ({
       selectCellByCoordinates: (x, y, z, player) => {
@@ -63,18 +72,6 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
             fontFamily: "monospace", fontSize: 13, color: "#93c5fd",
           }}>
             🟦 Player 1: place your first piece anywhere
-          </div>
-        )}
-
-        {phase === "playing" && (
-          <div style={{
-            padding: "6px 16px", background: "rgba(0,0,0,0.55)", borderRadius: 8,
-            fontFamily: "monospace", fontSize: 13, color: bannerColor,
-          }}>
-            {bannerEmoji} {playerLabel}'s turn
-            {swapActive && (
-              <span style={{ color: "#facc15", marginLeft: 8, fontSize: 11 }}>⇄ swapped</span>
-            )}
           </div>
         )}
 

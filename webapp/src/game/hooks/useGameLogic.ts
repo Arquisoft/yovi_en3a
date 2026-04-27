@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { gatewayUrl } from "../../lib/config";
-import { type Coordinates, type GameBoardRef, type GameLogicOptions, parseLayout } from "../boards/Types";
+import { type Coordinates, type GameBoardRef, type GameLogicOptions, parseLayout } from "../Boards/Types";
 import { type HexCellRef } from "../HexCell";
 import { flushSync } from "react-dom";
 import { generateAllCellKeys } from "./cellLockingUtils";

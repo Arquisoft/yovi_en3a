@@ -1,18 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import './GameScreen.css';
-import SidePanel, { type SidePanelRef } from './game/SidePanel';
-import GameBoard, { type GameBoardRef } from './game/GameBoard';
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
-import { Separator } from './components/ui/separator';
-import { gatewayUrl } from './lib/config';
-import { PlayerCard } from './game/PlayerCard';
-import { MoveHistory, type Move } from './game/MoveHistory';
-import { GameTimer } from './game/GameTimer';
-import { TurnTimer } from './game/TurnTimer';
+import SidePanel, { type SidePanelRef } from './GameAddons/SidePanel';
+import GameBoard, { type GameBoardRef } from './GameBoard';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
+import { gatewayUrl } from '../lib/config';
+import { PlayerCard } from './GameAddons/PlayerCard';
+import { MoveHistory, type Move } from './GameAddons/MoveHistory';
+import { GameTimer } from './GameAddons/GameTimer';
+import { TurnTimer } from './GameAddons/TurnTimer';
 import { Trophy, LogOut, Gamepad2, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
-import HexBackground from './HexBackGround';
+import HexBackground from '../BackgroundComponents/HexBackGround';
 
 interface GameScreenProps {
     onExit?: () => void;
@@ -106,7 +106,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
     const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
         sidePanelRef.current?.addMove(player, playerName, coordinate);
-        const newMove: Move = { player, playerName, coordinate, timestamp: new Date() };
+        const newMove: Move = { 
+            player, 
+            playerName, 
+            coordinate, 
+            timestamp: new Date(),
+            swapped: false  // ✅ Por defecto no está swapped
+        };
         setMoves(prev => [...prev, newMove]);
 
         if (player === "p1") {
@@ -121,6 +127,22 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     };
 
     const handleTurnChange = (turn: "p1" | "p2") => setCurrentTurn(turn);
+
+    // ✅ Nueva función para manejar el swap
+    const handleSwapOccurred = () => {
+        setMoves(prev => {
+            if (prev.length === 0) return prev;
+            const updated = [...prev];
+            const lastMove = updated[updated.length - 1];
+            // Cambiar el player del último movimiento
+            updated[updated.length - 1] = {
+                ...lastMove,
+                player: lastMove.player === "p1" ? "p2" : "p1",
+                swapped: true
+            };
+            return updated;
+        });
+    };
 
     const handleExit = () => {
         if (onExit) onExit();
@@ -305,6 +327,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             }
                             onGameOver={(winner) => handleGameOver(winner as "p1" | "p2")}
                             onTurnChange={handleTurnChange}
+                            onSwap={handleSwapOccurred}  // ✅ Pasar callback
                         />
                     </main>
 

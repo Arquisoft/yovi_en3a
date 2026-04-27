@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps } from "../boards/Types";
+import { type BoardProps } from "../Boards/Types";
 import { generateAllCellKeys } from "./cellLockingUtils";
 
 export const useMasterLogic = (

@@ -1,6 +1,6 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import GameSelect from '../game/GameSelect'
+import GameSelect from '../Game/GameSelect'
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 import '@testing-library/jest-dom'
 import { MemoryRouter } from 'react-router-dom'
@@ -75,5 +75,3 @@ describe('GameSelect Component', () => {
 
     //AÑADIR TESTS PARA LOS OTROS MODOS DE JUEGO SEGUN SE VAYAN IMPLEMENTANDO
 })
-
-const anyValue = expect.anything();

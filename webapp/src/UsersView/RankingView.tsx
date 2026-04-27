@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, ArrowLeft, User, Target } from 'lucide-react';
-import HexBackground from './HexBackGround';
+import HexBackground from '../BackgroundComponents/HexBackGround';
 import './RankingView.css';
 
 interface PlayerRank {

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { CountryDropdown } from 'react-country-region-selector';
-import ModelBackground from './ModelBackground';
+import ModelBackground from '../BackgroundComponents/ModelBackground';
 import './RegisterForm.css';
 
 const RegisterForm: React.FC = () => {

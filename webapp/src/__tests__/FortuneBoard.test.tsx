@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import FortuneBoard from '../game/boards/FortuneBoard';
-import * as logicHook from '../game/hooks/useFortuneLogic';
+import FortuneBoard from '../Game/Boards/FortuneBoard';
+import * as logicHook from '../Game/Hooks/useFortuneLogic';
 import { MemoryRouter } from 'react-router-dom';
 
 // 1. Mock del hook

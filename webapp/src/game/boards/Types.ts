@@ -13,6 +13,7 @@ export interface BoardProps {
   onCellPlayed?: (player: "p1" | "p2", playerName: string, coordinate: string) => void;
   onGameOver?: (winner: "p1" | "p2") => void;
   onTurnChange?: (turn: "p1" | "p2") => void;
+  onSwap?: () => void;
 }
 
 export interface GameBoardRef {

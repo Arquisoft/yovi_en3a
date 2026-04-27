@@ -1,40 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import HexBackground from "./HexBackGround";
-import "./game/GameSelect.css";
-import { motion } from "framer-motion";
+import HexBackground from "./BackgroundComponents/HexBackGround";
+import "./Game/GameSelect.css";
+import useTickSound from "./Hooks/useTickSound";
 
 
 const MenuView: React.FC = () => {
-    const [hovered, setHovered] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+    const playTick = useTickSound();
+    const loading = false;
     const navigate = useNavigate();
-
-    const gatewayUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-
-    const handlePlayVsBot = async () => {
-        setLoading(true);
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${gatewayUrl}/api/game-manager/create/standard`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ botId: 'random_bot', boardSize: 7 })
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-
-            navigate(`/game/${data.gameId}`); // pasamos el gameId por la URL
-        } catch (err) {
-            console.error("Error creating game:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleViewStats = async () => {
         try {
@@ -52,7 +26,7 @@ const MenuView: React.FC = () => {
 
     const options = [
         { label: "Play vs Bot", icon: "🤖", onClick: () => navigate("/select-game") },
-        { label: "Multiplayer", icon: "⚔️", path: "/multiplayer" },
+        { label: "Local Multiplayer", icon: "⚔️", path: "/multiplayer" },
         {
             label: "History & Stats",
             icon: "📊",
@@ -80,7 +54,7 @@ const MenuView: React.FC = () => {
                     {options.map((item) => (
                         <button
                             key={item.label}
-                            onClick={() => item.onClick ? item.onClick() : navigate(item.path!)}
+                            onClick={() => { playTick(); item.onClick ? item.onClick() : navigate(item.path!); }}
                             disabled={loading && item.label === "Play vs Bot"}
                             className="mode-card"
                         >
@@ -101,6 +75,7 @@ const MenuView: React.FC = () => {
                     <button
                         className="mode-card"
                         onClick={() => {
+                            playTick();
                             localStorage.removeItem('token');
                             localStorage.removeItem('userId');
                             navigate('/');

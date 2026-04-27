@@ -10,6 +10,7 @@ export interface Move {
   playerName: string
   coordinate: string
   timestamp: Date
+  swapped?: boolean
 }
 
 interface MoveHistoryProps {
@@ -58,6 +59,7 @@ export function MoveHistory({ moves, maxHeight = 200 }: MoveHistoryProps) {
                       move.player === "p1" ? "text-blue-300/70" : "text-red-300/70"
                     )}>
                       {move.playerName}
+                      {move.swapped && <span className="text-yellow-400 ml-1">⇄</span>}
                     </span>
                     <span className="font-mono text-white/40 shrink-0 tabular-nums">
                       {move.coordinate}

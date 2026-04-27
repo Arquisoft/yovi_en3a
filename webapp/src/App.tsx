@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './Landing';
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
+import LoginForm from './RegisterUsers/LoginForm';
+import RegisterForm from './RegisterUsers/RegisterForm';
 import MenuView from './MenuView';
-import GameSelect from './game/GameSelect';
+import GameSelect from './Game/GameSelect';
 import HowToPlay from "./HowToPlay";
 import './App.css';
-import { GameScreen } from './GameScreen';
-import StatsView from './StatsView';
-import RankingView from './RankingView';
+import { GameScreen } from './Game/GameScreen';
+import StatsView from './UsersView/StatsView';
+import RankingView from './UsersView/RankingView';
 import ProtectedRoute from './ProtectRoutes';
-import MatchHistoryView from './MatchHistoryView';
+import MatchHistoryView from './UsersView/MatchHistoryView';
 
 function App() {
   return (

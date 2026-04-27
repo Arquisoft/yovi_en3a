@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import MatchHistoryView from '../MatchHistoryView';
+import MatchHistoryView from '../UsersView/MatchHistoryView';
 
 // Mock de framer-motion para evitar problemas con las animaciones en el entorno de test
 vi.mock('framer-motion', () => ({

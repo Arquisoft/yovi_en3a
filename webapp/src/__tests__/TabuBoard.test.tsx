@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import TabuBoard from '../game/boards/TabuBoard';
-import * as logicHook from '../game/hooks/useTabuLogic';
+import TabuBoard from '../Game/Boards/TabuBoard';
+import * as logicHook from '../Game/Hooks/useTabuLogic';
 import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../game/hooks/useTabuLogic', () => ({

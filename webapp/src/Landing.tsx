@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import ModelBackground from './ModelBackground';
+import ModelBackground from './BackgroundComponents/ModelBackground';
 import './Landing.css';
 
 const Landing: React.FC = () => {

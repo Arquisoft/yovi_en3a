@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
-import ModelBackground from './ModelBackground';
+import ModelBackground from '../BackgroundComponents/ModelBackground';
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();

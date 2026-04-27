@@ -2,8 +2,8 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import '@testing-library/jest-dom';
-import GameBoard from "../game/GameBoard";
-import type { GameBoardRef } from "../game/GameBoard";
+import GameBoard from "../Game/GameBoard";
+import type { GameBoardRef } from "../Game/GameBoard";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 // ── Mock fetch global para evitar llamadas reales al backend ────────────────

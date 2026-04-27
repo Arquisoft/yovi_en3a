@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useWhyNotLogic } from "../hooks/useWhyNotLogic";
+import { useWhyNotLogic } from "../Hooks/useWhyNotLogic";
 import HexGrid from "../HexGrid";
 
 const WhyNotBoard = forwardRef<GameBoardRef, BoardProps>(
@@ -34,7 +34,6 @@ const WhyNotBoard = forwardRef<GameBoardRef, BoardProps>(
             borderRadius: 8, fontSize: 13, zIndex: 10, whiteSpace: "nowrap",
             fontFamily: "monospace",
           }}>
-            {isP2Turn ? "🟥 Player 2's turn" : "🟦 Player 1's turn"}
           </div>
         )}
         <HexGrid

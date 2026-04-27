@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps } from "../boards/Types";
+import { type BoardProps } from "../Boards/Types";
 import { gatewayUrl } from "../../lib/config";
-import { generateAllCellKeys } from "./cellLockingUtils";
 
 // Genera una funcion a partir de un número (mulberry32)
 function seededRandom(seed: number) {

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { type BoardProps, type Coordinates } from "../boards/Types";
+import { type BoardProps, type Coordinates } from "../Boards/Types";
 import { type HexCellRef } from "../HexCell";
 import { checkYWin } from "./useGameLogic";
 import { generateAllCellKeys } from "./cellLockingUtils";
@@ -10,7 +10,8 @@ export const usePieLogic = (
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
   onGameOver: BoardProps["onGameOver"],
-  onTurnChange: BoardProps["onTurnChange"]
+  onTurnChange: BoardProps["onTurnChange"],
+  onSwap?: () => void  // ✅ Nuevo parámetro
 ) => {
   const cellRefs = useRef<Map<string, HexCellRef>>(new Map());
   const playedCoords = useRef<Set<string>>(new Set());
@@ -43,7 +44,6 @@ export const usePieLogic = (
     }
 
     const turn = currentTurnRef.current;
-    const swap = swapRef.current;
 
     if (phase === "p1_first") {
       selectCell(coordinates.x, coordinates.y, coordinates.z, "p1");
@@ -61,14 +61,15 @@ export const usePieLogic = (
     }
 
     if (phase === "playing") {
-      const visualPlayer: "p1" | "p2" = swap ? (turn === "p1" ? "p2" : "p1") : turn;
+      // ✅ Después del swap, cada jugador usa su color normal
+      const visualPlayer: "p1" | "p2" = turn;
 
       selectCell(coordinates.x, coordinates.y, coordinates.z, visualPlayer);
       playedCoords.current.add(key);
 
       if (turn === "p1") {
         p1Cells.current.add(key);
-        onCellPlayed?.(visualPlayer, swap ? "Player 1 (swapped)" : "Player 1", name);
+        onCellPlayed?.(visualPlayer, "Player 1", name);
         if (checkYWin(p1Cells.current)) {
           onGameOver?.(visualPlayer); 
           return;
@@ -78,7 +79,7 @@ export const usePieLogic = (
         onTurnChange?.("p2");
       } else {
         p2Cells.current.add(key);
-        onCellPlayed?.(visualPlayer, swap ? "Player 2 (swapped)" : "Player 2", name);
+        onCellPlayed?.(visualPlayer, "Player 2", name);
         if (checkYWin(p2Cells.current)) {
           onGameOver?.(visualPlayer);
           return;
@@ -112,13 +113,13 @@ export const usePieLogic = (
     }
     swapRef.current = true;
     setSwapActive(true);
-    currentTurnRef.current = "p2";
-    setCurrentTurnPlayer("p2");
+    currentTurnRef.current = "p1";
+    setCurrentTurnPlayer("p1");
     setPhase("playing");
-    onTurnChange?.("p2");
-  }, [selectCell, onTurnChange]);
+    onTurnChange?.("p1");
+    onSwap?.();
+  }, [selectCell, onTurnChange, onSwap]);
 
-  // Lock cells when player 2 is choosing (they get to accept/reject p1's first move)
   const lockedCells = phase === "p2_choice" ? generateAllCellKeys(boardSize) : new Set<string>();
 
   return {

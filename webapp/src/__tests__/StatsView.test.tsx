@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import StatsView from '../StatsView';
+import StatsView from '../UsersView/StatsView';
 import { describe, expect, test, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import WhyNotBoard from '../game/boards/WhyNotBoard';
-import * as logicHook from '../game/hooks/useWhyNotLogic';
+import WhyNotBoard from '../Game/Boards/WhyNotBoard';
+import * as logicHook from '../Game/Hooks/useWhyNotLogic';
 import { MemoryRouter } from 'react-router-dom';
 
 // 1. Mock del hook de lógica

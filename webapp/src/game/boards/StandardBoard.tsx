@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useGameLogic } from "../hooks/useGameLogic";
+import { useGameLogic } from "../Hooks/useGameLogic";
 import HexGrid from "../HexGrid";
 
 const StandardBoard = forwardRef<GameBoardRef, BoardProps>(
@@ -24,7 +24,6 @@ const StandardBoard = forwardRef<GameBoardRef, BoardProps>(
             borderRadius: 8, fontSize: 13, zIndex: 10, whiteSpace: "nowrap",
             fontFamily: "monospace",
           }}>
-            {isP2Turn ? "🟥 Player 2's turn" : "🟦 Player 1's turn"}
           </div>
         )}
         <HexGrid

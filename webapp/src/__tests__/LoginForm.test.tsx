@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import LoginForm from '../LoginForm'
+import LoginForm from '../RegisterUsers/LoginForm'
 import { afterEach, describe, expect, test, vi, beforeEach } from 'vitest'
 import '@testing-library/jest-dom'
 import { MemoryRouter } from 'react-router-dom'

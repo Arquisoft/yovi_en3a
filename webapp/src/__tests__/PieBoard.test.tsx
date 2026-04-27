@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import PieBoard from '../game/boards/PieBoard';
-import * as logicHook from '../game/hooks/usePieLogic';
+import PieBoard from '../Game/Boards/PieBoard';
+import * as logicHook from '../Game/Hooks/usePieLogic';
 import { MemoryRouter } from 'react-router-dom';
 
 // 1. Mock del hook de lógica
