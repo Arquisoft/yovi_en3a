@@ -1,7 +1,7 @@
 import React from "react";
 import HexCell, { type HexCellRef } from "./HexCell";
 import HexBackground from "../BackgroundComponents/HexBackGround";
-import { type Coordinates } from "./Boards/Types";
+import { type Coordinates } from "./boards/Types";
 
 interface HexGridProps {
   boardSize: number;

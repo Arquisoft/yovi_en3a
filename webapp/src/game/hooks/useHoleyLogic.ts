@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps } from "../Boards/Types";
+import { type BoardProps } from "../boards/Types";
 import { gatewayUrl } from "../../lib/config";
 
 // Genera una funcion a partir de un número (mulberry32)

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { type BoardProps, type Coordinates } from "../Boards/Types";
+import { type BoardProps, type Coordinates } from "../boards/Types";
 import { type HexCellRef } from "../HexCell";
 import { checkYWin } from "./useGameLogic";
 import { generateAllCellKeys } from "./cellLockingUtils";

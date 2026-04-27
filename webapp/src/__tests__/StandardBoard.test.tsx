@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import StandardBoard from '../Game/Boards/StandardBoard';
-import * as logicHook from '../Game/Hooks/useGameLogic';
+import StandardBoard from '../game/boards/StandardBoard';
+import * as logicHook from '../game/hooks/useGameLogic';
 import { MemoryRouter } from 'react-router-dom';
 
 // 1. Mock del hook de lógica

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import HoleyBoard from '../Game/Boards/HoleyBoard';
-import * as logicHook from '../Game/Hooks/useHoleyLogic';
+import HoleyBoard from '../game/boards/HoleyBoard';
+import * as logicHook from '../game/hooks/useHoleyLogic';
 import { MemoryRouter } from 'react-router-dom';
 
 // 1. Mock del hook de lógica

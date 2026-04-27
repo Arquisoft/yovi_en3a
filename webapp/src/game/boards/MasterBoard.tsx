@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useMasterLogic } from "../Hooks/useMasterLogic";
+import { useMasterLogic } from "../hooks/useMasterLogic";
 import HexGrid from "../HexGrid";
 
 const MasterBoard = forwardRef<GameBoardRef, BoardProps>(

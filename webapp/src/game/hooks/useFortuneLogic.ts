@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useGameLogic } from "./useGameLogic";
-import { type BoardProps } from "../Boards/Types";
+import { type BoardProps } from "../boards/Types";
 import { generateAllCellKeys } from "./cellLockingUtils";
 
 type DiceResult = "player" | "bot";
@@ -22,10 +22,6 @@ export const useFortuneLogic = (
 
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
     onBeforeMove: () => playerCanMove,
-    onAfterPlayerMove: () => {
-      setPlayerCanMove(false);
-      setTimeout(() => rollDiceRef.current(), 600);
-    },
     skipBotAfterMove: true,
     isMultiplayer,
   });
@@ -68,14 +64,18 @@ export const useFortuneLogic = (
         setIsP2TurnLocal(false);
         setTimeout(() => rollDice(), 600);
       } else if (playerCanMove) {
+        setPlayerCanMove(false);
         logic.executeP1MoveLocal(coordinates, name);
+        setTimeout(() => rollDiceRef.current(), 600);
       }
     } else {
       if (!playerCanMove) {
         return;
       }
 
+      setPlayerCanMove(false);
       logic.handleClick(coordinates, name);
+      setTimeout(() => rollDiceRef.current(), 600);
     }
   }, [logic, rollDice, playerCanMove, isMultiplayer]);
 

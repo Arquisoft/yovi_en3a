@@ -1,6 +1,6 @@
 import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
-import { useFortuneLogic } from "../Hooks/useFortuneLogic";
+import { useFortuneLogic } from "../hooks/useFortuneLogic";
 import HexGrid from "../HexGrid";
 import DiceRoller from "./DiceRoller/DiceRoller";
 
