@@ -342,6 +342,265 @@ fn apply_move(game: &mut GameY, movement: Movement, error_msg: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Coordinates, RandomBot};
+
+    fn make_game(size: u32) -> GameY {
+        GameY::new(size)
+    }
+
+    fn player(id: u32) -> PlayerId {
+        PlayerId::new(id)
+    }
+
+    // ── apply_move ────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_apply_move_success() {
+        let mut game = make_game(3);
+        let coords = Coordinates::from_index(0, game.board_size());
+        let mv = Movement::Placement { player: player(0), coords };
+        assert!(apply_move(&mut game, mv, "err"));
+    }
+
+    #[test]
+    fn test_apply_move_occupied_cell_returns_false() {
+        let mut game = make_game(3);
+        let coords = Coordinates::from_index(0, game.board_size());
+        apply_move(&mut game, Movement::Placement { player: player(0), coords }, "");
+        // Player 1 tries to place on the already-occupied cell
+        let ok = apply_move(&mut game, Movement::Placement { player: player(1), coords }, "err");
+        assert!(!ok);
+    }
+
+    #[test]
+    fn test_apply_move_duplicate_cell_returns_false() {
+        let mut game = make_game(3);
+        let coords = Coordinates::from_index(0, game.board_size());
+        apply_move(&mut game, Movement::Placement { player: player(0), coords }, "");
+        // Player 1 tries the same cell
+        apply_move(&mut game, Movement::Placement { player: player(1), coords }, "");
+        // Player 0 tries the already-occupied cell again (wrong player & occupied)
+        let ok = apply_move(&mut game, Movement::Placement { player: player(0), coords }, "err");
+        assert!(!ok);
+    }
+
+    // ── handle_place_command ─────────────────────────────────────────────────
+
+    #[test]
+    fn test_handle_place_command_human_mode_places_piece() {
+        let mut game = make_game(3);
+        let bot = RandomBot;
+        handle_place_command(&mut game, 0, player(0), Mode::Human, &bot);
+        assert!(!game.available_cells().contains(&0));
+    }
+
+    #[test]
+    fn test_handle_place_command_human_mode_no_bot_move() {
+        let mut game = make_game(3);
+        let total_before = game.available_cells().len();
+        let bot = RandomBot;
+        handle_place_command(&mut game, 0, player(0), Mode::Human, &bot);
+        // Only one cell removed (human), bot should NOT move in human mode
+        assert_eq!(game.available_cells().len(), total_before - 1);
+    }
+
+    #[test]
+    fn test_handle_place_command_computer_mode_triggers_bot() {
+        let mut game = make_game(3);
+        let total_before = game.available_cells().len();
+        let bot = RandomBot;
+        handle_place_command(&mut game, 0, player(0), Mode::Computer, &bot);
+        // Both human and bot should have placed — two cells removed
+        assert!(game.available_cells().len() <= total_before - 2);
+    }
+
+    #[test]
+    fn test_handle_place_command_occupied_cell_no_change() {
+        let mut game = make_game(3);
+        let bot = RandomBot;
+        // Player 0 places at cell 0
+        handle_place_command(&mut game, 0, player(0), Mode::Human, &bot);
+        let total_after_first = game.available_cells().len();
+        // Player 1 tries the same occupied cell — should fail, count unchanged
+        handle_place_command(&mut game, 0, player(1), Mode::Human, &bot);
+        assert_eq!(game.available_cells().len(), total_after_first);
+    }
+
+    // ── trigger_bot_move ─────────────────────────────────────────────────────
+
+    #[test]
+    fn test_trigger_bot_move_places_piece() {
+        let mut game = make_game(3);
+        // Human plays first so bot is player 1
+        let coords = Coordinates::from_index(0, game.board_size());
+        game.add_move(Movement::Placement { player: player(0), coords }).unwrap();
+        let total_before = game.available_cells().len();
+        let bot = RandomBot;
+        trigger_bot_move(&mut game, &bot);
+        assert!(game.available_cells().len() < total_before);
+    }
+
+    #[test]
+    fn test_trigger_bot_move_full_board_does_nothing() {
+        // size-1 board has 1 cell; after player 0 places, game may be over
+        let mut game = make_game(1);
+        let coords = Coordinates::from_index(0, game.board_size());
+        // Fill the only cell
+        let _ = game.add_move(Movement::Placement { player: player(0), coords });
+        let bot = RandomBot;
+        // Should not panic even if game is over / board full
+        trigger_bot_move(&mut game, &bot);
+    }
+
+    // ── print_help ────────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_print_help_does_not_panic() {
+        print_help();
+    }
+
+    // ── process_input ────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_process_input_place_human() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("0", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+        assert!(!game.available_cells().contains(&0));
+    }
+
+    #[test]
+    fn test_process_input_place_computer_triggers_bot() {
+        let mut game = make_game(3);
+        let total_before = game.available_cells().len();
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("0", &mut game, &player(0), &mut opts, Mode::Computer, &bot);
+        assert!(res.is_ok());
+        assert!(game.available_cells().len() <= total_before - 2);
+    }
+
+    #[test]
+    fn test_process_input_resign_ends_game() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("resign", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+        assert!(game.check_game_over());
+    }
+
+    #[test]
+    fn test_process_input_show_3d_coords_toggles() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let initial = opts.show_3d_coords;
+        process_input("show_coords", &mut game, &player(0), &mut opts, Mode::Human, &bot).unwrap();
+        assert_eq!(opts.show_3d_coords, !initial);
+        process_input("show_coords", &mut game, &player(0), &mut opts, Mode::Human, &bot).unwrap();
+        assert_eq!(opts.show_3d_coords, initial);
+    }
+
+    #[test]
+    fn test_process_input_show_idx_toggles() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let initial = opts.show_idx;
+        process_input("show_idx", &mut game, &player(0), &mut opts, Mode::Human, &bot).unwrap();
+        assert_eq!(opts.show_idx, !initial);
+    }
+
+    #[test]
+    fn test_process_input_show_colors_toggles() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let initial = opts.show_colors;
+        process_input("show_colors", &mut game, &player(0), &mut opts, Mode::Human, &bot).unwrap();
+        assert_eq!(opts.show_colors, !initial);
+    }
+
+    #[test]
+    fn test_process_input_help_does_not_panic() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("help", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_process_input_none_does_not_panic() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_process_input_error_does_not_panic() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("notacommand", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_process_input_save_creates_file() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let path = std::env::temp_dir().join("cli_test_save.json");
+        let cmd = format!("save {}", path.display());
+        let res = process_input(&cmd, &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+        assert!(path.exists());
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn test_process_input_load_restores_game() {
+        let path = std::env::temp_dir().join("cli_test_load.json");
+        {
+            let game = make_game(5);
+            game.save_to_file(&path).unwrap();
+        }
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let cmd = format!("load {}", path.display());
+        let res = process_input(&cmd, &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+        assert_eq!(game.board_size(), 5);
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn test_process_input_save_no_filename_is_ok() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        // "save" without filename parses to Command::Error, which process_input handles gracefully
+        let res = process_input("save", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_process_input_load_no_filename_is_ok() {
+        let mut game = make_game(3);
+        let mut opts = RenderOptions::default();
+        let bot = RandomBot;
+        let res = process_input("load", &mut game, &player(0), &mut opts, Mode::Human, &bot);
+        assert!(res.is_ok());
+    }
+
+    // ── Mode display (existing) ───────────────────────────────────────────────
 
     #[test]
     fn test_mode_display_computer() {
