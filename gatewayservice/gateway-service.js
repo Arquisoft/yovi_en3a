@@ -56,7 +56,12 @@ let proxyRequest = async(targetUrl, req, res) => {
         
         // Lista blanca de patrones de ruta permitidos por servicio
         const ALLOWED_PATTERNS = {
-            'users': [/^\/register$/, /^\/login$/, /^\/stats\/update$/, /^\/stats\/[a-f0-9]{24}$/],
+            'users': [
+                /^\/register$/,
+                /^\/login$/,
+                /^\/stats\/update$/,
+                /^\/stats\/[\w-]+$/
+            ],
             'game-manager': [
                 /^\/create\/\w+$/,
                 /^\/state\/[a-f0-9]{24}$/,
