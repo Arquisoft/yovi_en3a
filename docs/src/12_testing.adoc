@@ -1,0 +1,120 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+[[section-testing]]
+== Testing
+
+This section describes the testing strategy applied across the system, covering unit and integration tests for each microservice, end-to-end tests for the full application flow, and load testing results for performance validation.
+
+---
+
+=== Unit and Integration Tests
+
+==== users-service
+
+The users-service test suite uses Vitest with mocked MongoDB models (MockUser, MockStats, MockHistory) and a mocked bcrypt dependency, allowing tests to run without a real database.
+
+[cols="1,3", options="header"]
+|===
+| Endpoint | Tested
+| *POST /register* | Successful creation with valid data; optional fields (age, country); 409 on duplicate username/email; 400 on missing, too short, or invalid username; 400 on invalid email; 400 on weak password (too short, no numbers, no letters)
+| *POST /login* | Successful login returning JWT; 401 on wrong password; 404 on unknown user
+| *POST /stats/update* | Stats updated correctly; 404 on unknown user; 400 on invalid payload
+| *GET /stats/:userId* | Returns stats for existing user; 404 on unknown user
+| *GET /stats/ranking* | Returns ranked list; correct ordering by wins and win rate
+| *POST /history/add* | Game history entry added; 404 on unknown user
+| *GET /history/:userId* | Returns game history; 404 on unknown user
+|===
+
+==== game-manager
+
+The game-manager test suite uses Vitest with MongoMemoryServer for an in-memory MongoDB instance and nock to intercept HTTP calls to the bot server (gamey) and users service, ensuring full isolation.
+
+[cols="1,3", options="header"]
+|===
+| Endpoint |Tested
+| *GET /health* | Returns service status
+| *POST /create/:gameName* | Creates game successfully; 400 on missing userId, invalid userId, or unknown game type
+| *GET /state/:id* | Returns current game state; 404 on unknown game
+| *GET /list* | Returns list of games for the authenticated user
+| *POST /game/:id/resign* | Marks game as resigned; 404 on unknown game
+| *POST /game/:id/move/player* | Accepts valid player move; 400 on occupied cell; 400 on out-of-bounds coordinates; detects win condition
+| *POST /game/:id/move/bot* | Calls gamey and applies bot move; handles gamey errors gracefully
+| *500 errors* | Database failure scenarios return 500 with error body
+|===
+
+==== gateway-service
+
+The gateway-service test suite uses Vitest and supertest and focuses on the service's own status endpoint.
+
+[cols="1,3", options="header"]
+|===
+| Endpoint |Tested
+| *GET /status* | Returns { status: "ok", service: "gatewayservice" }
+|===
+
+==== gamey (bot server — Rust)
+
+The gamey service is written in Rust and tested with the built-in cargo test framework. Tests are split into two files.
+
+**bot_server_tests.rs** — HTTP layer tests using Axum's *tower::ServiceExt:
+
+[cols="1,3", options="header"]
+|===
+| Test |Tested
+| *test_status_endpoint_returns_ok* | GET /status returns 200 with body "OK"
+| *test_choose_endpoint_with_valid_request* | POST /v1/ybot/choose/random_bot with valid YEN returns a valid move response
+| *test_choose_endpoint_with_partially_filled_board* | Bot chooses a cell from the remaining available ones
+| *test_choose_endpoint_with_invalid_api_version* | Unknown API version returns 404
+| *test_choose_endpoint_with_unknown_bot* | Unknown bot ID returns 404
+| *test_choose_endpoint_with_invalid_json* | Malformed JSON body returns 422
+| *test_choose_endpoint_with_missing_content_type* | Missing *Content-Type* header returns 415
+| *test_choose_with_custom_bot_registry* | Custom bot registry is used correctly
+| *test_choose_with_empty_bot_registry* | Empty registry returns 404
+| *test_unknown_route_returns_404* | Unknown routes return 404
+| *test_wrong_method_on_status_endpoint* | Wrong HTTP method returns 405
+| *test_get_on_choose_endpoint_returns_method_not_allowed* | GET on choose endpoint returns 405
+|===
+
+**core_tests.rs** — Game logic unit tests for GameY;
+
+[cols="1,3", options="header"]
+|===
+| Test group |Tested
+| Initialization | Correct board size, starting player, cell count, and available cells for various board sizes
+| Basic moves | Player alternation, available cell count decreasing after moves, move tracking
+| Win detection | Player 0 and Player 1 win by connecting all three sides; no false positives; edge cases (size 1 and size 2 boards)
+| YEN serialization | Game state correctly serialised and deserialised using YEN notation
+| CLI | Command-line interface arguments parsed correctly
+|===
+
+---
+
+=== End-to-End Tests
+
+The E2E suite uses Cucumber.js with Playwright to test the full application through the browser. Each feature file corresponds to a user-facing flow.
+
+[cols="1,3", options="header"]
+|===
+| Feature | Scenarios covered
+| *Register* | Successful registration with valid data; error shown on duplicate username
+| *Login* | Successful login redirects to menu; wrong credentials show error message
+| *Menu* | "How to Play" page accessible; logout redirects to landing page
+| *Game* | Game board visible after selecting Standard mode; exit game redirects to menu; complete game ends with game-over screen and back-to-menu navigation
+| *Stats & Ranking* | Personal stats page accessible; global ranking page accessible
+| *Security* | Unauthenticated users are redirected to login when accessing /menu, /select, /stats, and /ranking
+|===
+
+---
+
+=== Load Testing
+
+Load tests are written in Gatling and validate system performance under sustained concurrent load. Results are linked below.
+
+[cols="1,2,1", options="header"]
+|===
+| Simulation | Description | Report
+| *RegisterSimulation* | 20 users ramped over 30s (register flow including duplicate check) | link:../../docs/load-testing/registersimulation-20260404163651617/index.html[View report]
+| *LoginSimulation* | 2 users/sec over 60s (login flow) | link:../../docs/load-testing/loginsimulation-20260404163144340/index.html[View report]
+| *RankingAndStatsSimulation* | 3 and 2 users/sec over 60s  (ranking and personal stats endpoints) | link:../../docs/load-testing/rankingandstatssimulation-20260404163345532/index.html[View report]
+| *BotAPISimulation* | 13 users/sec over 60s (all three bot types in parallel) | link:../../docs/load-testing/botapisimulation-20260404162846844/index.html[View report]
+|===

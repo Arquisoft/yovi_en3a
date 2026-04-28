@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
+import React from "react";
 import HexCell, { type HexCellRef } from "./HexCell";
-import HexBackground from "../HexBackGround";
+import HexBackground from "../BackgroundComponents/HexBackGround";
 import { type Coordinates } from "./boards/Types";
 
 interface HexGridProps {
@@ -26,7 +26,7 @@ const HexGrid: React.FC<HexGridProps> = ({
   gameId,
   disabledCells = new Set(),
   highlightCells = new Map(),
-  showNames = true,
+  showNames = false,
   onCellClick,
   onRequestSelectCell,
   onCellPlayed,
@@ -58,9 +58,9 @@ const HexGrid: React.FC<HexGridProps> = ({
   const gridHeight = (boardSize - 1) * hexHeight + cellSize;
 
   return (
-    <div className="board-skin flex justify-center items-start p-5">
+    <div className="board-skin flex justify-center items-start p-5" style={{ minWidth: "fit-content", display: "inline-flex" }}>
       <HexBackground opacity={0.7} />
-      <div className="board-grid" style={{ position: "relative", width: `${gridWidth}px`, height: `${gridHeight}px` }}>
+      <div className="board-grid" style={{ position: "relative", width: `${gridWidth}px`, height: `${gridHeight}px`, flexShrink: 0 }}>
         {coordinates.map((coord) => {
           const pos = getHexPosition(boardSize - 1 - coord.x, coord.y);
           const key = `${coord.x}-${coord.y}-${coord.z}`;

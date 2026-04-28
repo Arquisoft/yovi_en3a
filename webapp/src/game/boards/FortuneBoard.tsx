@@ -1,10 +1,11 @@
-/*import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import { type BoardProps, type GameBoardRef } from "./Types";
 import { useFortuneLogic } from "../hooks/useFortuneLogic";
 import HexGrid from "../HexGrid";
+import DiceRoller from "./DiceRoller/DiceRoller";
 
 const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
-  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver }, ref) => {
+  ({ boardSize = 7, cellSize = 60, gameIdProp, onCellPlayed, onGameOver, onTurnChange, isMultiplayer = false }, ref) => {
     const {
       cellRefs,
       initialOwners,
@@ -13,29 +14,21 @@ const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
       gameBoardRef,
       diceResult,
       isRolling,
-      playerCanMove,
-    } = useFortuneLogic(gameIdProp, boardSize, onCellPlayed, onGameOver);
+      lockedCells,
+    } = useFortuneLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, isMultiplayer);
 
     useImperativeHandle(ref, () => gameBoardRef);
 
     return (
-      <div style={{ position: "relative" }}>
-        <div style={{
-          position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)",
-          color: "white", background: "rgba(0,0,0,0.5)", padding: "4px 14px",
-          borderRadius: 8, fontSize: 16, zIndex: 10,
-          transition: "all 0.3s",
-          animation: isRolling ? "pulse 0.4s infinite alternate" : "none",
-        }}>
-          {isRolling ? "🎲 Rolling..." : diceResult === "player" ? "✅ Your turn!" : "🤖 Bot's turn!"}
-        </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+        <DiceRoller isRolling={isRolling} diceResult={diceResult} isMultiplayer={isMultiplayer} />
         <HexGrid
           boardSize={boardSize}
           cellSize={cellSize}
           cellRefs={cellRefs}
           initialOwners={initialOwners}
           gameId={gameIdProp}
-          disabledCells={!playerCanMove ? new Set(["__all__"]) : new Set()}
+          disabledCells={lockedCells}
           onCellClick={handleClick}
           onRequestSelectCell={handleRequestSelectCell}
           onCellPlayed={onCellPlayed}
@@ -47,4 +40,4 @@ const FortuneBoard = forwardRef<GameBoardRef, BoardProps>(
 );
 
 FortuneBoard.displayName = "FortuneBoard";
-export default FortuneBoard;*/
+export default FortuneBoard;

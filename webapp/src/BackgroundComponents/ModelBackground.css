@@ -1,0 +1,80 @@
+.model-background-container {
+  display: grid;
+  grid-template-columns: 1fr 1px 380px;
+  gap: 4rem;
+  align-items: center;
+  max-width: 1000px;
+  width: 100%;
+  padding: 2rem;
+}
+
+.model-background-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.model-background-divider {
+  background: rgba(255, 255, 255, 0.07);
+  height: 300px;
+  align-self: center;
+}
+
+.model-background-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Tablet Layout ── */
+@media (max-width: 1024px) {
+  .model-background-container {
+    grid-template-columns: 1fr 1px 350px;
+    gap: 3rem;
+    padding: 1.5rem;
+  }
+
+  .model-background-divider {
+    height: 250px;
+  }
+}
+
+/* ── Mobile Layout ── */
+@media (max-width: 768px) {
+  .model-background-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .model-background-left {
+    gap: 1rem;
+  }
+
+  .model-background-divider {
+    display: none;
+  }
+
+  .model-background-right {
+    gap: 1.5rem;
+  }
+}
+
+/* ── Small Mobile Layout ── */
+@media (max-width: 480px) {
+  .model-background-container {
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+
+  .model-background-left {
+    gap: 0.75rem;
+  }
+
+  .model-background-right {
+    gap: 1rem;
+  }
+}

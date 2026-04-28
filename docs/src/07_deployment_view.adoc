@@ -130,7 +130,7 @@ node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
 ' =========================
 ' Flujos
 ' =========================
-user -right-> webapp : HTTP / REST
+user -right-> webapp : HTTPS / REST
 bot -right-> gateway : REST / JSON (Bot)
 webapp -right-> gateway : REST / JSON
 gateway -down-> users : REST / JSON

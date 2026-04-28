@@ -1,4 +1,4 @@
-/*import { useState } from "react";
+import { useState } from "react";
 import { useGameLogic } from "./useGameLogic";
 import { type BoardProps, type Coordinates } from "../boards/Types";
 
@@ -15,17 +15,30 @@ export const useTabuLogic = (
   gameIdProp: BoardProps["gameIdProp"],
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
-  onGameOver: BoardProps["onGameOver"]
+  onGameOver: BoardProps["onGameOver"],
+  onTurnChange: BoardProps["onTurnChange"],
+  isMultiplayer = false
 ) => {
   const [tabuCells, setTabuCells] = useState<Set<string>>(new Set());
 
   const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
-    onAfterPlayerMove: () => setTabuCells(new Set()),
-    onAfterBotMove: (coord) => setTabuCells(getAdjacentKeys(coord)),
+    onBeforeMove: () => true,
+    onAfterPlayerMove: (coord: Coordinates) => {
+      setTabuCells(getAdjacentKeys(coord));
+      onTurnChange?.("p2");
+    },
+    onAfterBotMove: (coord: Coordinates) => {
+      setTabuCells(getAdjacentKeys(coord));
+      onTurnChange?.("p1");
+    },
+    isMultiplayer,
   });
 
   const highlightCells = new Map<string, string>();
   tabuCells.forEach((key) => highlightCells.set(key, "#ef4444"));
 
-  return { ...logic, tabuCells, highlightCells };
-};*/
+  // Combine tabu cells with locked cells from processing
+  const lockedCells = new Set<string>([...tabuCells, ...logic.lockedCells]);
+
+  return { ...logic, tabuCells, highlightCells, lockedCells };
+};

@@ -5,3 +5,7 @@ scrape_configs:
   - job_name: 'users-service'
     static_configs:
       - targets: ['users:3000']
+
+  - job_name: 'game-manager'
+    static_configs:
+      - targets: ['game-manager:5000']
