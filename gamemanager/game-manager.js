@@ -307,10 +307,24 @@ app.get('/list', async (req, res) => {
     try {
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const games = await Game.find({ userId });
+        if (typeof userId !== 'string' || userId.trim() === '') {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        const sanitizedUserId = userId.trim();
+
+        if (!mongoose.Types.ObjectId.isValid(sanitizedUserId)) {
+            return res.status(400).json({ error: 'Invalid user ID format' });
+        }
+
+        const userObjectId = new mongoose.Types.ObjectId(sanitizedUserId);
+
+        const games = await Game.find({ 
+            userId: userObjectId 
+        }).lean();
 
         res.json({
-            userId,
+            userId: sanitizedUserId,
             total: games.length,
             games: games.map(game => ({
                 gameId: game._id,
@@ -324,7 +338,8 @@ app.get('/list', async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Error fetching games:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

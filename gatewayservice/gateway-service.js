@@ -33,25 +33,37 @@ try {
   console.log(e)
 }
 
-// Running in docker || Running in localhost
-const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || "http://localhost:3000";
-const GAME_MANAGER_URL= process.env.GAME_MANAGER_URL || "http://localhost:5000";
-const GAMEY_SERVICE_URL = process.env.GAMEY_SERVICE_URL || "http://localhost:4000";
-
-// Receives and sends the petition to the corresponding client
 let proxyRequest = async(targetUrl, req, res) => {
     try{
+        const allowedUrls = [USERS_SERVICE_URL, GAME_MANAGER_URL, GAMEY_SERVICE_URL];
+        
+        if (!allowedUrls.includes(targetUrl)) {
+            return res.status(403).json({ error: 'Forbidden service' });
+        }
+
+        const requestPath = req.path;
+        if (requestPath.includes('..') || requestPath.includes('//')) {
+            return res.status(400).json({ error: 'Invalid path' });
+        }
+
+        const url = new URL(requestPath, targetUrl);
+
+        if (!url.href.startsWith(targetUrl)) {
+            return res.status(403).json({ error: 'Invalid request' });
+        }
+
         const response = await axios({
-            method: req.method, //REST petition
-            url: `${targetUrl}${req.path}`, //http://service:port + /service/personal/endpoint
+            method: req.method,
+            url: url.href,
             data: req.body,
             headers: {"Content-Type": "application/json",
-                      ...(req.headers['x-user-id'] && { 'x-user-id': req.headers['x-user-id'] })}, //We send the userId to the GameManager if it exists, so it can identify if the game belongs to the user
+                      ...(req.headers['x-user-id'] && { 'x-user-id': req.headers['x-user-id'] })},
             params: req.query,
+            maxRedirects: 0,
         });
         res.status(response.status).json(response.data);
     } catch(error){
-        const status = error.response?.status || 500; //if there is no error sent by error, the server has suffer inner error (500)
+        const status = error.response?.status || 500;
         const data = error.response?.data || {error: "Internal gateway error"};
         res.status(status).json(data);
     }

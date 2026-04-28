@@ -135,7 +135,13 @@ app.post('/login',
     const { username, password } = req.body;
 
     try {
-      const user = await User.findOne({ username });
+      if (typeof username !== 'string' || username.trim() === '') {
+        return res.status(400).json({ error: 'Invalid username' });
+      }
+
+      const sanitizedUsername = username.trim();
+
+      const user = await User.findOne({ username: { $eq: sanitizedUsername } });
       if (!user) {
         return res.status(401).json({ error: 'Wrong credentials' });
       }
@@ -154,7 +160,7 @@ app.post('/login',
       res.json({ message: 'Login successfully', token, userId: user._id });
 
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 );
