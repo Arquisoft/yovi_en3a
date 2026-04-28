@@ -396,7 +396,7 @@ app.get('/api/gamey/play', async (req, res) => {
     }
 });
 
-if (require.main && require.main.filename === __filename) {
+if (require.main?.filename === __filename) {
     app.listen(port, () => {
         console.log(`Game Manager listening at http://localhost:${port}`);
     });
