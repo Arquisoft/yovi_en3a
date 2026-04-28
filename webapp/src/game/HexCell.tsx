@@ -106,6 +106,9 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
       }
     };
 
+    const ownerStatus = cellOwner === "none" ? "empty" : `owned by player ${cellOwner}`;
+    const ariaLabel = `Cell ${name}, ${ownerStatus}`;
+
     return (
       <div
         role="button"
@@ -113,7 +116,7 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         aria-disabled={disabled}
-        aria-label={`Cell ${name}, ${cellOwner === "none" ? "empty" : `owned by player ${cellOwner}`}`}
+        aria-label={ariaLabel}
         className={`hex transition-all select-none cursor-pointer${disabled ? " cursor-not-allowed opacity-50" : ""}`}
         style={{
           width: size,
