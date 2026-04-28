@@ -39,32 +39,64 @@ try {
 
 let proxyRequest = async(targetUrl, req, res) => {
     try{
-        const allowedUrls = [USERS_SERVICE_URL, GAME_MANAGER_URL, GAMEY_SERVICE_URL];
+        // Mapeo de servicios permitidos
+        const SERVICE_MAP = {
+            [USERS_SERVICE_URL]: 'users',
+            [GAME_MANAGER_URL]: 'game-manager',
+            [GAMEY_SERVICE_URL]: 'gamey'
+        };
         
-        if (!allowedUrls.includes(targetUrl)) {
+        const serviceName = SERVICE_MAP[targetUrl];
+        
+        if (!serviceName) {
             return res.status(403).json({ error: 'Forbidden service' });
         }
 
         const requestPath = req.path;
-        if (requestPath.includes('..') || requestPath.includes('//')) {
-            return res.status(400).json({ error: 'Invalid path' });
+        
+        // Lista blanca de patrones de ruta permitidos por servicio
+        const ALLOWED_PATTERNS = {
+            'users': [
+                /^\/register$/,
+                /^\/login$/,
+                /^\/stats\/update$/,
+                /^\/stats\/[\w-]+$/
+            ],
+            'game-manager': [
+                /^\/create\/\w+$/,
+                /^\/state\/[a-f0-9]{24}$/,
+                /^\/game\/[a-f0-9]{24}\/move\/(player|bot)$/,
+                /^\/game\/[a-f0-9]{24}\/resign$/,
+                /^\/list$/,
+                /^\/health$/,
+                /^\/api\/gamey\/play$/
+            ],
+            'gamey': [/^\/v1\/ybot\/.+$/]
+        };
+        
+        const patterns = ALLOWED_PATTERNS[serviceName] || [];
+        const isPathAllowed = patterns.some(pattern => pattern.test(requestPath));
+        
+        if (!isPathAllowed) {
+            return res.status(403).json({ error: 'Path not allowed for this service' });
         }
 
-        const url = new URL(requestPath, targetUrl);
-
-        if (!url.href.startsWith(targetUrl)) {
-            return res.status(403).json({ error: 'Invalid request' });
-        }
+        // Construcción segura de URL
+        const baseUrl = targetUrl.endsWith('/') ? targetUrl.slice(0, -1) : targetUrl;
+        const fullUrl = `${baseUrl}${requestPath}`;
 
         const response = await axios({
             method: req.method,
-            url: url.href,
+            url: fullUrl,
             data: req.body,
-            headers: {"Content-Type": "application/json",
-                      ...(req.headers['x-user-id'] && { 'x-user-id': req.headers['x-user-id'] })},
+            headers: {
+                "Content-Type": "application/json",
+                ...(req.headers['x-user-id'] && { 'x-user-id': req.headers['x-user-id'] })
+            },
             params: req.query,
             maxRedirects: 0,
         });
+        
         res.status(response.status).json(response.data);
     } catch(error){
         const status = error.response?.status || 500;
