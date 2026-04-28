@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { checkYWin, useGameLogic } from '../game/hooks/useGameLogic';
+import { checkYWin, useGameLogic } from '../../game/hooks/useGameLogic';
 
 vi.mock('react-router-dom', () => ({
   useParams: vi.fn().mockReturnValue({ gameId: 'url-game-id' }),
@@ -10,11 +10,11 @@ vi.mock('react-dom', () => ({
   flushSync: (fn: () => void) => fn(),
 }));
 
-vi.mock('../Game/Hooks/cellLockingUtils', () => ({
+vi.mock('../../Game/Hooks/cellLockingUtils', () => ({
   generateAllCellKeys: vi.fn().mockReturnValue(new Set<string>()),
 }));
 
-vi.mock('../lib/config', () => ({
+vi.mock('../../lib/config', () => ({
   gatewayUrl: 'http://localhost:8000',
 }));
 

@@ -1,10 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useHoleyLogic } from '../game/hooks/useHoleyLogic'; // Ajusta la ruta si es necesario
-import * as gameLogicModule from '../game/hooks/useGameLogic';
+import { useHoleyLogic } from '../../game/hooks/useHoleyLogic'; // Ajusta la ruta si es necesario
+import * as gameLogicModule from '../../game/hooks/useGameLogic';
 
 // 1. Mock del hook base
-vi.mock('../game/hooks/useGameLogic', () => ({
+vi.mock('../../game/hooks/useGameLogic', () => ({
     useGameLogic: vi.fn(),
 }));
 
