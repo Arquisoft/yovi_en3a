@@ -6,6 +6,7 @@ const VALID_GAMES = new Set([
     'holey',
     'whynot',
     'poly',
+    'pie',
 ]);
 
 class GameFactory {
