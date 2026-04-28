@@ -18,6 +18,67 @@ interface GameScreenProps {
     onExit?: () => void;
 }
 
+const SELF_MANAGED_TURNS = ["fortune", "master"];
+
+const calculateOptimalCellSize = (boardSize: number) => {
+    const isTablet = window.innerWidth >= 769;
+    const isLandscape = window.innerHeight < window.innerWidth;
+    
+    let availableWidth: number;
+    let availableHeight: number;
+
+    if (isTablet) {
+        availableWidth = Math.min(650, window.innerWidth - 400);
+        availableHeight = window.innerHeight - 120;
+    } else if (isLandscape) {
+        availableWidth = window.innerWidth - 24;
+        availableHeight = window.innerHeight - 80;
+    } else {
+        availableWidth = window.innerWidth - 24;
+        availableHeight = window.innerHeight - 80;
+    }
+
+    const widthBasedSize = availableWidth / ((boardSize - 1) * 1.05 + 1);
+    const heightBasedSize = availableHeight / ((boardSize - 1) * 0.8 + 1);
+    const optimalSize = Math.min(widthBasedSize, heightBasedSize);
+    
+    return Math.max(40, Math.floor(optimalSize));
+};
+
+const playBackgroundMusic = () => {
+    let audio: HTMLAudioElement | null = null;
+    try {
+        audio = new Audio("/sounds/gameMusic.wav");
+        audio.loop = true;
+        audio.volume = 0.4;
+        audio.play().catch(() => {});
+    } catch {}
+    
+    return () => {
+        if (audio) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+    };
+};
+
+const verifyGameAccess = async (gameId: string | undefined, navigate: any) => {
+    if (!gameId) return;
+    
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        if (res.status === 401 || res.status === 403) {
+            navigate('/menu');
+        }
+    } catch {
+        navigate('/menu');
+    }
+};
+
 export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const { gameId, size, gameType } = useParams();
     const location = useLocation();
@@ -38,83 +99,24 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     const [cellSize, setCellSize] = useState(60);
     const navigate = useNavigate();
 
-    // Calculate responsive cell size based on viewport width and orientation
-    const calculateOptimalCellSize = () => {
-        const isTablet = window.innerWidth >= 769;
-        const isLandscape = window.innerHeight < window.innerWidth;
-        
-        let availableWidth: number;
-        let availableHeight: number;
-
-        if (isTablet) {
-            // Desktop: preserve sidebar space
-            availableWidth = Math.min(650, window.innerWidth - 400);
-            availableHeight = window.innerHeight - 120; // Header + padding
-        } else if (isLandscape) {
-            // Mobile landscape: maximize both dimensions
-            availableWidth = window.innerWidth - 24;
-            availableHeight = window.innerHeight - 80; // Header + minimal padding
-        } else {
-            // Mobile portrait: prioritize width, constrain height
-            availableWidth = window.innerWidth - 24;
-            availableHeight = window.innerHeight - 80;
-        }
-
-        // Calculate cell size based on width constraint
-        // gridWidth ≈ (boardSize - 1) * hexWidth + cellSize, where hexWidth = cellSize * 1.05
-        const widthBasedSize = availableWidth / ((boardSize - 1) * 1.05 + 1);
-
-        // Calculate cell size based on height constraint
-        // gridHeight ≈ (boardSize - 1) * hexHeight + cellSize, where hexHeight = cellSize * 0.8
-        const heightBasedSize = availableHeight / ((boardSize - 1) * 0.8 + 1);
-
-        // Use the smaller of the two to ensure it fits both dimensions
-        const optimalSize = Math.min(widthBasedSize, heightBasedSize);
-        return Math.max(40, Math.floor(optimalSize)); // Min 40px for now
-    };
+    const autoTurn = !gameType || !SELF_MANAGED_TURNS.includes(gameType);
 
     useEffect(() => {
-        setCellSize(calculateOptimalCellSize());
-        const handleResize = () => setCellSize(calculateOptimalCellSize());
+        setCellSize(calculateOptimalCellSize(boardSize));
+        const handleResize = () => setCellSize(calculateOptimalCellSize(boardSize));
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [boardSize]);
 
     useEffect(() => {
-        if (!gameId) return;
-        const token = localStorage.getItem('token');
-        fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        }).then(res => {
-            if (res.status === 401 || res.status === 403) navigate('/menu');
-        }).catch(() => navigate('/menu'));
+        verifyGameAccess(gameId, navigate);
     }, [gameId, navigate]);
 
     useEffect(() => {
-        let audio: HTMLAudioElement | null = null;
-        try {
-            audio = new Audio("/sounds/gameMusic.wav");
-            audio.loop = true;
-            audio.volume = 0.4;
-            audio.play().catch(() => {});
-        } catch {}
-        return () => { if (audio) { audio.pause(); audio.currentTime = 0; } };
+        return playBackgroundMusic();
     }, []);
 
-    const SELF_MANAGED_TURNS = ["fortune", "master"];
-    const autoTurn = !gameType || !SELF_MANAGED_TURNS.includes(gameType);
-
-    const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
-        sidePanelRef.current?.addMove(player, playerName, coordinate);
-        const newMove: Move = { 
-            player, 
-            playerName, 
-            coordinate, 
-            timestamp: new Date(),
-            swapped: false  // ✅ Por defecto no está swapped
-        };
-        setMoves(prev => [...prev, newMove]);
-
+    const updatePlayerStats = (player: "p1" | "p2") => {
         if (player === "p1") {
             setPiecesP1(p => p + 1);
             sidePanelRef.current?.incrementTurn();
@@ -126,15 +128,28 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         }
     };
 
+    const handleCellPlayed = (player: "p1" | "p2", playerName: string, coordinate: string) => {
+        sidePanelRef.current?.addMove(player, playerName, coordinate);
+        
+        const newMove: Move = { 
+            player, 
+            playerName, 
+            coordinate, 
+            timestamp: new Date(),
+            swapped: false
+        };
+        setMoves(prev => [...prev, newMove]);
+        updatePlayerStats(player);
+    };
+
     const handleTurnChange = (turn: "p1" | "p2") => setCurrentTurn(turn);
 
-    // ✅ Nueva función para manejar el swap
     const handleSwapOccurred = () => {
         setMoves(prev => {
             if (prev.length === 0) return prev;
+            
             const updated = [...prev];
             const lastMove = updated[updated.length - 1];
-            // Cambiar el player del último movimiento
             updated[updated.length - 1] = {
                 ...lastMove,
                 player: lastMove.player === "p1" ? "p2" : "p1",
@@ -145,8 +160,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
     };
 
     const handleExit = () => {
-        if (onExit) onExit();
-        else navigate(-1);
+        if (onExit) {
+            onExit();
+        } else {
+            navigate(-1);
+        }
     };
 
     const handleTurnTimeout = () => gameBoardRef.current?.makeRandomMove?.();
@@ -155,7 +173,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
 
     const handleGameOver = (winner: "p1" | "p2") => {
         if (isMultiplayer && gameId) {
-            try { localStorage.removeItem(`mp_board_${gameId}`); } catch {}
+            try {
+                localStorage.removeItem(`mp_board_${gameId}`);
+            } catch {}
         }
         setGameOver(winner);
     };
@@ -166,153 +186,37 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
         }}>
             <HexBackground />
 
-            {/* Todo el contenido por encima del fondo */}
-            <div className="relative z-10 flex flex-col flex-1  w-full">
+            <div className="relative z-10 flex flex-col flex-1 w-full">
+                <GameHeader 
+                    gameType={gameType}
+                    turnNumber={turnNumber}
+                    onExit={handleExit}
+                />
 
-                {/* ── Header ── */}
-                <header className="w-full flex items-center justify-between px-6 py-3 border-b border-white/5">
-                    <div className="flex items-center gap-2">
-                        <Gamepad2 className="h-4 w-4 text-indigo-400 opacity-60" />
-                        <span className="text-[0.65rem] font-bold tracking-[0.25em] uppercase text-white/20">
-                            Y-Game
-                        </span>
-                        {gameType && (
-                            <Badge variant="outline" className="text-[0.6rem] border-white/10 text-white/30 ml-2">
-                                {gameType}
-                            </Badge>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="text-[0.65rem] tracking-widest uppercase text-white/20">
-                            Turn <span className="text-indigo-400 font-bold">{turnNumber}</span>
-                        </span>
-                        <Separator orientation="vertical" className="h-4 bg-white/10" />
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleExit}
-                            className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-7 px-2 text-xs gap-1 transition-colors"
-                        >
-                            <LogOut className="h-3 w-3" />
-                            Exit
-                        </Button>
-                    </div>
-                </header>
-
-                {/* ── Game Over Overlay ── */}
                 {gameOver && (
-                    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center">
-                        <div
-                            className="bg-[#0d1117] border border-white/10 rounded-2xl p-10 text-center shadow-2xl"
-                            style={{ animation: 'fadeInUp 0.25s ease' }}
-                        >
-                            <div className="flex justify-center mb-4">
-                                <Trophy className={`h-12 w-12 ${gameOver === "p1" ? "text-yellow-400" : "text-white/20"}`} />
-                            </div>
-                            <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Courier New', monospace" }}>
-                                {isMultiplayer
-                                    ? (gameOver === "p1" ? "Player 1 Wins!" : "Player 2 Wins!")
-                                    : (gameOver === "p1" ? "You Win!" : "You Lose!")
-                                }
-                            </h2>
-                            <p className="text-white/30 text-sm mb-6">
-                                {isMultiplayer
-                                    ? (gameOver === "p1" ? "Blue player connected all three edges!" : "Red player connected all three edges!")
-                                    : (gameOver === "p1" ? "Congratulations, well played!" : "Better luck next time.")
-                                }
-                            </p>
-                            <Button
-                                onClick={handleExit}
-                                className="bg-indigo-600 hover:bg-indigo-500 text-white font-mono tracking-wide px-8"
-                            >
-                                Back to Menu
-                            </Button>
-                        </div>
-                    </div>
+                    <GameOverOverlay
+                        winner={gameOver}
+                        isMultiplayer={isMultiplayer}
+                        onExit={handleExit}
+                    />
                 )}
 
-                {/* ── Main layout: Desktop 3-column, Mobile vertical stack ── */}
                 <div className="game-layout-container" data-game-type={gameType}>
+                    <LeftSidebar
+                        currentTurn={currentTurn}
+                        gameOver={gameOver}
+                        piecesP1={piecesP1}
+                        piecesP2={piecesP2}
+                        isMultiplayer={isMultiplayer}
+                        boardSize={boardSize}
+                        moves={moves}
+                        gameType={gameType}
+                        gameId={gameId}
+                        turnNumber={turnNumber}
+                        onTurnTimeout={handleTurnTimeout}
+                        onP2TurnTimeout={handleP2TurnTimeout}
+                    />
 
-                    {/* Left sidebar: Player cards, timers, info */}
-                    <aside className="game-layout-left-sidebar">
-                        {/* MOBILE ORDER: 1. Game Timer - at top */}
-                        <div className="game-timer-mobile-top" data-mobile-order="timer">
-                            <GameTimer isRunning={!gameOver} />
-                        </div>
-
-                        {/* 2. Player Cards - side by side on mobile */}
-                        <div className="player-cards-container" data-mobile-order="cards">
-                            <div className="flex-1 min-w-0">
-                                <PlayerCard
-                                    name="Player 1"
-                                    playerNumber={1}
-                                    isCurrentTurn={currentTurn === "p1" && !gameOver}
-                                    piecesPlaced={piecesP1}
-                                    isWinner={gameOver === "p1"}
-                                />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <PlayerCard
-                                    name={isMultiplayer ? "Player 2" : "Bot"}
-                                    playerNumber={2}
-                                    isCurrentTurn={currentTurn === "p2" && !gameOver}
-                                    piecesPlaced={piecesP2}
-                                    isWinner={gameOver === "p2"}
-                                />
-                            </div>
-                        </div>
-
-                        <Separator className="bg-white/5" />
-
-                        {/* Game Timer — desktop */}
-                        <GameTimer isRunning={!gameOver} />
-
-                        {/* Turn Timers */}
-                        {currentTurn === "p1" && !gameOver && (
-                            <div data-mobile-order="turn-timer">
-                                <TurnTimer
-                                    key={`p1-${turnNumber}`}
-                                    gameId={gameId}
-                                    totalSeconds={20}
-                                    onExpire={handleTurnTimeout}
-                                    label={isMultiplayer ? "Player 1's turn" : "Your turn"}
-                                />
-                            </div>
-                        )}
-                        {isMultiplayer && currentTurn === "p2" && !gameOver && (
-                            <div data-mobile-order="turn-timer">
-                                <TurnTimer
-                                    key={`p2-${piecesP2}`}
-                                    gameId={gameId ? `${gameId}-p2` : undefined}
-                                    totalSeconds={20}
-                                    onExpire={handleP2TurnTimeout}
-                                    label="Player 2's turn"
-                                />
-                            </div>
-                        )}
-
-                        <Separator className="bg-white/5" />
-
-                        {/* Info box */}
-                        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2" data-mobile-order="info">
-                            <p className="text-[0.6rem] uppercase tracking-widest text-white/20 font-bold">Info</p>
-                            <div className="flex justify-between text-xs">
-                                <span className="text-white/30">Board</span>
-                                <span className="text-white/60 font-mono">{boardSize}×{boardSize}</span>
-                            </div>
-                            <div className="flex justify-between text-xs">
-                                <span className="text-white/30">Mode</span>
-                                <span className="text-white/60 font-mono">{gameType ?? 'local'}</span>
-                            </div>
-                            <div className="flex justify-between text-xs">
-                                <span className="text-white/30">Moves</span>
-                                <span className="text-indigo-400 font-mono font-bold">{moves.length}</span>
-                            </div>
-                        </div>
-                    </aside>
-
-                    {/* Center: Game board */}
                     <main className="game-layout-center" data-mobile-order="board">
                         <GameBoard
                             ref={gameBoardRef}
@@ -327,52 +231,255 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onExit }) => {
                             }
                             onGameOver={(winner) => handleGameOver(winner as "p1" | "p2")}
                             onTurnChange={handleTurnChange}
-                            onSwap={handleSwapOccurred}  // ✅ Pasar callback
+                            onSwap={handleSwapOccurred}
                         />
                     </main>
 
-                    {/* Right sidebar: Move history, tools */}
-                    <aside className="game-layout-right-sidebar">
-                        {/* 4. Tool bar - Toggle buttons */}
-                        <div className="game-layout-tools" data-mobile-order="tools">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setShowCellNames(!showCellNames)}
-                                className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors flex-shrink-0"
-                                title={showCellNames ? "Hide coordinates" : "Show coordinates"}
-                            >
-                                {showCellNames ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                            </Button>
-                        </div>
-
-                        {/* 6. Move History - Collapsible */}
-                        <div className="rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden" data-mobile-order="history">
-                            <button
-                                onClick={() => setIsMoveHistoryOpen(!isMoveHistoryOpen)}
-                                className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.05] transition-colors"
-                            >
-                                <h3 className="text-[0.65rem] uppercase tracking-widest text-white/40 font-bold">
-                                    Move History
-                                </h3>
-                                <div className="text-white/40">
-                                    {isMoveHistoryOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                </div>
-                            </button>
-                            {isMoveHistoryOpen && (
-                                <div className="px-4 py-3 border-t border-white/5">
-                                    <MoveHistory moves={moves} maxHeight={420} />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Hidden SidePanel (legacy) */}
-                        <div className="hidden">
-                            <SidePanel ref={sidePanelRef} />
-                        </div>
-                    </aside>
+                    <RightSidebar
+                        showCellNames={showCellNames}
+                        onToggleCellNames={() => setShowCellNames(!showCellNames)}
+                        isMoveHistoryOpen={isMoveHistoryOpen}
+                        onToggleMoveHistory={() => setIsMoveHistoryOpen(!isMoveHistoryOpen)}
+                        moves={moves}
+                        sidePanelRef={sidePanelRef}
+                    />
                 </div>
             </div>
         </div>
     );
 };
+
+// ============= SUB-COMPONENTS =============
+
+interface GameHeaderProps {
+    gameType?: string;
+    turnNumber: number;
+    onExit: () => void;
+}
+
+const GameHeader: React.FC<GameHeaderProps> = ({ gameType, turnNumber, onExit }) => (
+    <header className="w-full flex items-center justify-between px-6 py-3 border-b border-white/5">
+        <div className="flex items-center gap-2">
+            <Gamepad2 className="h-4 w-4 text-indigo-400 opacity-60" />
+            <span className="text-[0.65rem] font-bold tracking-[0.25em] uppercase text-white/20">
+                Y-Game
+            </span>
+            {gameType && (
+                <Badge variant="outline" className="text-[0.6rem] border-white/10 text-white/30 ml-2">
+                    {gameType}
+                </Badge>
+            )}
+        </div>
+        <div className="flex items-center gap-3">
+            <span className="text-[0.65rem] tracking-widest uppercase text-white/20">
+                Turn <span className="text-indigo-400 font-bold">{turnNumber}</span>
+            </span>
+            <Separator orientation="vertical" className="h-4 bg-white/10" />
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={onExit}
+                className="text-white/30 hover:text-red-400 hover:bg-red-500/10 h-7 px-2 text-xs gap-1 transition-colors"
+            >
+                <LogOut className="h-3 w-3" />
+                Exit
+            </Button>
+        </div>
+    </header>
+);
+
+interface GameOverOverlayProps {
+    winner: "p1" | "p2";
+    isMultiplayer: boolean;
+    onExit: () => void;
+}
+
+const GameOverOverlay: React.FC<GameOverOverlayProps> = ({ winner, isMultiplayer, onExit }) => {
+    const winnerTitle = isMultiplayer
+        ? (winner === "p1" ? "Player 1 Wins!" : "Player 2 Wins!")
+        : (winner === "p1" ? "You Win!" : "You Lose!");
+
+    const winnerMessage = isMultiplayer
+        ? (winner === "p1" ? "Blue player connected all three edges!" : "Red player connected all three edges!")
+        : (winner === "p1" ? "Congratulations, well played!" : "Better luck next time.");
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center">
+            <div
+                className="bg-[#0d1117] border border-white/10 rounded-2xl p-10 text-center shadow-2xl"
+                style={{ animation: 'fadeInUp 0.25s ease' }}
+            >
+                <div className="flex justify-center mb-4">
+                    <Trophy className={`h-12 w-12 ${winner === "p1" ? "text-yellow-400" : "text-white/20"}`} />
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Courier New', monospace" }}>
+                    {winnerTitle}
+                </h2>
+                <p className="text-white/30 text-sm mb-6">{winnerMessage}</p>
+                <Button
+                    onClick={onExit}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-mono tracking-wide px-8"
+                >
+                    Back to Menu
+                </Button>
+            </div>
+        </div>
+    );
+};
+
+interface LeftSidebarProps {
+    currentTurn: "p1" | "p2";
+    gameOver: "p1" | "p2" | null;
+    piecesP1: number;
+    piecesP2: number;
+    isMultiplayer: boolean;
+    boardSize: number;
+    moves: Move[];
+    gameType?: string;
+    gameId?: string;
+    turnNumber: number;
+    onTurnTimeout: () => void;
+    onP2TurnTimeout: () => void;
+}
+
+const LeftSidebar: React.FC<LeftSidebarProps> = ({
+    currentTurn,
+    gameOver,
+    piecesP1,
+    piecesP2,
+    isMultiplayer,
+    boardSize,
+    moves,
+    gameType,
+    gameId,
+    turnNumber,
+    onTurnTimeout,
+    onP2TurnTimeout,
+}) => (
+    <aside className="game-layout-left-sidebar">
+        <div className="game-timer-mobile-top" data-mobile-order="timer">
+            <GameTimer isRunning={!gameOver} />
+        </div>
+
+        <div className="player-cards-container" data-mobile-order="cards">
+            <div className="flex-1 min-w-0">
+                <PlayerCard
+                    name="Player 1"
+                    playerNumber={1}
+                    isCurrentTurn={currentTurn === "p1" && !gameOver}
+                    piecesPlaced={piecesP1}
+                    isWinner={gameOver === "p1"}
+                />
+            </div>
+            <div className="flex-1 min-w-0">
+                <PlayerCard
+                    name={isMultiplayer ? "Player 2" : "Bot"}
+                    playerNumber={2}
+                    isCurrentTurn={currentTurn === "p2" && !gameOver}
+                    piecesPlaced={piecesP2}
+                    isWinner={gameOver === "p2"}
+                />
+            </div>
+        </div>
+
+        <Separator className="bg-white/5" />
+        <GameTimer isRunning={!gameOver} />
+
+        {currentTurn === "p1" && !gameOver && (
+            <div data-mobile-order="turn-timer">
+                <TurnTimer
+                    key={`p1-${turnNumber}`}
+                    gameId={gameId}
+                    totalSeconds={20}
+                    onExpire={onTurnTimeout}
+                    label={isMultiplayer ? "Player 1's turn" : "Your turn"}
+                />
+            </div>
+        )}
+        
+        {isMultiplayer && currentTurn === "p2" && !gameOver && (
+            <div data-mobile-order="turn-timer">
+                <TurnTimer
+                    key={`p2-${piecesP2}`}
+                    gameId={gameId ? `${gameId}-p2` : undefined}
+                    totalSeconds={20}
+                    onExpire={onP2TurnTimeout}
+                    label="Player 2's turn"
+                />
+            </div>
+        )}
+
+        <Separator className="bg-white/5" />
+
+        <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3 space-y-2" data-mobile-order="info">
+            <p className="text-[0.6rem] uppercase tracking-widest text-white/20 font-bold">Info</p>
+            <div className="flex justify-between text-xs">
+                <span className="text-white/30">Board</span>
+                <span className="text-white/60 font-mono">{boardSize}×{boardSize}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+                <span className="text-white/30">Mode</span>
+                <span className="text-white/60 font-mono">{gameType ?? 'local'}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+                <span className="text-white/30">Moves</span>
+                <span className="text-indigo-400 font-mono font-bold">{moves.length}</span>
+            </div>
+        </div>
+    </aside>
+);
+
+interface RightSidebarProps {
+    showCellNames: boolean;
+    onToggleCellNames: () => void;
+    isMoveHistoryOpen: boolean;
+    onToggleMoveHistory: () => void;
+    moves: Move[];
+    sidePanelRef: React.RefObject<SidePanelRef>;
+}
+
+const RightSidebar: React.FC<RightSidebarProps> = ({
+    showCellNames,
+    onToggleCellNames,
+    isMoveHistoryOpen,
+    onToggleMoveHistory,
+    moves,
+    sidePanelRef,
+}) => (
+    <aside className="game-layout-right-sidebar">
+        <div className="game-layout-tools" data-mobile-order="tools">
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleCellNames}
+                className="text-white/15 hover:text-indigo-400 hover:bg-indigo-500/5 h-10 w-10 p-0 transition-colors flex-shrink-0"
+                title={showCellNames ? "Hide coordinates" : "Show coordinates"}
+            >
+                {showCellNames ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+            </Button>
+        </div>
+
+        <div className="rounded-lg border border-white/5 bg-white/[0.02] overflow-hidden" data-mobile-order="history">
+            <button
+                onClick={onToggleMoveHistory}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.05] transition-colors"
+            >
+                <h3 className="text-[0.65rem] uppercase tracking-widest text-white/40 font-bold">
+                    Move History
+                </h3>
+                <div className="text-white/40">
+                    {isMoveHistoryOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
+            </button>
+            {isMoveHistoryOpen && (
+                <div className="px-4 py-3 border-t border-white/5">
+                    <MoveHistory moves={moves} maxHeight={420} />
+                </div>
+            )}
+        </div>
+
+        <div className="hidden">
+            <SidePanel ref={sidePanelRef} />
+        </div>
+    </aside>
+);

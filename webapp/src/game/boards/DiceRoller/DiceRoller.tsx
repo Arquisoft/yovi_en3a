@@ -26,6 +26,11 @@ const BG_ROLLING = "#2d3748";
 const BG_PLAYER  = "#1d4ed8";
 const BG_BOT     = "#991b1b";
 
+const DICE_RANGES = {
+  player: { min: 4, max: 6 },
+  bot: { min: 1, max: 3 },
+};
+
 /**
  * Generates a cryptographically secure random integer between min (inclusive) and max (inclusive)
  */
@@ -45,8 +50,55 @@ function secureRandomInt(min: number, max: number): number {
   return min + (randomValue % range);
 }
 
+function getBackgroundColor(isRolling: boolean, diceResult: DiceResult): string {
+  if (isRolling) return BG_ROLLING;
+  if (diceResult === "player") return BG_PLAYER;
+  if (diceResult === "bot") return BG_BOT;
+  return BG_ROLLING;
+}
+
+function getWrapperClass(isRolling: boolean, diceResult: DiceResult): string {
+  const classes = ["dr-wrapper"];
+  
+  if (!isRolling && diceResult === "player") {
+    classes.push("dr-player");
+  }
+  
+  if (!isRolling && diceResult === "bot") {
+    classes.push("dr-bot");
+  }
+  
+  return classes.join(" ");
+}
+
+function getLabel(isRolling: boolean, diceResult: DiceResult, isMultiplayer: boolean): string {
+  if (isRolling) return "Rolling...";
+  if (diceResult === "player") return "Player 1's turn!";
+  if (diceResult === "bot") return isMultiplayer ? "Player 2's turn!" : "Bot's turn";
+  return "";
+}
+
+function getLabelColor(isRolling: boolean, diceResult: DiceResult): string {
+  if (isRolling) return "#9ca3af";
+  if (diceResult === "player") return "#93c5fd";
+  return "#fca5a5";
+}
+
+function getDiceAnimationClass(isRolling: boolean, animKey: number): string {
+  if (isRolling) return "dr-rolling";
+  if (animKey > 0) return "dr-pop";
+  return "";
+}
+
+function getFaceValue(diceResult: DiceResult): number {
+  if (!diceResult) return 1;
+  
+  const range = DICE_RANGES[diceResult];
+  return secureRandomInt(range.min, range.max);
+}
+
 export default function DiceRoller({ isRolling, diceResult, isMultiplayer = false }: DiceRollerProps) {
-  const [face, setFace]       = useState(1);
+  const [face, setFace] = useState(1);
   const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
@@ -58,43 +110,23 @@ export default function DiceRoller({ isRolling, diceResult, isMultiplayer = fals
     }
 
     if (diceResult) {
-      const val =
-        diceResult === "player"
-          ? secureRandomInt(4, 6)
-          : secureRandomInt(1, 3);
-      setFace(val);
+      setFace(getFaceValue(diceResult));
       setAnimKey((k) => k + 1);
     }
   }, [isRolling, diceResult]);
 
-  const bgColor =
-    isRolling               ? BG_ROLLING :
-    diceResult === "player" ? BG_PLAYER  :
-    diceResult === "bot"    ? BG_BOT     :
-    BG_ROLLING;
-
-  const wrapperClass =
-    "dr-wrapper" +
-    (!isRolling && diceResult === "player" ? " dr-player" : "") +
-    (!isRolling && diceResult === "bot"    ? " dr-bot"    : "");
-
-  const label =
-    isRolling               ? "Rolling..." :
-    diceResult === "player" ? "Player 1's turn!" :
-    diceResult === "bot"    ? (isMultiplayer ? "Player 2's turn!" : "Bot's turn") :
-    "";
-
-  const labelColor =
-    isRolling               ? "#9ca3af" :
-    diceResult === "player" ? "#93c5fd" :
-    "#fca5a5";
+  const bgColor = getBackgroundColor(isRolling, diceResult);
+  const wrapperClass = getWrapperClass(isRolling, diceResult);
+  const label = getLabel(isRolling, diceResult, isMultiplayer);
+  const labelColor = getLabelColor(isRolling, diceResult);
+  const diceAnimClass = getDiceAnimationClass(isRolling, animKey);
+  const shouldShowLabel = isRolling || diceResult;
 
   return (
     <div className={wrapperClass}>
-      {/* key forces remount so .dr-pop fires on each new result */}
       <div
         key={`die-${animKey}`}
-        className={`dr-die ${isRolling ? "dr-rolling" : animKey > 0 ? "dr-pop" : ""}`}
+        className={`dr-die ${diceAnimClass}`}
         style={{ backgroundColor: bgColor }}
       >
         {(FACES[face] ?? FACES[1]).map((active, i) => (
@@ -106,7 +138,7 @@ export default function DiceRoller({ isRolling, diceResult, isMultiplayer = fals
         className="dr-label"
         style={{
           color: labelColor,
-          opacity: isRolling || diceResult ? 1 : 0,
+          opacity: shouldShowLabel ? 1 : 0,
         }}
       >
         {label}

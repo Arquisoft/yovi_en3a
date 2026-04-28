@@ -33,46 +33,66 @@ export const useMasterLogic = (
     isMultiplayer,
   });
 
-  const handleClick = useCallback((coordinates: any, name: string) => {
-    if (isMultiplayer) {
-      if (whosTurnRef.current === "p2") {
-        logic.executeP2Move(coordinates, name);
-        const next = piecesThisTurnRef.current + 1;
-        if (next >= 2) {
-          piecesThisTurnRef.current = 0; setPiecesThisTurn(0); setWaitingForSecond(false);
-          whosTurnRef.current = "p1"; setWhosTurn("p1"); onTurnChange?.("p1");
-        } else {
-          piecesThisTurnRef.current = next; setPiecesThisTurn(next);
-          setWaitingForSecond(true); onTurnChange?.("p2");
-        }
-      } else {
-        logic.executeP1MoveLocal(coordinates, name);
-        const next = piecesThisTurnRef.current + 1;
-        if (next >= 2) {
-          piecesThisTurnRef.current = 0; setPiecesThisTurn(0); setWaitingForSecond(false);
-          whosTurnRef.current = "p2"; setWhosTurn("p2"); onTurnChange?.("p2");
-        } else {
-          piecesThisTurnRef.current = next; setPiecesThisTurn(next);
-          setWaitingForSecond(true); onTurnChange?.("p1");
-        }
-      }
+  const updateTurnState = (nextPieces: number, nextTurn: "p1" | "p2") => {
+    const isTurnComplete = nextPieces >= 2;
+
+    if (isTurnComplete) {
+      piecesThisTurnRef.current = 0;
+      setPiecesThisTurn(0);
+      setWaitingForSecond(false);
+      whosTurnRef.current = nextTurn;
+      setWhosTurn(nextTurn);
+      onTurnChange?.(nextTurn);
     } else {
-      logic.handleClick(coordinates, name);
-      const next = piecesThisTurnRef.current + 1;
-      if (next >= 2) {
-        piecesThisTurnRef.current = 0; setPiecesThisTurn(0); setWaitingForSecond(false);
-        onTurnChange?.("p2");
-        setIsProcessingBotMoves(true);
-        Promise.resolve().then(async () => {
-          await logic.executeBotMove();
-          await logic.executeBotMove();
-          setIsProcessingBotMoves(false);
-          onTurnChange?.("p1");
-        });
-      } else {
-        piecesThisTurnRef.current = next; setPiecesThisTurn(next);
-        setWaitingForSecond(true); onTurnChange?.("p1");
-      }
+      piecesThisTurnRef.current = nextPieces;
+      setPiecesThisTurn(nextPieces);
+      setWaitingForSecond(true);
+      onTurnChange?.(nextTurn);
+    }
+
+    return isTurnComplete;
+  };
+
+  const handleP2Click = (coordinates: any, name: string) => {
+    logic.executeP2Move(coordinates, name);
+    const next = piecesThisTurnRef.current + 1;
+    updateTurnState(next, next >= 2 ? "p1" : "p2");
+  };
+
+  const handleP1Click = (coordinates: any, name: string) => {
+    logic.executeP1MoveLocal(coordinates, name);
+    const next = piecesThisTurnRef.current + 1;
+    updateTurnState(next, next >= 2 ? "p2" : "p1");
+  };
+
+  const executeBotTurn = async () => {
+    setIsProcessingBotMoves(true);
+    await logic.executeBotMove();
+    await logic.executeBotMove();
+    setIsProcessingBotMoves(false);
+    onTurnChange?.("p1");
+  };
+
+  const handleSinglePlayerClick = (coordinates: any, name: string) => {
+    logic.handleClick(coordinates, name);
+    const next = piecesThisTurnRef.current + 1;
+    const isTurnComplete = updateTurnState(next, next >= 2 ? "p2" : "p1");
+
+    if (isTurnComplete) {
+      Promise.resolve().then(executeBotTurn);
+    }
+  };
+
+  const handleClick = useCallback((coordinates: any, name: string) => {
+    if (!isMultiplayer) {
+      handleSinglePlayerClick(coordinates, name);
+      return;
+    }
+
+    if (whosTurnRef.current === "p2") {
+      handleP2Click(coordinates, name);
+    } else {
+      handleP1Click(coordinates, name);
     }
   }, [logic, onTurnChange, isMultiplayer]);
 
@@ -80,15 +100,14 @@ export const useMasterLogic = (
     const all: any[] = [];
     for (let row = 0; row < boardSize; row++) {
       const x = boardSize - 1 - row;
-
       for (let y = 0; y <= row; y++) {
         all.push({ x, y, z: row - y });
       }
     }
 
     const available = all.filter(c => !logic.playedCoords.current.has(`${c.x}-${c.y}-${c.z}`));
-
-    if (available.length === 0) { 
+    
+    if (available.length === 0) {
       return null;
     }
 
@@ -96,7 +115,7 @@ export const useMasterLogic = (
   };
 
   const makeRandomMove = useCallback(() => {
-    if (isMultiplayer && whosTurnRef.current !== "p1") { 
+    if (isMultiplayer && whosTurnRef.current !== "p1") {
       return;
     }
 
@@ -106,7 +125,7 @@ export const useMasterLogic = (
     }
 
     handleClick(coord, `(${coord.x},${coord.y},${coord.z})`);
-  }, [handleClick]);
+  }, [handleClick, isMultiplayer]);
 
   const makeRandomP2Move = useCallback(() => {
     if (!isMultiplayer || whosTurnRef.current !== "p2") {

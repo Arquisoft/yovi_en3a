@@ -14,6 +14,136 @@ function secureRandomBoolean(): boolean {
   return randomBytes[0] < 128;
 }
 
+function handlePlayerResult(
+  onTurnChange: BoardProps["onTurnChange"] | undefined,
+  setPlayerCanMove: (value: boolean) => void
+) {
+  onTurnChange?.("p1");
+  setPlayerCanMove(true);
+}
+
+function handleBotResultMultiplayer(
+  isP2TurnLocalRef: React.MutableRefObject<boolean>,
+  setIsP2TurnLocal: (value: boolean) => void
+) {
+  isP2TurnLocalRef.current = true;
+  setIsP2TurnLocal(true);
+}
+
+function handleBotResultSinglePlayer(
+  logic: ReturnType<typeof useGameLogic>,
+  rollDice: () => void
+) {
+  logic.executeBotMove().then(() => {
+    setTimeout(() => rollDice(), 600);
+  });
+}
+
+function handleBotResult(
+  isMultiplayer: boolean,
+  onTurnChange: BoardProps["onTurnChange"] | undefined,
+  isP2TurnLocalRef: React.MutableRefObject<boolean>,
+  setIsP2TurnLocal: (value: boolean) => void,
+  logic: ReturnType<typeof useGameLogic>,
+  rollDice: () => void
+) {
+  onTurnChange?.("p2");
+  
+  if (isMultiplayer) {
+    handleBotResultMultiplayer(isP2TurnLocalRef, setIsP2TurnLocal);
+  } else {
+    handleBotResultSinglePlayer(logic, rollDice);
+  }
+}
+
+function processDiceResult(
+  result: DiceResult,
+  onTurnChange: BoardProps["onTurnChange"] | undefined,
+  setPlayerCanMove: (value: boolean) => void,
+  isMultiplayer: boolean,
+  isP2TurnLocalRef: React.MutableRefObject<boolean>,
+  setIsP2TurnLocal: (value: boolean) => void,
+  logic: ReturnType<typeof useGameLogic>,
+  rollDice: () => void
+) {
+  if (result === "player") {
+    handlePlayerResult(onTurnChange, setPlayerCanMove);
+  } else {
+    handleBotResult(
+      isMultiplayer,
+      onTurnChange,
+      isP2TurnLocalRef,
+      setIsP2TurnLocal,
+      logic,
+      rollDice
+    );
+  }
+}
+
+function handleP2Click(
+  logic: ReturnType<typeof useGameLogic>,
+  coordinates: any,
+  name: string,
+  isP2TurnLocalRef: React.MutableRefObject<boolean>,
+  setIsP2TurnLocal: (value: boolean) => void,
+  rollDice: () => void
+) {
+  logic.executeP2Move(coordinates, name);
+  isP2TurnLocalRef.current = false;
+  setIsP2TurnLocal(false);
+  setTimeout(() => rollDice(), 600);
+}
+
+function handleP1ClickMultiplayer(
+  logic: ReturnType<typeof useGameLogic>,
+  coordinates: any,
+  name: string,
+  setPlayerCanMove: (value: boolean) => void,
+  rollDiceRef: React.MutableRefObject<() => void>
+) {
+  setPlayerCanMove(false);
+  logic.executeP1MoveLocal(coordinates, name);
+  setTimeout(() => rollDiceRef.current(), 600);
+}
+
+function handleClickMultiplayer(
+  isP2TurnLocalRef: React.MutableRefObject<boolean>,
+  playerCanMove: boolean,
+  logic: ReturnType<typeof useGameLogic>,
+  coordinates: any,
+  name: string,
+  setIsP2TurnLocal: (value: boolean) => void,
+  rollDice: () => void,
+  setPlayerCanMove: (value: boolean) => void,
+  rollDiceRef: React.MutableRefObject<() => void>
+) {
+  if (isP2TurnLocalRef.current) {
+    handleP2Click(logic, coordinates, name, isP2TurnLocalRef, setIsP2TurnLocal, rollDice);
+    return;
+  }
+  
+  if (playerCanMove) {
+    handleP1ClickMultiplayer(logic, coordinates, name, setPlayerCanMove, rollDiceRef);
+  }
+}
+
+function handleClickSinglePlayer(
+  playerCanMove: boolean,
+  logic: ReturnType<typeof useGameLogic>,
+  coordinates: any,
+  name: string,
+  setPlayerCanMove: (value: boolean) => void,
+  rollDiceRef: React.MutableRefObject<() => void>
+) {
+  if (!playerCanMove) {
+    return;
+  }
+
+  setPlayerCanMove(false);
+  logic.handleClick(coordinates, name);
+  setTimeout(() => rollDiceRef.current(), 600);
+}
+
 export const useFortuneLogic = (
   gameIdProp: BoardProps["gameIdProp"],
   boardSize: number,
@@ -46,45 +176,43 @@ export const useFortuneLogic = (
       setDiceResult(result);
       setIsRolling(false);
 
-      if (result === "player") {
-        onTurnChange?.("p1");
-        setPlayerCanMove(true);
-      } else {
-        onTurnChange?.("p2");
-        if (isMultiplayer) {
-          isP2TurnLocalRef.current = true;
-          setIsP2TurnLocal(true);
-        } else {
-          logic.executeBotMove().then(() => {
-            setTimeout(() => rollDice(), 600);
-          });
-        }
-      }
+      processDiceResult(
+        result,
+        onTurnChange,
+        setPlayerCanMove,
+        isMultiplayer,
+        isP2TurnLocalRef,
+        setIsP2TurnLocal,
+        logic,
+        rollDice
+      );
     }, 800);
-  }, [logic.executeBotMove, onTurnChange, isMultiplayer]);
+  }, [logic, onTurnChange, isMultiplayer]);
 
   rollDiceRef.current = rollDice;
 
   const handleClick = useCallback((coordinates: any, name: string) => {
     if (isMultiplayer) {
-      if (isP2TurnLocalRef.current) {
-        logic.executeP2Move(coordinates, name);
-        isP2TurnLocalRef.current = false;
-        setIsP2TurnLocal(false);
-        setTimeout(() => rollDice(), 600);
-      } else if (playerCanMove) {
-        setPlayerCanMove(false);
-        logic.executeP1MoveLocal(coordinates, name);
-        setTimeout(() => rollDiceRef.current(), 600);
-      }
+      handleClickMultiplayer(
+        isP2TurnLocalRef,
+        playerCanMove,
+        logic,
+        coordinates,
+        name,
+        setIsP2TurnLocal,
+        rollDice,
+        setPlayerCanMove,
+        rollDiceRef
+      );
     } else {
-      if (!playerCanMove) {
-        return;
-      }
-
-      setPlayerCanMove(false);
-      logic.handleClick(coordinates, name);
-      setTimeout(() => rollDiceRef.current(), 600);
+      handleClickSinglePlayer(
+        playerCanMove,
+        logic,
+        coordinates,
+        name,
+        setPlayerCanMove,
+        rollDiceRef
+      );
     }
   }, [logic, rollDice, playerCanMove, isMultiplayer]);
 
@@ -92,8 +220,6 @@ export const useFortuneLogic = (
     rollDice();
   }, []);
 
-  // Lock cells when rolling dice, during bot processing, or when player can't move
-  // For multiplayer, also lock when waiting for the other player
   const shouldLockAllCells = isRolling || logic.isProcessing || 
     (!isMultiplayer && !playerCanMove) ||
     (isMultiplayer && !playerCanMove && !isP2TurnLocal);
