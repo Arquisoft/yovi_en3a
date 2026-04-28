@@ -14,10 +14,32 @@ components:
 tags:
   - name: Users
     description: User management and authentication
+  - name: Game Manager
+    description: Game session management
   - name: Gamey
-    description: Bot and game logic implemented in Rust
+    description: External bot API
 
 paths:
+  /status:
+    get:
+      tags:
+        - Users
+      summary: Gateway health check
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: gatewayservice
+
   /api/users/register:
     post:
       tags:
@@ -90,27 +112,6 @@ paths:
         '401':
           description: Wrong credentials
 
-  /api/users/stats/{userId}:
-    get:
-      tags:
-        - Users
-      summary: Get personal stats
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: User stats
-        '400':
-          description: Invalid userId
-        '404':
-          description: Stats not found
-
   /api/users/stats/ranking:
     get:
       tags:
@@ -129,13 +130,108 @@ paths:
       responses:
         '200':
           description: Ranking
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  topPlayers:
+                    type: array
+                    items:
+                      type: object
+                  userPosition:
+                    type: object
+                    nullable: true
         '400':
           description: Invalid sort method
+        '401':
+          description: Unauthorized
+
+  /api/users/stats/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get personal stats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gamesPlayed:
+                    type: integer
+                  wins:
+                    type: integer
+                  losses:
+                    type: integer
+                  winRate:
+                    type: number
+        '400':
+          description: Invalid userId
+        '401':
+          description: Unauthorized
+        '404':
+          description: Stats not found
+
+  /api/users/history/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get match history of a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Match history ordered by most recent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        result:
+                          type: string
+                          enum: [won, lost, resigned]
+                        botId:
+                          type: string
+                        boardSize:
+                          type: integer
+                        gameType:
+                          type: string
+                        playedAt:
+                          type: string
+                          format: date-time
+        '400':
+          description: Invalid userId
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
 
   /api/game-manager/create/{gameName}:
     post:
       tags:
-        - Users
+        - Game Manager
       summary: Create a new game
       security:
         - bearerAuth: []
@@ -145,7 +241,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [standard, master, fortune, tabu, holey, whynot, poly]
+            enum: [standard, master, fortune, pie, tabu, holey, whynot]
       requestBody:
         content:
           application/json:
@@ -162,13 +258,26 @@ paths:
       responses:
         '201':
           description: Game created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: string
+                  yen:
+                    type: object
+                  status:
+                    type: string
         '400':
           description: Invalid game type or missing userId
+        '401':
+          description: Unauthorized
 
   /api/game-manager/state/{id}:
     get:
       tags:
-        - Users
+        - Game Manager
       summary: Get game state
       security:
         - bearerAuth: []
@@ -181,6 +290,22 @@ paths:
       responses:
         '200':
           description: Game state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: string
+                  yen:
+                    type: object
+                  status:
+                    type: string
+                    enum: [ongoing, won, lost, resigned]
+                  botId:
+                    type: string
+                  boardSize:
+                    type: integer
         '401':
           description: Unauthorized
         '403':
@@ -191,21 +316,32 @@ paths:
   /api/game-manager/list:
     get:
       tags:
-        - Users
-      summary: List user games
+        - Game Manager
+      summary: List all games of the authenticated user
       security:
         - bearerAuth: []
       responses:
         '200':
           description: List of games
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  games:
+                    type: array
+                    items:
+                      type: object
         '401':
           description: Unauthorized
 
-  /api/game-manager/game/{id}/move:
+  /api/game-manager/game/{id}/move/player:
     post:
       tags:
-        - Users
-      summary: Make a move
+        - Game Manager
+      summary: Apply player move
       security:
         - bearerAuth: []
       parameters:
@@ -224,6 +360,7 @@ paths:
               properties:
                 coords:
                   type: object
+                  required: [x, y]
                   properties:
                     x:
                       type: integer
@@ -232,8 +369,19 @@ paths:
       responses:
         '200':
           description: Move applied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: string
+                  yen:
+                    type: object
+                  status:
+                    type: string
         '400':
-          description: Invalid move
+          description: Invalid move or game already finished
         '401':
           description: Unauthorized
         '403':
@@ -241,10 +389,48 @@ paths:
         '404':
           description: Game not found
 
+  /api/game-manager/game/{id}/move/bot:
+    post:
+      tags:
+        - Game Manager
+      summary: Request bot move
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot moved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: string
+                  yen:
+                    type: object
+                  status:
+                    type: string
+        '400':
+          description: Game already finished
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Game not found
+        '503':
+          description: Bot unavailable
+
   /api/game-manager/game/{id}/resign:
     post:
       tags:
-        - Users
+        - Game Manager
       summary: Resign a game
       security:
         - bearerAuth: []
@@ -258,7 +444,7 @@ paths:
         '200':
           description: Game resigned
         '400':
-          description: Game already resigned
+          description: Game already finished
         '401':
           description: Unauthorized
         '403':
@@ -266,39 +452,26 @@ paths:
         '404':
           description: Game not found
 
-  /api/gamey/play:
-    post:
+  /play:
+    get:
       tags:
         - Gamey
-      summary: Get bot move
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [size, turn, players, layout, botId]
-              properties:
-                botId:
-                  type: string
-                  enum: [random_bot, beginner_bot, medium_bot]
-                  default: random_bot
-                size:
-                  type: integer
-                  example: 7
-                turn:
-                  type: integer
-                  example: 0
-                  description: Index of the player to move (0 or 1)
-                players:
-                  type: array
-                  items:
-                    type: string
-                  example: ["B", "R"]
-                layout:
-                  type: string
-                  example: "B/BR/.R."
-                  description: Rows separated by '/', cells as player symbols or '.' for empty
+      summary: Get bot move for external bots (no authentication required)
+      parameters:
+        - name: position
+          in: query
+          required: true
+          description: Board state in YEN notation (JSON string)
+          schema:
+            type: string
+            example: '{"size":4,"turn":1,"players":["B","R"],"layout":"B/.B/RB./B..R"}'
+        - name: bot_id
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [random_bot, beginner_bot, medium_bot]
+            default: medium_bot
       responses:
         '200':
           description: Bot move coordinates
@@ -314,7 +487,9 @@ paths:
                         type: integer
                       y:
                         type: integer
+                      z:
+                        type: integer
         '400':
-          description: Missing layout or size
+          description: Missing or invalid position parameter
         '500':
           description: Gamey service error

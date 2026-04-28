@@ -60,7 +60,9 @@ let proxyRequest = async(targetUrl, req, res) => {
                 /^\/register$/,
                 /^\/login$/,
                 /^\/stats\/update$/,
-                /^\/stats\/[\w-]+$/
+                /^\/stats\/[\w-]+$/,
+                /^\/history\/[a-f0-9]{24}$/,
+                /^\/history\/add$/
             ],
             'game-manager': [
                 /^\/create\/\w+$/,
