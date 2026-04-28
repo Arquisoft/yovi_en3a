@@ -27,8 +27,6 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
       cellRefs,
       playedCoords,
       phase,
-      currentTurnPlayer,
-      swapActive,
       handleClick,
       handleKeep,
       handleSwap,
