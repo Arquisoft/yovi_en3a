@@ -1,54 +1,57 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { type BoardProps, type Coordinates } from "../boards/Types";
-import { type HexCellRef } from "../HexCell";
-import { checkYWin } from "./useGameLogic";
+import { useGameLogic } from "./useGameLogic";
 import { generateAllCellKeys } from "./cellLockingUtils";
+import { checkYWin } from "./useGameLogic";
+import { flushSync } from "react-dom";
 
 type PiePhase = "p1_first" | "p2_choice" | "playing";
 
 export const usePieLogic = (
+  gameIdProp: string | undefined,
   boardSize: number,
   onCellPlayed: BoardProps["onCellPlayed"],
   onGameOver: BoardProps["onGameOver"],
   onTurnChange: BoardProps["onTurnChange"],
-  onSwap?: () => void  // ✅ Nuevo parámetro
+  onSwap?: () => void
 ) => {
-  const cellRefs = useRef<Map<string, HexCellRef>>(new Map());
-  const playedCoords = useRef<Set<string>>(new Set());
-  const p1Cells = useRef<Set<string>>(new Set());
-  const p2Cells = useRef<Set<string>>(new Set());
   const [phase, setPhase] = useState<PiePhase>("p1_first");
   const [currentTurnPlayer, setCurrentTurnPlayer] = useState<"p1" | "p2">("p1");
   const currentTurnRef = useRef<"p1" | "p2">("p1");
   const [swapActive, setSwapActive] = useState(false);
   const swapRef = useRef(false);
   const firstCellKeyRef = useRef<string | null>(null);
+  const phaseRef = useRef<PiePhase>("p1_first");
 
-  const selectCell = useCallback((x: number, y: number, z: number, player: "p1" | "p2") => {
-    const cellRef = cellRefs.current.get(`${x}-${y}-${z}`);
-    if (cellRef) {
-      return player === "p1" ? cellRef.selectByPlayer() : cellRef.selectByPlayer2();
-    } 
+  // ✅ Usar useGameLogic como base (igual que FortuneLogic)
+  const logic = useGameLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, {
+    onBeforeMove: () => {
+      return phaseRef.current === "p1_first" || phaseRef.current === "playing";
+    },
+    skipBotAfterMove: true,
+    isMultiplayer: true, // ✅ Siempre true para Pie Rule
+  });
 
-    return false;
-  }, []);
-
-  const handleRequestSelectCell = useCallback((coordinates: Coordinates, player: "p1" | "p2") => {
-    selectCell(coordinates.x, coordinates.y, coordinates.z, player);
-  }, [selectCell]);
+  // Sincronizar phaseRef
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   const handleClick = useCallback((coordinates: Coordinates, name: string) => {
     const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
-    if (playedCoords.current.has(key)) {
+    if (logic.playedCoords.current.has(key)) {
       return;
     }
 
     const turn = currentTurnRef.current;
 
     if (phase === "p1_first") {
-      selectCell(coordinates.x, coordinates.y, coordinates.z, "p1");
-      playedCoords.current.add(key);
-      p1Cells.current.add(key);
+      // Primer movimiento de P1
+      flushSync(() => {
+        logic.selectCell(coordinates.x, coordinates.y, coordinates.z, "p1");
+      });
+      logic.playedCoords.current.add(key);
+      logic.p1CellsRef.current.add(key);
       firstCellKeyRef.current = key;
       onCellPlayed?.("p1", "Player 1", name);
       setPhase("p2_choice");
@@ -57,30 +60,31 @@ export const usePieLogic = (
     }
 
     if (phase === "p2_choice") {
-      return; 
+      return; // Bloqueado durante decisión
     }
 
     if (phase === "playing") {
-      // ✅ Después del swap, cada jugador usa su color normal
       const visualPlayer: "p1" | "p2" = turn;
 
-      selectCell(coordinates.x, coordinates.y, coordinates.z, visualPlayer);
-      playedCoords.current.add(key);
+      flushSync(() => {
+        logic.selectCell(coordinates.x, coordinates.y, coordinates.z, visualPlayer);
+      });
+      logic.playedCoords.current.add(key);
 
       if (turn === "p1") {
-        p1Cells.current.add(key);
+        logic.p1CellsRef.current.add(key);
         onCellPlayed?.(visualPlayer, "Player 1", name);
-        if (checkYWin(p1Cells.current)) {
-          onGameOver?.(visualPlayer); 
+        if (checkYWin(logic.p1CellsRef.current)) {
+          onGameOver?.(visualPlayer);
           return;
         }
         currentTurnRef.current = "p2";
         setCurrentTurnPlayer("p2");
         onTurnChange?.("p2");
       } else {
-        p2Cells.current.add(key);
+        logic.p2CellsRef.current.add(key);
         onCellPlayed?.(visualPlayer, "Player 2", name);
-        if (checkYWin(p2Cells.current)) {
+        if (checkYWin(logic.p2CellsRef.current)) {
           onGameOver?.(visualPlayer);
           return;
         }
@@ -89,7 +93,7 @@ export const usePieLogic = (
         onTurnChange?.("p1");
       }
     }
-  }, [phase, selectCell, onCellPlayed, onGameOver, onTurnChange]);
+  }, [phase, logic, onCellPlayed, onGameOver, onTurnChange]);
 
   const handleKeep = useCallback(() => {
     swapRef.current = false;
@@ -103,13 +107,13 @@ export const usePieLogic = (
   const handleSwap = useCallback(() => {
     if (firstCellKeyRef.current) {
       const [x, y, z] = firstCellKeyRef.current.split("-").map(Number);
-      const cellRef = cellRefs.current.get(firstCellKeyRef.current);
+      const cellRef = logic.cellRefs.current.get(firstCellKeyRef.current);
       cellRef?.deselect();
       setTimeout(() => {
-        selectCell(x, y, z, "p2");
+        logic.selectCell(x, y, z, "p2");
       }, 0);
-      p1Cells.current.delete(firstCellKeyRef.current);
-      p2Cells.current.add(firstCellKeyRef.current);
+      logic.p1CellsRef.current.delete(firstCellKeyRef.current);
+      logic.p2CellsRef.current.add(firstCellKeyRef.current);
     }
     swapRef.current = true;
     setSwapActive(true);
@@ -118,20 +122,20 @@ export const usePieLogic = (
     setPhase("playing");
     onTurnChange?.("p1");
     onSwap?.();
-  }, [selectCell, onTurnChange, onSwap]);
+  }, [logic, onTurnChange, onSwap]);
 
   const lockedCells = phase === "p2_choice" ? generateAllCellKeys(boardSize) : new Set<string>();
 
   return {
-    cellRefs,
-    playedCoords,
+    cellRefs: logic.cellRefs,
+    playedCoords: logic.playedCoords,
     phase,
     currentTurnPlayer,
     swapActive,
     handleClick,
     handleKeep,
     handleSwap,
-    handleRequestSelectCell,
+    handleRequestSelectCell: logic.handleRequestSelectCell,
     lockedCells,
   };
 };
