@@ -21,16 +21,22 @@ describe('useFortuneLogic', () => {
         executeP1MoveLocal: vi.fn(),
         executeP2Move: vi.fn(),
         gameBoardRef: {},
+        isProcessing: false,
     };
 
+    let getRandomValuesSpy: any;
+
     beforeEach(() => {
-        vi.useFakeTimers(); // Habilitamos timers falsos para no tener que esperar tiempos reales en los tests cuando el rollDice usa setTimeout
+        vi.useFakeTimers();
         vi.clearAllMocks();
         vi.mocked(gameLogicHook.useGameLogic).mockReturnValue(mockGameLogicBase as any);
     });
 
     afterEach(() => {
-        vi.useRealTimers(); // Restauramos timers reales
+        vi.useRealTimers();
+        if (getRandomValuesSpy) {
+            getRandomValuesSpy.mockRestore();
+        }
     });
 
     it('debe iniciar el lanzamiento de dados al montar', () => {
@@ -38,19 +44,20 @@ describe('useFortuneLogic', () => {
             useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange)
         );
 
-        // Al montar, isRolling debe ser true por el useEffect
         expect(result.current.isRolling).toBe(true);
     });
 
     it('debe permitir movimiento del jugador si el dado sale "player"', async () => {
-        // Forzamos que el dado salga "player" (Math.random < 0.5)
-        vi.spyOn(Math, 'random').mockReturnValue(0.1);
+        // Mock crypto.getRandomValues para que devuelva < 128 (player)
+        getRandomValuesSpy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr: any) => {
+            arr[0] = 50; // < 128 = player
+            return arr;
+        });
 
         const { result } = renderHook(() =>
             useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange)
         );
 
-        // Avanzamos el tiempo del primer setTimeout (800ms)
         act(() => {
             vi.advanceTimersByTime(800);
         });
@@ -62,14 +69,16 @@ describe('useFortuneLogic', () => {
     });
 
     it('debe ejecutar movimiento del bot automáticamente si el dado sale "bot"', async () => {
-        // Forzamos que el dado salga "bot"
-        vi.spyOn(Math, 'random').mockReturnValue(0.9);
+        // Mock crypto.getRandomValues para que devuelva >= 128 (bot)
+        getRandomValuesSpy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr: any) => {
+            arr[0] = 200; // >= 128 = bot
+            return arr;
+        });
 
         const { result } = renderHook(() =>
             useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange)
         );
 
-        // Avanzamos el primer timer (800ms del dado)
         await act(async () => {
             vi.advanceTimersByTime(800);
         });
@@ -77,17 +86,19 @@ describe('useFortuneLogic', () => {
         expect(result.current.diceResult).toBe('bot');
         expect(mockGameLogicBase.executeBotMove).toHaveBeenCalled();
 
-        // Avanzamos el segundo timer (600ms después del bot para re-roll)
         act(() => {
             vi.advanceTimersByTime(600);
         });
 
-        // Debería estar rodando otra vez
         expect(result.current.isRolling).toBe(true);
     });
 
     it('en multiplayer, debe ser el turno de P2 si el dado sale bot', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9);
+        // Mock crypto.getRandomValues para que devuelva >= 128 (bot/P2)
+        getRandomValuesSpy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr: any) => {
+            arr[0] = 200; // >= 128 = bot
+            return arr;
+        });
 
         const { result } = renderHook(() =>
             useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange, true)
@@ -102,13 +113,16 @@ describe('useFortuneLogic', () => {
     });
 
     it('handleClick debe llamar a la lógica y reiniciar el ciclo del dado', async () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.1); // Turno jugador
+        // Mock crypto.getRandomValues para que devuelva < 128 (player)
+        getRandomValuesSpy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr: any) => {
+            arr[0] = 50; // < 128 = player
+            return arr;
+        });
 
         const { result } = renderHook(() =>
-            useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange, false) // ✅ Explícitamente false para single player
+            useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange, false)
         );
 
-        // Pasamos el tiempo del dado inicial
         await act(async () => {
             vi.advanceTimersByTime(800);
         });
@@ -117,23 +131,45 @@ describe('useFortuneLogic', () => {
         expect(result.current.diceResult).toBe('player');
         expect(result.current.isRolling).toBe(false);
 
-        // El jugador hace clic
         await act(async () => {
             result.current.handleClick({ x: 0, y: 0, z: 0 }, 'cell');
         });
 
         expect(mockGameLogicBase.handleClick).toHaveBeenCalled();
-        
-        // El playerCanMove debe cambiar a false después del click
         expect(result.current.playerCanMove).toBe(false);
 
-        // Verificamos que tras el movimiento (600ms), el dado vuelve a rodar
         await act(async () => {
             vi.advanceTimersByTime(600);
-            // Dar tiempo para que el setTimeout interno se ejecute
-            await Promise.resolve();
         });
         
         expect(result.current.isRolling).toBe(true);
+    });
+
+    it('debe bloquear todas las celdas cuando está rodando el dado', () => {
+        const { result } = renderHook(() =>
+            useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange)
+        );
+
+        // Cuando está rodando, todas las celdas deben estar bloqueadas
+        expect(result.current.isRolling).toBe(true);
+        expect(result.current.lockedCells.size).toBeGreaterThan(0);
+    });
+
+    it('debe desbloquear celdas cuando el jugador puede moverse', async () => {
+        getRandomValuesSpy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr: any) => {
+            arr[0] = 50; // < 128 = player
+            return arr;
+        });
+
+        const { result } = renderHook(() =>
+            useFortuneLogic('test-game', 7, mockOnCellPlayed, mockOnGameOver, mockOnTurnChange)
+        );
+
+        await act(async () => {
+            vi.advanceTimersByTime(800);
+        });
+
+        expect(result.current.playerCanMove).toBe(true);
+        expect(result.current.lockedCells.size).toBe(0);
     });
 });
