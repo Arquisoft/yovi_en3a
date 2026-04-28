@@ -4,7 +4,7 @@ import { useMasterLogic } from '../game/hooks/useMasterLogic';
 import * as gameLogicModule from '../game/hooks/useGameLogic';
 
 // 1. Mock del hook base
-vi.mock('../../game/hooks/useGameLogic', () => ({
+vi.mock('../game/hooks/useGameLogic', () => ({
     useGameLogic: vi.fn(),
 }));
 

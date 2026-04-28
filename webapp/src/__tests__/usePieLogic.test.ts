@@ -4,7 +4,7 @@ import { usePieLogic } from '../game/hooks/usePieLogic';
 import * as gameLogicModule from '../game/hooks/useGameLogic';
 
 // Mockeamos el motor de victoria para controlar cuándo alguien gana
-vi.mock('../../game/hooks/useGameLogic', () => ({
+vi.mock('../game/hooks/useGameLogic', () => ({
   checkYWin: vi.fn(() => false),
 }));
 

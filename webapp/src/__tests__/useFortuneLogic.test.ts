@@ -4,7 +4,7 @@ import { useFortuneLogic } from '../game/hooks/useFortuneLogic';
 import * as gameLogicHook from '../game/hooks/useGameLogic';
 
 // 1. Mock de la dependencia useGameLogic
-vi.mock('../../game/hooks/useGameLogic', () => ({
+vi.mock('../game/hooks/useGameLogic', () => ({
     useGameLogic: vi.fn(),
 }));
 

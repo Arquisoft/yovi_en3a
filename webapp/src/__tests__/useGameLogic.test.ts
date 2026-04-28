@@ -10,11 +10,11 @@ vi.mock('react-dom', () => ({
   flushSync: (fn: () => void) => fn(),
 }));
 
-vi.mock('../../Game/Hooks/cellLockingUtils', () => ({
+vi.mock('../Game/Hooks/cellLockingUtils', () => ({
   generateAllCellKeys: vi.fn().mockReturnValue(new Set<string>()),
 }));
 
-vi.mock('../../lib/config', () => ({
+vi.mock('../lib/config', () => ({
   gatewayUrl: 'http://localhost:8000',
 }));
 
