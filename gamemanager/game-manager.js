@@ -335,11 +335,17 @@ app.get('/health', (req, res) => {
 app.get('/api/gamey/play', async (req, res) => {
     const { bot_id: botId = 'medium_bot', position } = req.query;
 
-    const ALLOWED_BOT_IDS = ['random_bot', 'medium_bot', 'beginner_bot'];
+    const BOT_ENDPOINTS = {
+        'random_bot': '/v1/ybot/choose/random_bot',
+        'medium_bot': '/v1/ybot/choose/medium_bot',
+        'beginner_bot': '/v1/ybot/choose/beginner_bot'
+    };
     
-    if (!ALLOWED_BOT_IDS.includes(botId)) {
+    const endpoint = BOT_ENDPOINTS[botId];
+    
+    if (!endpoint) {
         return res.status(400).json({ 
-            error: 'Invalid bot_id. Allowed values: ' + ALLOWED_BOT_IDS.join(', ') 
+            error: 'Invalid bot_id. Allowed values: ' + Object.keys(BOT_ENDPOINTS).join(', ') 
         });
     }
 
@@ -360,7 +366,7 @@ app.get('/api/gamey/play', async (req, res) => {
 
     try {
         const response = await axios.post(
-            `${GAMEY_SERVICE_URL}/v1/ybot/choose/${botId}`,
+            `${GAMEY_SERVICE_URL}${endpoint}`,
             yen,
             { headers: { 'Content-Type': 'application/json' } }
         );

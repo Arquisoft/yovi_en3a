@@ -6,6 +6,15 @@ import { type HexCellRef } from "../HexCell";
 import { flushSync } from "react-dom";
 import { generateAllCellKeys } from "./cellLockingUtils";
 
+/**
+ * Generates a cryptographically secure random integer between 0 (inclusive) and max (exclusive)
+ */
+function secureRandomInt(max: number): number {
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  return randomBytes[0] % max;
+}
+
 export const checkYWin = (cells: Set<string>): boolean => {
   const queue: string[] = [];
   const visited = new Set<string>();
@@ -315,8 +324,7 @@ export const useGameLogic = (
       return;
     }
 
-    // NOSONAR - Math.random() is safe for dice roll simulation in game
-    const coord = available[Math.floor(Math.random() * available.length)];
+    const coord = available[secureRandomInt(available.length)];
     const name = `(${coord.x},${coord.y},${coord.z})`;
     if (optionsRef.current?.isMultiplayer) {
       executeP1MoveLocal(coord, name);
@@ -331,8 +339,7 @@ export const useGameLogic = (
       return;
     }
 
-    // NOSONAR - Math.random() is safe for dice roll simulation in game
-    const coord = available[Math.floor(Math.random() * available.length)];
+    const coord = available[secureRandomInt(available.length)];
     executeP2Move(coord, `(${coord.x},${coord.y},${coord.z})`);
   }, [availableCoords, executeP2Move]);
 

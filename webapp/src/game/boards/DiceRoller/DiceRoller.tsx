@@ -26,25 +26,42 @@ const BG_ROLLING = "#2d3748";
 const BG_PLAYER  = "#1d4ed8";
 const BG_BOT     = "#991b1b";
 
+/**
+ * Generates a cryptographically secure random integer between min (inclusive) and max (inclusive)
+ */
+function secureRandomInt(min: number, max: number): number {
+  const range = max - min + 1;
+  const bytesNeeded = Math.ceil(Math.log2(range) / 8);
+  const maxValid = Math.floor(256 ** bytesNeeded / range) * range - 1;
+  
+  let randomValue: number;
+  const randomBytes = new Uint8Array(bytesNeeded);
+  
+  do {
+    crypto.getRandomValues(randomBytes);
+    randomValue = randomBytes.reduce((acc, byte, i) => acc + byte * (256 ** i), 0);
+  } while (randomValue > maxValid);
+  
+  return min + (randomValue % range);
+}
+
 export default function DiceRoller({ isRolling, diceResult, isMultiplayer = false }: DiceRollerProps) {
   const [face, setFace]       = useState(1);
   const [animKey, setAnimKey] = useState(0);
 
   useEffect(() => {
     if (isRolling) {
-      // NOSONAR - Math.random() is safe for visual dice animation
       const id = setInterval(() => {
-        setFace(Math.floor(Math.random() * 6) + 1);
+        setFace(secureRandomInt(1, 6));
       }, 80);
       return () => clearInterval(id);
     }
 
     if (diceResult) {
-      // NOSONAR - Math.random() is safe for game dice rolls
       const val =
         diceResult === "player"
-          ? Math.floor(Math.random() * 3) + 4
-          : Math.floor(Math.random() * 3) + 1;
+          ? secureRandomInt(4, 6)
+          : secureRandomInt(1, 3);
       setFace(val);
       setAnimKey((k) => k + 1);
     }

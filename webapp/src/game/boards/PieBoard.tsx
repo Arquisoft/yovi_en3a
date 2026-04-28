@@ -3,6 +3,15 @@ import { type BoardProps, type GameBoardRef } from "./Types";
 import { usePieLogic } from "../hooks/usePieLogic";
 import HexGrid from "../HexGrid";
 
+/**
+ * Generates a cryptographically secure random integer between 0 (inclusive) and max (exclusive)
+ */
+function secureRandomInt(max: number): number {
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  return randomBytes[0] % max;
+}
+
 const PieBoard = forwardRef<GameBoardRef, BoardProps>(
   ({ 
     boardSize = 7, 
@@ -12,7 +21,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
     onCellPlayed, 
     onGameOver, 
     onTurnChange,
-    onSwap  // ✅ Desestructurar el nuevo prop
+    onSwap
   }, ref) => {
     const {
       cellRefs,
@@ -25,7 +34,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
       handleSwap,
       handleRequestSelectCell,
       lockedCells,
-    } = usePieLogic(boardSize, onCellPlayed, onGameOver, onTurnChange, onSwap);  // ✅ Pasar onSwap
+    } = usePieLogic(boardSize, onCellPlayed, onGameOver, onTurnChange, onSwap);
 
     useImperativeHandle(ref, () => ({
       selectCellByCoordinates: (x, y, z, player) => {
@@ -53,8 +62,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
           return;
         }
 
-        // NOSONAR - Math.random() is safe for game AI move selection
-        const coord = available[Math.floor(Math.random() * available.length)];
+        const coord = available[secureRandomInt(available.length)];
         handleClick(coord, `(${coord.x},${coord.y},${coord.z})`);
       },
     }));

@@ -3,6 +3,15 @@ import { useGameLogic } from "./useGameLogic";
 import { type BoardProps } from "../boards/Types";
 import { generateAllCellKeys } from "./cellLockingUtils";
 
+/**
+ * Generates a cryptographically secure random integer between 0 (inclusive) and max (exclusive)
+ */
+function secureRandomInt(max: number): number {
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  return randomBytes[0] % max;
+}
+
 export const useMasterLogic = (
   gameIdProp: BoardProps["gameIdProp"],
   boardSize: number,
@@ -83,8 +92,7 @@ export const useMasterLogic = (
       return null;
     }
 
-    // NOSONAR - Math.random() is safe for dice roll simulation in game
-    return available[Math.floor(Math.random() * available.length)];
+    return available[secureRandomInt(available.length)];
   };
 
   const makeRandomMove = useCallback(() => {

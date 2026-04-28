@@ -251,14 +251,10 @@ mod medium_bot_tests {
     use crate::bot::medium::MediumBot;
     use crate::YBot;
 
-    // ─── helpers ─────────────────────────────────────────────────────────────
-
     fn bot() -> MediumBot {
         MediumBot
     }
 
-    /// Aplica una secuencia de movimientos alternativos (player 0, player 1, …)
-    /// empezando por `first_player`.
     fn apply_moves(board: &mut GameY, coords: &[(u32, u32, u32)], first_player: u32) {
         for (i, &(x, y, z)) in coords.iter().enumerate() {
             let player = PlayerId::new((first_player + i as u32) % 2);
@@ -271,16 +267,12 @@ mod medium_bot_tests {
         }
     }
 
-    // ─── 1. Tablero vacío ─────────────────────────────────────────────────────
-
-    /// El bot debe devolver alguna coordenada cuando el tablero está vacío.
     #[test]
     fn empty_board_returns_some() {
         let board = GameY::new(5);
         assert!(bot().choose_move(&board).is_some());
     }
 
-    /// La coordenada devuelta en un tablero vacío debe existir en available_cells.
     #[test]
     fn empty_board_move_is_available() {
         let board = GameY::new(5);
@@ -289,13 +281,8 @@ mod medium_bot_tests {
         assert!(board.available_cells().contains(&idx));
     }
 
-    // ─── 2. Una sola celda libre ──────────────────────────────────────────────
-
-    /// Con una única celda libre el bot DEBE elegirla.
     #[test]
     fn single_cell_left_must_be_chosen() {
-        // Tablero 2: 3 celdas. Llenamos 2 de forma que ninguno gane antes.
-        // (0,1,0) y (0,0,1) son las dos celdas del lado inferior; la que queda es (1,0,0).
         let mut board = GameY::new(2);
         board
             .add_move(Movement::Placement {
@@ -311,28 +298,15 @@ mod medium_bot_tests {
             .unwrap();
 
         let mv = bot().choose_move(&board);
-        // Puede que el juego ya acabara; si no, la única celda es (1,0,0).
         if let Some(coord) = mv {
             assert_eq!(coord, Coordinates::new(1, 0, 0));
         }
     }
 
-    // ─── 3. El bot debe bloquear una victoria inminente del humano ────────────
-
-    /// Tablero 5. El humano (player 0) tiene dos piezas conectando dos lados;
-    /// sólo le falta colocar una pieza para conectar el tercer lado.
-    /// El bot debe elegir esa celda bloqueante.
-    ///
-    /// Configuración (coordenadas baricéntricas, tablero 5 → índices de 0-14):
-    ///   Player 0 toca side_a (x=0) con (0,2,2) y (0,1,3)
-    ///             toca side_b (y=0) con (2,0,2)
-    ///   La celda que conectaría side_c (z=0) es (0,4,0)  → solo le falta esa.
-    ///   El bot debe ir allí antes que el humano.
     #[test]
     fn bot_blocks_human_imminent_win() {
         let mut board = GameY::new(5);
 
-        // Human pieces (player 0)
         for &(x, y, z) in &[(0u32, 2u32, 2u32), (0, 1, 3), (2, 0, 2)] {
             board
                 .add_move(Movement::Placement {
@@ -340,24 +314,19 @@ mod medium_bot_tests {
                     coords: Coordinates::new(x, y, z),
                 })
                 .unwrap();
-            // Bot hace relleno neutral lejos
             if !board.check_game_over() {
                 board
                     .add_move(Movement::Placement {
                         player: PlayerId::new(1),
-                        coords: Coordinates::new(4, 0, 0), // corner que no obstruye
+                        coords: Coordinates::new(4, 0, 0),
                     })
                     .unwrap_or(());
             }
         }
 
-        // Ahora el bot (player 1) elige
         let mv = bot().choose_move(&board);
         assert!(mv.is_some(), "El bot debe devolver un movimiento");
 
-        // La celda bloqueante clave toca side_c (z == 0)
-        // El bot no tiene por qué ir exactamente allí, pero el juego
-        // no debe terminar con victoria del humano en el siguiente turno.
         if let Some(coord) = mv {
             let mut after_bot = board.clone();
             after_bot
@@ -367,7 +336,6 @@ mod medium_bot_tests {
                 })
                 .unwrap();
 
-            // Comprobamos que el humano ya NO puede ganar en un movimiento.
             let remaining = after_bot.available_cells().clone();
             let human_wins_next = remaining.iter().any(|&idx| {
                 let c = Coordinates::from_index(idx, after_bot.board_size());
@@ -387,70 +355,11 @@ mod medium_bot_tests {
         }
     }
 
-    // ─── 4. El bot debe elegir su propia victoria inmediata ──────────────────
-
-    /// Si el bot puede ganar en este turno, DEBE hacerlo.
-    ///
-    /// Cargamos la posición via YEN para tener control total sobre el layout
-    /// sin depender del orden de turnos de `add_move`.
-    ///
-    /// Tablero 5, layout (fila 0 = vértice x=4, fila 4 = base x=0):
-    ///
-    ///   fila 0 (x=4): .
-    ///   fila 1 (x=3): ..
-    ///   fila 2 (x=2): .R.
-    ///   fila 3 (x=1): .RR.
-    ///   fila 4 (x=0): BR.R.
-    ///
-    /// Piezas del bot (R = player 1):
-    ///   (2,1,1) – interior
-    ///   (1,1,2) – toca side_a (x=0 no, x=1 no… espera: side_a es x==0)
-    ///
-    /// Usamos una posición más simple y verificada manualmente:
-    ///
-    /// Tablero 3 (6 celdas), side_a: x=0, side_b: y=0, side_c: z=0
-    /// Celda única (0,0,2) toca side_a y side_b.
-    /// Celda (0,2,0) toca side_a y side_c.
-    /// Celda (2,0,0) toca side_b y side_c → ganar colocando (1,1,0) que
-    /// conecta (0,2,0)-(1,1,0)-(2,0,0) tocando las 3 lados.
-    ///
-    /// YEN layout tablero 3 (turn=1 → toca player 1 = R):
-    ///   fila 0 (x=2): .
-    ///   fila 1 (x=1): .R
-    ///   fila 2 (x=0): R.R
-    ///   → "." / ".R" / "R.R"  con turn=1 (le toca al bot)
-    ///
-    /// Bot (R) toca: (1,1,0) side_c, (0,0,2) side_a+side_b, (0,2,0) side_a+side_c
-    /// Falta conectarlos: colocando (0,1,1) une (0,0,2)-(0,1,1)-(0,2,0) → side_a+side_b+side_c ✓
     #[test]
     fn bot_takes_winning_move() {
-        use crate::{YEN, GameStatus};
+        use crate::GameStatus;
 
-        // Layout tablero 3:
-        //   x=2: .          → (2,0,0)=empty
-        //   x=1: .R         → (1,0,1)=empty, (1,1,0)=R
-        //   x=0: R.R        → (0,0,2)=R,     (0,1,1)=empty, (0,2,0)=R
-        //
-        // R toca: (0,0,2) → side_a(x=0) + side_b(y=0)
-        //         (0,2,0) → side_a(x=0) + side_c(z=0)
-        //         (1,1,0) → side_c(z=0)
-        // Colocando (0,1,1): conecta (0,0,2)-(0,1,1)-(0,2,0) → toca las 3 → gana.
-        // B (player 0) no tiene piezas → no puede ganar.
-        // turn=1 → le toca a R (bot).
-        let yen_str = r#"{
-            "size": 3,
-            "turn": 1,
-            "players": ["B","R"],
-            "layout": "./. R/R.R"
-        }"#;
-        // YEN layout usa '/' como separador de filas, sin espacios dentro de la cadena.
-        // Reconstruimos correctamente:
-        let yen_str = r#"{"size":3,"turn":1,"players":["B","R"],"layout":"./. R/R.R"}"#;
-
-        // Construimos la posición directamente para evitar problemas de parseo YEN
         let mut board = GameY::new(3);
-        // Colocamos solo piezas del bot (R=player1) en la posición deseada.
-        // GameY no valida turno en add_move, solo registra quién pone.
         for &(x, y, z) in &[(0u32, 0u32, 2u32), (0, 2, 0), (1, 1, 0)] {
             board
                 .add_move(Movement::Placement {
@@ -460,13 +369,11 @@ mod medium_bot_tests {
                 .unwrap();
         }
 
-        // Sanity: el juego sigue en curso
         assert!(
             !board.check_game_over(),
             "El tablero no debería estar terminado antes del movimiento ganador"
         );
 
-        // Sanity: existe al menos un movimiento ganador para el bot
         let winning_cells: Vec<Coordinates> = board
             .available_cells()
             .iter()
@@ -487,7 +394,6 @@ mod medium_bot_tests {
             "La posición de test no tiene movimiento ganador para el bot"
         );
 
-        // El bot DEBE elegir uno de esos movimientos ganadores
         let mv = bot().choose_move(&board).unwrap();
         let mut after = board.clone();
         after
@@ -508,16 +414,10 @@ mod medium_bot_tests {
         }
     }
 
-    // ─── 5. El movimiento devuelto siempre es válido ──────────────────────────
-
-    /// En cualquier estado intermedio la coordenada devuelta debe:
-    ///   a) estar en available_cells, y
-    ///   b) poder aplicarse sin error.
     #[test]
     fn returned_move_is_always_legal() {
         let mut board = GameY::new(4);
 
-        // Jugamos 6 movimientos alternos y pedimos al bot en cada turno impar
         let coords_seq: &[(u32, u32, u32)] =
             &[(0, 3, 0), (3, 0, 0), (0, 0, 3), (1, 2, 0), (0, 1, 2), (2, 1, 0)];
 
@@ -533,7 +433,6 @@ mod medium_bot_tests {
                 })
                 .unwrap();
 
-            // Pedimos consejo al bot después de cada movimiento del humano
             if i % 2 == 0 && !board.check_game_over() {
                 let mv = bot().choose_move(&board).unwrap();
                 let idx = mv.to_index(board.board_size());
@@ -544,7 +443,6 @@ mod medium_bot_tests {
                     mv
                 );
 
-                // Verificar que se puede aplicar
                 let mut tmp = board.clone();
                 tmp.add_move(Movement::Placement {
                     player: PlayerId::new(1),
@@ -555,23 +453,18 @@ mod medium_bot_tests {
         }
     }
 
-    // ─── 6. No devuelve None en un tablero casi lleno ────────────────────────
-
-    /// Con pocas celdas libres (pero el juego aún en curso) el bot devuelve Some.
     #[test]
     fn nonempty_board_near_full_returns_some() {
-        // Tablero 3: 6 celdas. Ponemos 4 de forma que no haya ganador aún.
         let mut board = GameY::new(3);
-        // Alternamos colores sin crear conexión ganadora
         let moves: &[(u32, u32, u32, u32)] = &[
-            (0, 0, 2, 0), // player 0
-            (0, 2, 0, 1), // player 1
-            (2, 0, 0, 0), // player 0
-            (0, 1, 1, 1), // player 1
+            (0, 0, 2, 0),
+            (0, 2, 0, 1),
+            (2, 0, 0, 0),
+            (0, 1, 1, 1),
         ];
         for &(x, y, z, p) in moves {
             if board.check_game_over() {
-                return; // Si alguien ganó antes de lo previsto, el test no es aplicable
+                return;
             }
             board
                 .add_move(Movement::Placement {
@@ -589,10 +482,6 @@ mod medium_bot_tests {
         }
     }
 
-    // ─── 7. Consistencia: misma posición → mismo movimiento (determinismo) ───
-
-    /// Para un estado fijo, dos llamadas consecutivas deben devolver la misma
-    /// coordenada (el algoritmo es puramente determinista).
     #[test]
     fn deterministic_same_position() {
         let mut board = GameY::new(4);
@@ -607,16 +496,9 @@ mod medium_bot_tests {
         assert_eq!(mv1, mv2, "choose_move no es determinista para el mismo estado");
     }
 
-    // ─── 8. Tablero con un solo jugador (el bot empieza solo) ─────────────────
-
-    /// Si el bot tiene piezas pero el humano aún no ha jugado,
-    /// must devolver un movimiento válido.
     #[test]
     fn board_with_only_bot_pieces() {
         let mut board = GameY::new(5);
-        // Forzamos un estado donde sólo el bot ha jugado
-        // (esto puede requerir ajustar la lógica de turno si GameY lo valida;
-        //  aquí asumimos que add_move no comprueba el turno)
         board
             .add_move(Movement::Placement {
                 player: PlayerId::new(0),

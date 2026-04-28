@@ -5,6 +5,15 @@ import { generateAllCellKeys } from "./cellLockingUtils";
 
 type DiceResult = "player" | "bot";
 
+/**
+ * Generates a cryptographically secure random boolean with 50/50 probability
+ */
+function secureRandomBoolean(): boolean {
+  const randomBytes = new Uint8Array(1);
+  crypto.getRandomValues(randomBytes);
+  return randomBytes[0] < 128;
+}
+
 export const useFortuneLogic = (
   gameIdProp: BoardProps["gameIdProp"],
   boardSize: number,
@@ -33,8 +42,7 @@ export const useFortuneLogic = (
     setIsP2TurnLocal(false);
 
     setTimeout(() => {
-      // NOSONAR - Math.random() is safe for dice roll simulation in game
-      const result: DiceResult = Math.random() < 0.5 ? "player" : "bot";
+      const result: DiceResult = secureRandomBoolean() ? "player" : "bot";
       setDiceResult(result);
       setIsRolling(false);
 
