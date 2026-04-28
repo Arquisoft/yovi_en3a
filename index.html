@@ -941,24 +941,9 @@ These stakeholders determine the extent and the level of detail of your work and
 </div>
 <div class="sect2">
 <h3 id="_business_context">3.1. Business Context</h3>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-skinparam linetype ortho
-
-actor User
-actor "External Bots" as Bots
-
-node "YOVI" {
-    rectangle "Frontend" as Frontend
-    rectangle "Backend" as Backend
-    database "MongoDB" as DB
-}
-
-User &lt;--&gt; Frontend : Accesses and uses the application
-Frontend &lt;--&gt; Backend : Communicates via API calls with
-Backend &lt;--&gt; DB : Save / Retrieve documents
-Bots &lt;--&gt; Backend : Retrieve information via API calls</pre>
+<img src="./images/Business%20context.png" alt="Business context" width="393" height="452">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1017,33 +1002,9 @@ The title of the table is the name of your system, the three columns contain the
 </div>
 <div class="sect2">
 <h3 id="_technical_context">3.2. Technical Context</h3>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-skinparam linetype ortho
-
-actor User
-actor "External Bots" as Bots
-
-node "YOVI" {
-    rectangle "Web Frontend" as Frontend
-    rectangle "Gateway Service" as Gateway
-    rectangle "Users Service" as Service
-    rectangle "Game Manager" as Manager
-    rectangle "GameY" as Game
-    database "MongoDB" as DB
-}
-
-User --&gt; Frontend : HTTPS requests
-Frontend --&gt; Gateway : API calls
-Gateway --&gt; Service : Redirects to Users Service
-Gateway --&gt; Manager : Redirects to Game Manager
-Gateway --&gt; Game : External bot access
-Bots --&gt; Gateway : API Call
-Service &lt;--&gt; DB : Save / Retrieve user data
-Manager &lt;--&gt; DB : Save / Retrieve board data
-Manager &lt;--&gt; Game : Game operations
-Manager --&gt; Service : Update user stats</pre>
+<img src="./images/Technical%20context.png" alt="Technical context" width="502" height="645">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1401,33 +1362,9 @@ In the best case you will get away with examples or simple signatures.</p>
 </div>
 </div>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-
-actor "User" as user
-
-rectangle "YOVI System" {
-
-  node "WebApp" as Web
-  node [Gateway Service] as gateway
-  node "Game Manager" as GameSvc
-  node "User Service" as UserSvc
-  node "Gamey Engine" as GameEngine
-  database "MongoDB" as db
-
-
-}
-
-user --&gt; Web : Browser (HTTPS)
-
-Web --&gt; gateway: HTTP REST\nall requests\nport 8000
-gateway--&gt; UserSvc : HTTP REST\nuser auth &amp; registration\nport 3000
-gateway--&gt; GameSvc: HTTP REST\ngame management\nport 5000
-GameSvc--&gt; GameEngine: HTTP POST\nfetch bot move &amp; check win\nport 4000
-GameSvc--&gt; UserSvc: HTTP POST\nupdate user stats\nport 3000
-UserSvc --&gt; db: user data persistence\nport 27017
-GameSvc--&gt; db: game state persistence\nport 27017</pre>
+<img src="./images/YOVI%20System%20Architecture%20-%20Level%201.png" alt="YOVI System Architecture   Level 1" width="593" height="845">
 </div>
 </div>
 <div class="dlist">
@@ -1569,32 +1506,9 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </div>
 <div class="sect3">
 <h4 id="_white_box_gamey">5.2.1. White Box Gamey</h4>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-node "Game Manager" as game_mgr
-rectangle "Gamey" as gamey {
-  'component [Yen Notation] as yen
-
-  component [Bot Registry] as bots
-  port "CLI" as cli
-  component "Bot Server\n(HTTP)" as api
-  component [Core Game Logic] as core
-
-
-
-}
-
-"Developer" as dev
-
-
-'yen --- core
-core --&gt; bots
-api --&gt; core
-api --&gt; bots
-api -u0)- game_mgr: HTTP POST\n /choose \n /checkWin
-cli --&gt; core: local play \n(not for regular users)
-cli -u0)- dev: terminal</pre>
+<img src="./images/Gamey%20Engine%20-%20Internal%20Structure.png" alt="Gamey Engine   Internal Structure" width="613" height="639">
 </div>
 </div>
 <div class="dlist">
@@ -1679,52 +1593,9 @@ cli -u0)- dev: terminal</pre>
 </div>
 <div class="sect3">
 <h4 id="_white_box_webapp">5.2.2. White Box WebApp</h4>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-
-
-actor "Player" as player
-
-rectangle "WebApp" as webapp {
-  [Landing Page] as Landing
-  [Login Form] as Login
-  [Register Form] as Register
-  [Menu View] as Menu
-  [How To Play] as HTP
-  [Game Selection] as GameSelect
-  [Game UI] as GameUI
-  [Stats View] as Stats
-  [Ranking View] as Ranking
-}
-
-node "Gateway Service" as Gateway
-node "User Service" as UserSvc
-node "Game Manager" as GameMgr
-
-player --&gt; Landing
-Landing --&gt; Login
-Landing --&gt; Register
-
-Login --&gt; Gateway: HTTP POST /api/users/login\nAuthenticate user\nport 8000
-Register --&gt; Gateway: HTTP POST /api/users/register\nCreate new account\nport 8000
-
-Login --&gt; Menu
-Menu --&gt; HTP
-Menu --&gt; GameSelect
-Menu --&gt; Stats
-Menu --&gt; Ranking
-
-Stats --&gt; Gateway: HTTP GET /api/users/stats\nFetch user statistics\nport 8000
-Ranking --&gt; Gateway: HTTP GET /api/users/ranking\nFetch leaderboard\nport 8000
-
-GameSelect --&gt; Gateway: HTTP POST /api/game-manager/create/:gameName\nInitialize game session\nport 8000
-GameSelect --&gt; GameUI
-
-GameUI --&gt; Gateway: HTTP POST /api/game-manager/move\nSubmit player move\n(authentication required)\nport 8000
-
-Gateway --&gt; UserSvc: HTTP REST\nport 3000
-Gateway --&gt; GameMgr: HTTP REST\nport 5000</pre>
+<img src="./images/WebApp%20-%20Internal%20Structure%20and%20Navigation.png" alt="WebApp   Internal Structure and Navigation" width="1637" height="967">
 </div>
 </div>
 <div class="dlist">
@@ -1860,30 +1731,9 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="paragraph">
 <p>This scenario shows how a user registers in the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-hide footbox
-
-actor User
-participant "Webapp" as Webapp
-participant "Gateway Service" as Gateway
-participant "Users Service" as Service
-
-User -&gt; Webapp : Fill registration form\n{ username, email, password }
-Webapp -&gt; Gateway : POST /api/users/register
-Gateway -&gt; Service : POST /register\n{ username, email, password }
-Service --&gt; Service : Validate input\nHash password (bcrypt)\nStore in MongoDB
-
-alt Success
-    Service --&gt; Gateway : { message: "User created" }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show welcome message\nRedirect to login
-else Error
-    Service --&gt; Gateway : { error: "User already exists" }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show error message
-end</pre>
+<img src="./images/Sequence%20diagram%20-%20Register.png" alt="Sequence diagram   Register" width="808" height="536">
 </div>
 </div>
 </div>
@@ -1892,31 +1742,9 @@ end</pre>
 <div class="paragraph">
 <p>This scenario shows how a user logs into the system, including how the frontend and backend communicate.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-hide footbox
-
-actor User
-participant "Webapp" as Webapp
-participant "Gateway Service" as Gateway
-participant "Users Service" as Service
-
-User -&gt; Webapp : Fill login form\n{ username, password }
-Webapp -&gt; Gateway : POST /api/users/login
-Gateway -&gt; Service : POST /login\n{ username, password }
-Service --&gt; Service : Validate credentials\nCompare password (bcrypt)
-
-alt Success
-    Service --&gt; Gateway : { token: JWT, userId }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; Webapp : Store JWT in session
-    Webapp -&gt; User : Redirect to main menu
-else Error
-    Service --&gt; Gateway : { error: "Invalid credentials" }
-    Gateway --&gt; Webapp : Forward response
-    Webapp -&gt; User : Show error message
-end</pre>
+<img src="./images/Sequence%20diagram%20-%20Login.png" alt="Sequence diagram   Login" width="765" height="548">
 </div>
 </div>
 </div>
@@ -1925,42 +1753,9 @@ end</pre>
 <div class="paragraph">
 <p>This scenario shows how a user plays a game, including interactions with the web app, game core, and bot service.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-
-actor "Player" as User
-participant "WebApp" as Web
-participant "Gateway Service" as Gateway
-participant "Game Manager" as GameCore
-participant "Gamey Engine" as Bot
-
-User -&gt; Web : Start Game\nSelect difficulty &amp; board size
-Web -&gt; Gateway : POST /api/game-manager/create/standard\n{ botId, boardSize }
-Gateway -&gt; GameCore : POST /create/standard\n{ botId, boardSize }
-GameCore -&gt; GameCore : Create game\nStore in MongoDB
-GameCore --&gt; Gateway : { gameId, yen, status }
-Gateway --&gt; Web : { gameId, yen, status }
-Web --&gt; User : Game started
-
-loop until game over
-
-    User -&gt; Web : make move\n{ x, y, z }
-    Web -&gt; Gateway : POST /api/game-manager/game/:id/move\n{ coords }
-    Gateway -&gt; GameCore : POST /game/:id/move\n{ coords }
-    GameCore -&gt; GameCore : apply player move\ncheck if game over
-
-    GameCore -&gt; Bot : POST /v1/ybot/choose/{botId}\n{ yen }
-    Bot --&gt; GameCore : { coords }
-    GameCore -&gt; GameCore : apply bot move\ncheck if game over
-
-    GameCore --&gt; Gateway : { yen, status }
-    Gateway --&gt; Web : { yen, status }
-    Web --&gt; User : show updated board
-
-end
-
-Web --&gt; User : Game Over</pre>
+<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop " width="1000" height="932">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -2027,21 +1822,9 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 <div class="paragraph">
 <p>This level zooms into the internal structure of the production environment hosted on Azure.</p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-@startuml
-!theme plain
-
-node "Developer Machine" as dev
-cloud "GitHub (yovi_en3a)" as ghcr
-node "Azure VM" as azure
-actor "User" as user
-
-dev -&gt; ghcr : push image
-ghcr -&gt; azure : pull image
-user -&gt; azure : access webapp
-@enduml</pre>
+<img src="./images/deployment-lv1.png" alt="deployment lv1" width="796" height="146">
 </div>
 </div>
 <div class="sect3">
@@ -2129,79 +1912,9 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="paragraph">
 <p><strong>Azure connections</strong></p>
 </div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-@startuml
-' =========================
-' Configuración de estilo
-' =========================
-skinparam backgroundColor white
-skinparam roundcorner 5
-skinparam shadowing false
-skinparam componentStyle uml2
-skinparam DefaultFontName "Arial"
-skinparam nodesep 50
-skinparam ranksep 40
-
-' =========================
-' Estilo de contenedores
-' =========================
-skinparam node {
-    BackgroundColor #fdfdfd
-    BorderColor black
-    FontColor black
-    FontSize 12
-    StereotypeAlignment center
-}
-
-' =========================
-' Estilo de actores (cabeza pintada)
-' =========================
-skinparam actor {
-    BackgroundColor #3399FF  ' Azul oscuro
-    BorderColor #1F4E79
-    FontColor black
-    FontStyle bold
-    FontSize 12
-}
-skinparam actorStyle classic  ' Para que la cabeza sea visible y uniforme
-
-' =========================
-' Actores externos
-' =========================
-actor "User" as user
-actor "External Bot" as bot
-
-' =========================
-' Contenedor Azure VM con fondo azul claro
-' =========================
-node "Azure VM (Ubuntu) - Docker Host" as Host #D9EDF7 {
-
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;webapp&lt;/b&gt;&lt;/size&gt;\nPort 8080" as webapp
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;gatewayservice&lt;/b&gt;&lt;/size&gt;\nPort 8000" as gateway
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;users API&lt;/b&gt;&lt;/size&gt;\nPort 3000" as users
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;game-manager&lt;/b&gt;&lt;/size&gt;\nPort 5000" as manager
-    node "«container»\n&lt;size:14&gt;&lt;b&gt;gamey API&lt;/b&gt;&lt;/size&gt;\nPort 4000" as gamey
-
-    database "«container»\n&lt;size:14&gt;&lt;b&gt;MongoDB&lt;/b&gt;&lt;/size&gt;\nPort 27017" as mongodb
-}
-
-' =========================
-' Flujos
-' =========================
-user -right-&gt; webapp : HTTPS / REST
-bot -right-&gt; gateway : REST / JSON (Bot)
-webapp -right-&gt; gateway : REST / JSON
-gateway -down-&gt; users : REST / JSON
-gateway -down-&gt; manager : REST / JSON
-gateway -[bold]-&gt; gamey : REST / JSON (Bot)
-manager -right-&gt; gamey : REST / JSON (YEN)
-manager -left-&gt; users : REST / JSON (Stats)
-users -down-&gt; mongodb : MongoDB Driver
-manager -down-&gt; mongodb : MongoDB Driver
-
-@enduml</pre>
+<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="905" height="411">
 </div>
 </div>
 </div>
@@ -2617,34 +2330,9 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Failed to generate image: Could not load PlantUML. Either require 'asciidoctor-diagram-plantuml' or specify the location of the PlantUML JAR(s) using the 'DIAGRAM_PLANTUML_CLASSPATH' environment variable. Alternatively a PlantUML binary can be provided (plantuml-native in $PATH).
-@startmindmap
-* Quality
-** Performance
-*** Low-latency bot computation (Q1)
-*** Fast API response time (Q2)
-** Usability
-*** Intuitive onboarding flow (Q3)
-*** Inline validation feedback (Q4)
-** Scalability
-*** Concurrent bot requests (Q5)
-*** Growing number of players (Q6)
-** Interoperability
-*** External bot API (Q7)
-*** YEN notation as common language (Q8)
-** Maintainability
-*** Modular microservice structure (Q9)
-*** Independent deployability (Q10)
-** Security
-*** JWT authentication (Q11)
-*** Secure password storage (Q12)
-*** Duplicate registration prevention (Q15)
-** Testability
-*** Unit and integration tests (Q13)
-*** CI/CD pipeline (Q14)
-@endmindmap</pre>
+<img src="./images/quality-tree.png" alt="quality tree" width="603" height="868">
 </div>
 </div>
 <hr>
@@ -3788,7 +3476,7 @@ more easily measure or decide whether they are fulfilled.</p>
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-04-25 12:54:39 +0200
+Last updated 2026-04-26 17:08:24 +0200
 </div>
 </div>
 </body>
