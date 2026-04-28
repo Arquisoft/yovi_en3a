@@ -56,11 +56,101 @@ interface SavedState {
   p2: string[];
   isP2Turn: boolean;
 }
+
 function loadState(key: string): SavedState | null {
   try { return JSON.parse(localStorage.getItem(key) ?? "null"); } catch { return null; }
 }
+
 function saveState(key: string, s: SavedState) {
   try { localStorage.setItem(key, JSON.stringify(s)); } catch {}
+}
+
+function loadMultiplayerState(
+  storageKey: string,
+  p1CellsRef: React.MutableRefObject<Set<string>>,
+  p2CellsRef: React.MutableRefObject<Set<string>>,
+  playedCoords: React.MutableRefObject<Set<string>>,
+  setInitialOwners: (owners: Map<string, "p1" | "p2">) => void,
+  isP2TurnRef: React.MutableRefObject<boolean>,
+  setIsP2Turn: (value: boolean) => void
+) {
+  const saved = loadState(storageKey);
+  if (!saved || (saved.p1.length === 0 && saved.p2.length === 0)) {
+    return;
+  }
+
+  const owners = new Map<string, "p1" | "p2">();
+  saved.p1.forEach(k => {
+    owners.set(k, "p1");
+    p1CellsRef.current.add(k);
+    playedCoords.current.add(k);
+  });
+  saved.p2.forEach(k => {
+    owners.set(k, "p2");
+    p2CellsRef.current.add(k);
+    playedCoords.current.add(k);
+  });
+  setInitialOwners(owners);
+  isP2TurnRef.current = saved.isP2Turn;
+  setIsP2Turn(saved.isP2Turn);
+}
+
+async function loadServerState(
+  gameId: string,
+  currentLayoutRef: React.MutableRefObject<string>,
+  setInitialOwners: (owners: Map<string, "p1" | "p2">) => void,
+  playedCoords: React.MutableRefObject<Set<string>>,
+  onGameOver: ((winner: "p1" | "p2") => void) | undefined
+) {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    
+    if (data.yen?.layout) {
+      currentLayoutRef.current = data.yen.layout;
+      const owners = parseLayout(data.yen.layout, data.yen.size);
+      setInitialOwners(owners);
+      playedCoords.current = new Set(owners.keys());
+    }
+    
+    if (data.status === "won") {
+      onGameOver?.("p1");
+    } else if (data.status === "lost") {
+      onGameOver?.("p2");
+    }
+  } catch {
+    // Silently handle errors
+  }
+}
+
+function processBotLayoutDiff(
+  newLayout: string,
+  oldLayout: string,
+  boardSize: number,
+  selectCell: (x: number, y: number, z: number, player: "p1" | "p2") => boolean,
+  playedCoords: React.MutableRefObject<Set<string>>,
+  onCellPlayed: ((player: "p1" | "p2", playerName: string, coordinate: string) => void) | undefined,
+  optionsRef: React.MutableRefObject<GameLogicOptions | undefined>
+) {
+  newLayout.split("/").forEach((row: string, rowIndex: number) => {
+    for (let colIndex = 0; colIndex < row.length; colIndex++) {
+      const isNewBotMove = row[colIndex] === "R" && oldLayout.split("/")[rowIndex]?.[colIndex] !== "R";
+      
+      if (isNewBotMove) {
+        const x = boardSize - 1 - rowIndex;
+        const y = colIndex;
+        const z = rowIndex - colIndex;
+        
+        selectCell(x, y, z, "p2");
+        playedCoords.current.add(`${x}-${y}-${z}`);
+        onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
+        optionsRef.current?.onAfterBotMove?.({ x, y, z });
+      }
+    }
+  });
 }
 
 export const useGameLogic = (
@@ -88,39 +178,22 @@ export const useGameLogic = (
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (!gameId) { 
-        return;
-    }
+    if (!gameId) return;
 
     if (optionsRef.current?.isMultiplayer) {
-      const saved = loadState(storageKey);
-      if (saved && (saved.p1.length > 0 || saved.p2.length > 0)) {
-        const owners = new Map<string, "p1" | "p2">();
-        saved.p1.forEach(k => { owners.set(k, "p1"); p1CellsRef.current.add(k); playedCoords.current.add(k); });
-        saved.p2.forEach(k => { owners.set(k, "p2"); p2CellsRef.current.add(k); playedCoords.current.add(k); });
-        setInitialOwners(owners);
-        isP2TurnRef.current = saved.isP2Turn;
-        setIsP2Turn(saved.isP2Turn);
-      }
+      loadMultiplayerState(
+        storageKey,
+        p1CellsRef,
+        p2CellsRef,
+        playedCoords,
+        setInitialOwners,
+        isP2TurnRef,
+        setIsP2Turn
+      );
       return;
     }
 
-    const token = localStorage.getItem("token");
-    fetch(`${gatewayUrl}/api/game-manager/state/${gameId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.yen?.layout) {
-          currentLayoutRef.current = data.yen.layout;
-          const owners = parseLayout(data.yen.layout, data.yen.size);
-          setInitialOwners(owners);
-          playedCoords.current = new Set(owners.keys());
-        }
-        if (data.status === "won") onGameOver?.("p1");
-        else if (data.status === "lost") onGameOver?.("p2");
-      })
-      .catch(() => {});
+    loadServerState(gameId, currentLayoutRef, setInitialOwners, playedCoords, onGameOver);
   }, [gameId]);
 
   const selectCell = (x: number, y: number, z: number, player: "p1" | "p2") => {
@@ -135,9 +208,7 @@ export const useGameLogic = (
 
   const executeP1MoveLocal = useCallback((coordinates: Coordinates, name: string) => {
     const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
-    if (playedCoords.current.has(key)) {
-      return;
-    }
+    if (playedCoords.current.has(key)) return;
 
     flushSync(() => { selectCell(coordinates.x, coordinates.y, coordinates.z, "p1"); });
     playedCoords.current.add(key);
@@ -146,7 +217,8 @@ export const useGameLogic = (
     optionsRef.current?.onAfterPlayerMove?.(coordinates);
 
     if (checkYWin(p1CellsRef.current)) { 
-      onGameOver?.("p1"); return; 
+      onGameOver?.("p1");
+      return;
     }
 
     if (!optionsRef.current?.skipBotAfterMove) {
@@ -158,9 +230,7 @@ export const useGameLogic = (
 
   const executeP2Move = useCallback((coordinates: Coordinates, name: string) => {
     const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
-    if (playedCoords.current.has(key)) {
-      return;
-    }
+    if (playedCoords.current.has(key)) return;
 
     flushSync(() => { selectCell(coordinates.x, coordinates.y, coordinates.z, "p2"); });
     playedCoords.current.add(key);
@@ -168,7 +238,8 @@ export const useGameLogic = (
     onCellPlayed?.("p2", "Player 2", name);
 
     if (checkYWin(p2CellsRef.current)) {
-       onGameOver?.("p2"); return; 
+      onGameOver?.("p2");
+      return;
     }
 
     isP2TurnRef.current = false;
@@ -178,9 +249,8 @@ export const useGameLogic = (
   }, [onCellPlayed, onGameOver, storageKey]);
 
   const executeMove = useCallback(async (coordinates: Coordinates, name: string) => {
-    if (!gameId) { 
-        return;
-      }
+    if (!gameId) return;
+    
     const token = localStorage.getItem("token");
     const key = `${coordinates.x}-${coordinates.y}-${coordinates.z}`;
 
@@ -205,12 +275,13 @@ export const useGameLogic = (
     if (playerData.yen?.layout) {
       currentLayoutRef.current = playerData.yen.layout;
     }
+    
     if (playerData.status === "won" || playerData.status === "lost") {
-      onGameOver?.(playerData.status === "won" ? "p1" : "p2"); return;
-    }
-    if (optionsRef.current?.skipBotAfterMove) {
+      onGameOver?.(playerData.status === "won" ? "p1" : "p2");
       return;
     }
+    
+    if (optionsRef.current?.skipBotAfterMove) return;
 
     setIsProcessing(true);
     const layoutBeforeBot = currentLayoutRef.current;
@@ -228,6 +299,7 @@ export const useGameLogic = (
     if (botData.yen?.layout) {
       currentLayoutRef.current = botData.yen.layout;
     }
+    
     if (botData.status === "won" || botData.status === "lost") {
       onGameOver?.(botData.status === "won" ? "p1" : "p2");
       setIsProcessing(false);
@@ -235,23 +307,22 @@ export const useGameLogic = (
     }
 
     if (layoutBeforeBot && botData.yen?.layout) {
-      botData.yen.layout.split("/").forEach((row: string, rowIndex: number) => {
-        for (let colIndex = 0; colIndex < row.length; colIndex++) {
-          if (row[colIndex] === "R" && layoutBeforeBot.split("/")[rowIndex]?.[colIndex] !== "R") {
-            const x = botData.yen.size - 1 - rowIndex, y = colIndex, z = rowIndex - colIndex;
-            selectCell(x, y, z, "p2");
-            playedCoords.current.add(`${x}-${y}-${z}`);
-            onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
-            optionsRef.current?.onAfterBotMove?.({ x, y, z });
-          }
-        }
-      });
+      processBotLayoutDiff(
+        botData.yen.layout,
+        layoutBeforeBot,
+        botData.yen.size,
+        selectCell,
+        playedCoords,
+        onCellPlayed,
+        optionsRef
+      );
     }
     setIsProcessing(false);
-  }, [gameId]);
+  }, [gameId, onCellPlayed, onGameOver]);
 
   const executeBotMove = useCallback(async (layoutBeforeOverride?: string) => {
     if (!gameId) return;
+    
     setIsProcessing(true);
     const token = localStorage.getItem("token");
     const layoutBefore = layoutBeforeOverride ?? currentLayoutRef.current;
@@ -260,32 +331,34 @@ export const useGameLogic = (
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
+    
     if (!res.ok) {
       setIsProcessing(false);
       return;
     }
 
     const data = await res.json();
-    if (data.yen?.layout) currentLayoutRef.current = data.yen.layout;
+    if (data.yen?.layout) {
+      currentLayoutRef.current = data.yen.layout;
+    }
+    
     if (data.status === "won" || data.status === "lost") {
       onGameOver?.(data.status === "won" ? "p1" : "p2");
       setIsProcessing(false);
       return;
     }
 
-    data.yen.layout.split("/").forEach((row: string, rowIndex: number) => {
-      for (let colIndex = 0; colIndex < row.length; colIndex++) {
-        if (row[colIndex] === "R" && layoutBefore.split("/")[rowIndex]?.[colIndex] !== "R") {
-          const x = data.yen.size - 1 - rowIndex, y = colIndex, z = rowIndex - colIndex;
-          selectCell(x, y, z, "p2");
-          playedCoords.current.add(`${x}-${y}-${z}`);
-          onCellPlayed?.("p2", "Bot", `(${x},${y},${z})`);
-          optionsRef.current?.onAfterBotMove?.({ x, y, z });
-        }
-      }
-    });
+    processBotLayoutDiff(
+      data.yen.layout,
+      layoutBefore,
+      data.yen.size,
+      selectCell,
+      playedCoords,
+      onCellPlayed,
+      optionsRef
+    );
     setIsProcessing(false);
-  }, [gameId]);
+  }, [gameId, onCellPlayed, onGameOver]);
 
   const handleClick = (coordinates: Coordinates, name: string) => {
     if (optionsRef.current?.isMultiplayer) {
@@ -295,16 +368,12 @@ export const useGameLogic = (
         if (optionsRef.current?.onBeforeMove?.() === false) return;
         executeP1MoveLocal(coordinates, name);
       }
-    } else {
-      if (!gameId) { 
-        return;
-      }
-      if (optionsRef.current?.onBeforeMove?.() === false) {
-        return;
-      } 
-
-      executeMove(coordinates, name);
+      return;
     }
+
+    if (!gameId) return;
+    if (optionsRef.current?.onBeforeMove?.() === false) return;
+    executeMove(coordinates, name);
   };
 
   const availableCoords = useCallback((): Coordinates[] => {
@@ -320,12 +389,11 @@ export const useGameLogic = (
 
   const makeRandomMove = useCallback(() => {
     const available = availableCoords();
-    if (available.length === 0) {
-      return;
-    }
+    if (available.length === 0) return;
 
     const coord = available[secureRandomInt(available.length)];
     const name = `(${coord.x},${coord.y},${coord.z})`;
+    
     if (optionsRef.current?.isMultiplayer) {
       executeP1MoveLocal(coord, name);
     } else {
@@ -335,9 +403,7 @@ export const useGameLogic = (
 
   const makeRandomP2Move = useCallback(() => {
     const available = availableCoords();
-    if (available.length === 0) {
-      return;
-    }
+    if (available.length === 0) return;
 
     const coord = available[secureRandomInt(available.length)];
     executeP2Move(coord, `(${coord.x},${coord.y},${coord.z})`);
