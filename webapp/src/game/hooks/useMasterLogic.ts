@@ -83,6 +83,7 @@ export const useMasterLogic = (
       return null;
     }
 
+    // NOSONAR - Math.random() is safe for dice roll simulation in game
     return available[Math.floor(Math.random() * available.length)];
   };
 

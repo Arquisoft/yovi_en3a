@@ -53,6 +53,7 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
           return;
         }
 
+        // NOSONAR - Math.random() is safe for game AI move selection
         const coord = available[Math.floor(Math.random() * available.length)];
         handleClick(coord, `(${coord.x},${coord.y},${coord.z})`);
       },

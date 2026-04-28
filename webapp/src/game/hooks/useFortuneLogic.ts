@@ -33,6 +33,7 @@ export const useFortuneLogic = (
     setIsP2TurnLocal(false);
 
     setTimeout(() => {
+      // NOSONAR - Math.random() is safe for dice roll simulation in game
       const result: DiceResult = Math.random() < 0.5 ? "player" : "bot";
       setDiceResult(result);
       setIsRolling(false);

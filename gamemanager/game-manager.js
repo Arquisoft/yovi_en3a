@@ -335,6 +335,14 @@ app.get('/health', (req, res) => {
 app.get('/api/gamey/play', async (req, res) => {
     const { bot_id: botId = 'medium_bot', position } = req.query;
 
+    const ALLOWED_BOT_IDS = ['random_bot', 'medium_bot', 'beginner_bot'];
+    
+    if (!ALLOWED_BOT_IDS.includes(botId)) {
+        return res.status(400).json({ 
+            error: 'Invalid bot_id. Allowed values: ' + ALLOWED_BOT_IDS.join(', ') 
+        });
+    }
+
     if (!position) {
         return res.status(400).json({ error: '`position` query parameter is required' });
     }

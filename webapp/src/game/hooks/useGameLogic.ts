@@ -315,6 +315,7 @@ export const useGameLogic = (
       return;
     }
 
+    // NOSONAR - Math.random() is safe for dice roll simulation in game
     const coord = available[Math.floor(Math.random() * available.length)];
     const name = `(${coord.x},${coord.y},${coord.z})`;
     if (optionsRef.current?.isMultiplayer) {
@@ -330,6 +331,7 @@ export const useGameLogic = (
       return;
     }
 
+    // NOSONAR - Math.random() is safe for dice roll simulation in game
     const coord = available[Math.floor(Math.random() * available.length)];
     executeP2Move(coord, `(${coord.x},${coord.y},${coord.z})`);
   }, [availableCoords, executeP2Move]);

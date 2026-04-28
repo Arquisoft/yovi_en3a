@@ -32,7 +32,7 @@ export default function DiceRoller({ isRolling, diceResult, isMultiplayer = fals
 
   useEffect(() => {
     if (isRolling) {
-      // Rapidly cycle through faces while rolling
+      // NOSONAR - Math.random() is safe for visual dice animation
       const id = setInterval(() => {
         setFace(Math.floor(Math.random() * 6) + 1);
       }, 80);
@@ -40,13 +40,13 @@ export default function DiceRoller({ isRolling, diceResult, isMultiplayer = fals
     }
 
     if (diceResult) {
-      // Player tends to roll high, bot tends to roll low
+      // NOSONAR - Math.random() is safe for game dice rolls
       const val =
         diceResult === "player"
-          ? Math.floor(Math.random() * 3) + 4  // 4-6
-          : Math.floor(Math.random() * 3) + 1; // 1-3
+          ? Math.floor(Math.random() * 3) + 4
+          : Math.floor(Math.random() * 3) + 1;
       setFace(val);
-      setAnimKey((k) => k + 1); // re-mount die element → triggers pop CSS animation
+      setAnimKey((k) => k + 1);
     }
   }, [isRolling, diceResult]);
 
