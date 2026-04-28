@@ -350,6 +350,24 @@ app.get('/health', (req, res) => {
 app.get('/api/gamey/play', async (req, res) => {
     const { bot_id: botId = 'medium_bot', position } = req.query;
 
+    // Mapeo completamente estático - NINGUNA interpolación de variables
+    const BOT_ENDPOINTS = {
+        'random_bot': `${GAMEY_SERVICE_URL}/v1/ybot/choose/random_bot`,
+        'medium_bot': `${GAMEY_SERVICE_URL}/v1/ybot/choose/medium_bot`,
+        'beginner_bot': `${GAMEY_SERVICE_URL}/v1/ybot/choose/beginner_bot`
+    };
+    
+    // Validación con allowlist explícita
+    const allowedBots = ['random_bot', 'medium_bot', 'beginner_bot'];
+    if (!allowedBots.includes(botId)) {
+        return res.status(400).json({ 
+            error: 'Invalid bot_id. Allowed values: random_bot, medium_bot, beginner_bot' 
+        });
+    }
+
+    // Obtener URL del mapeo estático - SIN construcción dinámica
+    const targetUrl = BOT_ENDPOINTS[botId];
+
     if (!position) {
         return res.status(400).json({ error: '`position` query parameter is required' });
     }
@@ -366,33 +384,12 @@ app.get('/api/gamey/play', async (req, res) => {
     }
 
     try {
-        let response;
-        
-        // Hacer la llamada directamente según el bot validado
-        if (botId === 'random_bot') {
-            response = await axios.post(
-                `${GAMEY_SERVICE_URL}/v1/ybot/choose/random_bot`,
-                yen,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
-        } else if (botId === 'medium_bot') {
-            response = await axios.post(
-                `${GAMEY_SERVICE_URL}/v1/ybot/choose/medium_bot`,
-                yen,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
-        } else if (botId === 'beginner_bot') {
-            response = await axios.post(
-                `${GAMEY_SERVICE_URL}/v1/ybot/choose/beginner_bot`,
-                yen,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
-        } else {
-            return res.status(400).json({ 
-                error: 'Invalid bot_id. Allowed values: random_bot, medium_bot, beginner_bot' 
-            });
-        }
-        
+        // Usar la URL completamente pre-construida
+        const response = await axios.post(targetUrl, yen, { 
+            headers: { 'Content-Type': 'application/json' },
+            // Agregar timeout por seguridad
+            timeout: 5000
+        });
         res.json({ coords: response.data.coords });
     } catch (error) {
         const status = error.response?.status || 500;
