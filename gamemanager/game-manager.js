@@ -335,19 +335,17 @@ app.get('/health', (req, res) => {
 app.get('/api/gamey/play', async (req, res) => {
     const { bot_id: botId = 'medium_bot', position } = req.query;
 
-    const BOT_URLS = {
-        'random_bot': new URL('/v1/ybot/choose/random_bot', GAMEY_SERVICE_URL).href,
-        'medium_bot': new URL('/v1/ybot/choose/medium_bot', GAMEY_SERVICE_URL).href,
-        'beginner_bot': new URL('/v1/ybot/choose/beginner_bot', GAMEY_SERVICE_URL).href
-    };
+    const ALLOWED_BOTS = ['random_bot', 'medium_bot', 'beginner_bot'];
     
-    const targetUrl = BOT_URLS[botId];
-    
-    if (!targetUrl) {
+    // Validar que bot_id esté en la lista permitida
+    if (!ALLOWED_BOTS.includes(botId)) {
         return res.status(400).json({ 
-            error: 'Invalid bot_id. Allowed values: ' + Object.keys(BOT_URLS).join(', ') 
+            error: 'Invalid bot_id. Allowed values: ' + ALLOWED_BOTS.join(', ') 
         });
     }
+
+    const endpoint = `/v1/ybot/choose/${botId}`;
+    const targetUrl = new URL(endpoint, GAMEY_SERVICE_URL).href;
 
     if (!position) {
         return res.status(400).json({ error: '`position` query parameter is required' });
