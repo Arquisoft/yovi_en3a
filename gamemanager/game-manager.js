@@ -15,6 +15,12 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/userdb
 const GAMEY_SERVICE_URL = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3000';
 
+const ALLOWED_BOT_PATHS = {
+    'random_bot': '/v1/ybot/choose/random_bot',
+    'medium_bot': '/v1/ybot/choose/medium_bot',
+    'beginner_bot': '/v1/ybot/choose/beginner_bot'
+};
+
 const connectToMongoDB = async () => {
     try {
         await mongoose.connect(MONGODB_URI);
@@ -365,38 +371,43 @@ app.get('/api/gamey/play', async (req, res) => {
         return res.status(400).json({ error: '`position` must include at least `layout` and `size`' });
     }
 
-    // Extraemos la configuración para no repetir código
-    const axiosConfig = {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 5000
-    };
+    const botPath = ALLOWED_BOT_PATHS[botId];
+    if (!botPath) {
+        return res.status(400).json({ 
+            error: 'Invalid bot_id. Allowed values: random_bot, medium_bot, beginner_bot' 
+        });
+    }
 
     try {
-        let response;
-        
-        // Al pasar el string literal directamente a axios.post, 
-        // SonarQube no puede alegar que la URL está construida con datos del usuario.
-        switch (botId) {
-            case 'random_bot':
-                response = await axios.post(`${GAMEY_SERVICE_URL}/v1/ybot/choose/random_bot`, yen, axiosConfig);
-                break;
-            case 'medium_bot':
-                response = await axios.post(`${GAMEY_SERVICE_URL}/v1/ybot/choose/medium_bot`, yen, axiosConfig);
-                break;
-            case 'beginner_bot':
-                response = await axios.post(`${GAMEY_SERVICE_URL}/v1/ybot/choose/beginner_bot`, yen, axiosConfig);
-                break;
-            default:
-                return res.status(400).json({ 
-                    error: 'Invalid bot_id. Allowed values: random_bot, medium_bot, beginner_bot' 
-                });
+        const targetUrl = new URL(botPath, GAMEY_SERVICE_URL);
+
+        const response = await fetch(targetUrl.toString(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(yen),
+            signal: AbortSignal.timeout(5000)
+        });
+
+        if (!response.ok) {
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch {
+                errorData = { error: 'Gamey service error' };
+            }
+            return res.status(response.status).json(errorData);
         }
 
-        res.json({ coords: response.data.coords });
+        const data = await response.json();
+        res.json({ coords: data.coords });
+
     } catch (error) {
-        const status = error.response?.status || 500;
-        const data = error.response?.data || { error: 'Gamey service error' };
-        res.status(status).json(data);
+        if (error.name === 'TimeoutError') {
+            return res.status(504).json({ error: 'Gamey service timeout' });
+        }
+        
+        console.error('Error in /api/gamey/play:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

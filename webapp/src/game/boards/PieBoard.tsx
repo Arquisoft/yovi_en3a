@@ -27,14 +27,12 @@ const PieBoard = forwardRef<GameBoardRef, BoardProps>(
       cellRefs,
       playedCoords,
       phase,
-      currentTurnPlayer,
-      swapActive,
       handleClick,
       handleKeep,
       handleSwap,
       handleRequestSelectCell,
       lockedCells,
-    } = usePieLogic(boardSize, onCellPlayed, onGameOver, onTurnChange, onSwap);
+    } = usePieLogic(gameIdProp, boardSize, onCellPlayed, onGameOver, onTurnChange, onSwap);
 
     useImperativeHandle(ref, () => ({
       selectCellByCoordinates: (x, y, z, player) => {
