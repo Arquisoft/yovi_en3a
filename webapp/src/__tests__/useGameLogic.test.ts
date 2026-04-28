@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { checkYWin, useGameLogic } from '../../game/hooks/useGameLogic';
+import { checkYWin, useGameLogic } from '../game/hooks/useGameLogic';
 
 vi.mock('react-router-dom', () => ({
   useParams: vi.fn().mockReturnValue({ gameId: 'url-game-id' }),

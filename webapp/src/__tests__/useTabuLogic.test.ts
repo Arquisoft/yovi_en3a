@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useTabuLogic } from '../../game/hooks/useTabuLogic';
-import * as gameLogicModule from '../../game/hooks/useGameLogic';
+import { useTabuLogic } from '../game/hooks/useTabuLogic';
+import * as gameLogicModule from '../game/hooks/useGameLogic';
 
 // 1. Mock de la dependencia base
 vi.mock('../../game/hooks/useGameLogic', () => ({

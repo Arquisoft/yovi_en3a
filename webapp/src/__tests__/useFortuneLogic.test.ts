@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useFortuneLogic } from '../../game/hooks/useFortuneLogic';
-import * as gameLogicHook from '../../game/hooks/useGameLogic';
+import { useFortuneLogic } from '../game/hooks/useFortuneLogic';
+import * as gameLogicHook from '../game/hooks/useGameLogic';
 
 // 1. Mock de la dependencia useGameLogic
 vi.mock('../../game/hooks/useGameLogic', () => ({
