@@ -8,6 +8,10 @@ const swaggerUi = require('swagger-ui-express')
 const fs = require('node:fs')
 const YAML = require('js-yaml')
 
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3000';
+const GAME_MANAGER_URL = process.env.GAME_MANAGER_URL || 'http://localhost:5000';
+const GAMEY_SERVICE_URL = process.env.GAMEY_SERVICE_URL || 'http://localhost:4000';
+
 //Authentication for users in games
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET
