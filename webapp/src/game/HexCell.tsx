@@ -99,9 +99,21 @@ const HexCell = forwardRef<HexCellRef, HexCellProps>(
       onCellClick?.(coordinates, name);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleClick();
+      }
+    };
+
     return (
       <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
         onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        aria-disabled={disabled}
+        aria-label={`Cell ${name}, ${cellOwner === "none" ? "empty" : `owned by player ${cellOwner}`}`}
         className={`hex transition-all select-none cursor-pointer${disabled ? " cursor-not-allowed opacity-50" : ""}`}
         style={{
           width: size,

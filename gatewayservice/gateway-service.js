@@ -110,7 +110,7 @@ app.get('/status', (req,res) => {
     res.json({status: 'ok', service: 'gatewayservice'})
 })
 
-if (require.main === module) {
+if (require.main && require.main.filename === __filename) {
   const PORT = process.env.PORT || 8000;
   app.listen(PORT, () => {
     console.log(`Gateway service running on: ${PORT}`);
