@@ -5,6 +5,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --silent
 
 #Copies code from project to container
-COPY . . 
+COPY gateway-service.js ./
+COPY openapi.yaml ./
+
+USER node
+
 EXPOSE 8000
 CMD ["node", "gateway-service.js"]
