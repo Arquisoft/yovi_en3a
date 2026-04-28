@@ -335,17 +335,22 @@ app.get('/health', (req, res) => {
 app.get('/api/gamey/play', async (req, res) => {
     const { bot_id: botId = 'medium_bot', position } = req.query;
 
-    const ALLOWED_BOTS = ['random_bot', 'medium_bot', 'beginner_bot'];
+    // Mapeo hardcodeado - URLs completamente estáticas
+    const BOT_ENDPOINTS = {
+        'random_bot': `${GAMEY_SERVICE_URL}/v1/ybot/choose/random_bot`,
+        'medium_bot': `${GAMEY_SERVICE_URL}/v1/ybot/choose/medium_bot`,
+        'beginner_bot': `${GAMEY_SERVICE_URL}/v1/ybot/choose/beginner_bot`
+    };
     
-    // Validar que bot_id esté en la lista permitida
-    if (!ALLOWED_BOTS.includes(botId)) {
+    // Validación estricta
+    if (!Object.prototype.hasOwnProperty.call(BOT_ENDPOINTS, botId)) {
         return res.status(400).json({ 
-            error: 'Invalid bot_id. Allowed values: ' + ALLOWED_BOTS.join(', ') 
+            error: 'Invalid bot_id. Allowed values: random_bot, medium_bot, beginner_bot' 
         });
     }
 
-    const endpoint = `/v1/ybot/choose/${botId}`;
-    const targetUrl = new URL(endpoint, GAMEY_SERVICE_URL).href;
+    // Aquí targetUrl YA NO depende de user input, es una lookup de un objeto estático
+    const targetUrl = BOT_ENDPOINTS[botId];
 
     if (!position) {
         return res.status(400).json({ error: '`position` query parameter is required' });
