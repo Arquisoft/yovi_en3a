@@ -1004,7 +1004,7 @@ The title of the table is the name of your system, the three columns contain the
 <h3 id="_technical_context">3.2. Technical Context</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Technical%20context.png" alt="Technical context" width="591" height="618">
+<img src="./images/Technical%20context.png" alt="Technical context" width="562" height="618">
 </div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1039,7 +1039,7 @@ The title of the table is the name of your system, the three columns contain the
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gateway Service</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">- Requests from Frontend<br>
   - Requests from External Bots</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Forwards requests to Users Service, Game Manager, GameY<br>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Forwards requests to Users Service and Game Manager<br>
   - Responds back to Frontend and Bots</p></td>
 </tr>
 <tr>
@@ -1052,11 +1052,9 @@ The title of the table is the name of your system, the three columns contain the
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">GameY</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Game moves from API<br>
-  - Bot decisions (internal)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">- Game state updates<br>
-  - Bot actions<br>
-  - Responses to the API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Current game state in YEN format (from Game Manager)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">- Bot move coordinates (x, y, z)<br>
+  - Win check result (game_over, winner)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">MongoDB</p></td>
@@ -1595,7 +1593,7 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 <h4 id="_white_box_webapp">5.2.2. White Box WebApp</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/WebApp%20-%20Internal%20Structure%20and%20Navigation.png" alt="WebApp   Internal Structure and Navigation" width="1375" height="823">
+<img src="./images/WebApp%20-%20Internal%20Structure%20and%20Navigation.png" alt="WebApp   Internal Structure and Navigation" width="1640" height="823">
 </div>
 </div>
 <div class="dlist">
@@ -1755,7 +1753,7 @@ You will mainly capture scenarios in your documentation to communicate your arch
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop" width="919" height="964">
+<img src="./images/Sequence%20diagram%20-%20Game%20Loop%20.png" alt="Sequence diagram   Game Loop" width="995" height="1118">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1811,7 +1809,7 @@ The project is designed to be highly portable. By using a Virtual Machine on Azu
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Azure VM (Ubuntu)</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Production containers: <code>webapp</code>, <code>gatewayservice</code>, <code>users</code>, <code>game-manager</code>, <code>gamey</code>, and <code>mongodb</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Production containers: <code>webapp</code>, <code>gatewayservice</code>, <code>users</code>, <code>game-manager</code>, <code>gamey</code>, <code>mongodb</code>, <code>prometheus</code>, and <code>grafana</code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1903,6 +1901,16 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mongo 6.0+ Engine</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: prometheus</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics Collector</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus Image (Port 9090)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Container: grafana</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics Dashboard</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Grafana Image (Port 9091)</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Storage Volume</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">User Database Files</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Persistent Host File System</p></td>
@@ -1914,7 +1922,7 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="953" height="407">
+<img src="./images/deployment-lv2-azure.png" alt="deployment lv2 azure" width="983" height="407">
 </div>
 </div>
 </div>
@@ -1926,10 +1934,10 @@ Using a single VM with Docker Compose reduces architectural complexity and costs
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><strong>HTTP (Port 80):</strong> Used by the end-user’s browser to download the <code>webapp</code> assets.</p>
+<p><strong>HTTP (Port 8080):</strong> Used by the end-user’s browser to access the <code>webapp</code> served by Nginx.</p>
 </li>
 <li>
-<p><strong>REST/JSON (Port 8000):</strong> The <strong>single entry point</strong> for all API communication. The <code>gatewayservice</code> receives requests from the frontend and routes them to <code>users</code>, <code>game-manager</code>, or <code>gamey</code> based on the URL path.</p>
+<p><strong>REST/JSON (Port 8000):</strong> The <strong>single entry point</strong> for all API communication. The <code>gatewayservice</code> receives requests from the frontend and external bots, and routes them to <code>users</code> or <code>game-manager</code> based on the URL path. External bot requests to <code>GET /play</code> are forwarded to the <code>game-manager</code>, which in turn calls <code>gamey</code>.</p>
 </li>
 <li>
 <p><strong>Internal Microservice Communication:</strong> Services communicate within the <code>monitor-net</code> Docker network. The <code>game-manager</code> requests move validations from <code>gamey</code> via internal REST calls.</p>
@@ -1985,23 +1993,20 @@ game state communication.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>The <code>game-manager</code> orchestrates the flow:</p>
+<p>The frontend drives the turn in two separate HTTP calls to the <code>game-manager</code>:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Receives the player move</p>
+<p><strong>Player move</strong> — <code>POST /game/:id/move/player</code>: game-manager applies the player&#8217;s move and returns the updated board state.</p>
 </li>
 <li>
-<p>Applies the move</p>
-</li>
-<li>
-<p>Requests the bot move from gamey</p>
-</li>
-<li>
-<p>Returns the updated state of the board</p>
+<p><strong>Bot move</strong> — <code>POST /game/:id/move/bot</code>: game-manager requests a move from <code>gamey</code>, applies it, and returns the updated board state.</p>
 </li>
 </ol>
+</div>
+<div class="paragraph">
+<p>This two-step design keeps each call focused and allows the frontend to react to the player move (e.g. detect an immediate win) before triggering the bot.</p>
 </div>
 <hr>
 </div>
@@ -2049,8 +2054,10 @@ internal container communication.</p>
 <div class="paragraph">
 <p>All external requests enter the system through a single <strong>gateway service</strong> running
 on port 8000. The <strong>gateway proxies</strong> requests to the appropriate microservice based
-on the URL prefix (/api/users, /api/game-manager). Communication with <code>gamey</code> is
-not a generic proxy — only the specific endpoint <code>POST /api/gamey/play</code> is exposed.</p>
+on the URL prefix (<code>/api/users</code>, <code>/api/game-manager</code>). The <code>gamey</code> engine is never
+exposed directly through the gateway; the only public bot endpoint is
+<code>GET /play?position=&lt;YEN&gt;&amp;bot_id=&lt;id&gt;</code>, which the gateway forwards to
+<code>game-manager</code>, which in turn calls <code>gamey</code> internally.</p>
 </div>
 </div>
 <div class="sect3">
@@ -2098,7 +2105,7 @@ while production injects them via <code>docker-compose`</code> on the server.</p
 <div class="paragraph">
 <p>The <code>gatewayservice</code> exposes a <strong>Swagger UI</strong> at <code>/api-docs</code> using swagger-ui-express
 and a single <code>openapi.yaml</code> that documents all public API endpoints across microservices
-(<code>/api/users</code>, <code>/api/game-manager</code>, <code>/api/gamey</code>).</p>
+(<code>/api/users</code>, <code>/api/game-manager</code>, <code>/play</code>).</p>
 </div>
 </div>
 <div class="sect3">
@@ -2141,7 +2148,16 @@ GitHub Container Registry (ghcr.io), then deploys to the Azure VM via SSH.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_memory_management">8.5.3. Memory Management</h4>
+<h4 id="_monitoring_and_observability">8.5.3. Monitoring and Observability</h4>
+<div class="paragraph">
+<p>The production stack includes <strong>Prometheus</strong> and <strong>Grafana</strong> deployed as Docker containers
+within the same <code>monitor-net</code> network. Prometheus scrapes metrics from the running
+services every 5 seconds. Grafana exposes a dashboard on port 9091 for visualising
+resource usage, request rates, and service health in real time.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_memory_management">8.5.4. Memory Management</h4>
 <div class="paragraph">
 <p>The <strong>Azure VM</strong> has limited RAM (848MB). <strong>Swap</strong> (2GB) is configured with swappiness=10
 to prioritize RAM usage and avoid performance degradation.</p>
@@ -2359,7 +2375,7 @@ concrete and measurable.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST</strong> <code>/api/gamey/play</code> — sustained load of 13 requests/second over 60 seconds across random, beginner and medium bots</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET</strong> <code>/play?position=&lt;YEN&gt;&amp;bot_id=&lt;id&gt;</code> — sustained load of 13 requests/second over 60 seconds across random, beginner and medium bots</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
@@ -2559,11 +2575,11 @@ concrete and measurable.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Scenario</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">An external bot sends a <strong>POST</strong> request to <code>/api/gamey/play</code> with a valid YEN game state. The gateway proxies the request to gamey and returns the bot move coordinates within 1000ms at the 95th percentile.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">An external bot sends a <strong>GET</strong> request to <code>/play</code> with a valid YEN game state as the <code>position</code> query parameter. The gateway forwards the request to game-manager, which calls gamey, and returns the bot move coordinates within 1000ms at the 95th percentile.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stimulus</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>POST</strong> <code>/api/gamey/play</code> with valid YEN body under sustained load</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GET</strong> <code>/play?position=&lt;YEN&gt;&amp;bot_id=&lt;id&gt;</code> under sustained load</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Response</strong></p></td>
@@ -2977,11 +2993,6 @@ more easily measure or decide whether they are fulfilled.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Microservices output logs to stdout using console.log without formatting.</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Adopt a structured logging library that outputs JSON logs.</p></td>
 </tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Swagger Documentation Incomplete</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The <code>gatewayservice</code> exposes a Swagger UI with an <code>openapi.yaml</code> that centralises all public API documentation. However, some endpoints are not yet documented (e.g. <code>/api/users/history</code>), leaving gaps for external developers and bot integrators.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Complete the gateway&#8217;s <code>openapi.yaml</code> to cover all public endpoints, including request/response schemas, authentication requirements and error codes.</p></td>
-</tr>
 </tbody>
 </table>
 <div style="page-break-after: always;"></div>
@@ -3122,7 +3133,47 @@ more easily measure or decide whether they are fulfilled.</p>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_gamey_bot_server_rust">12.1.4. gamey (bot server — Rust)</h4>
+<h4 id="_webapp_react_frontend">12.1.4. webapp (React frontend)</h4>
+<div class="paragraph">
+<p>The webapp test suite uses <strong>Vitest</strong> with <strong>React Testing Library</strong> to test individual React components and hooks in isolation, without a running backend. API calls are mocked with <code>vi.mock</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Component / Hook</th>
+<th class="tableblock halign-left valign-top">Tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>LoginForm</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renders correctly; submits credentials; shows error on failure</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>RegisterForm</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renders correctly; submits registration data; shows validation errors</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>GameBoard</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renders board for each game mode; cells respond to click events</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>useGameLogic</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Manages game state; handles player and bot move responses; handles win/loss status</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Stats / Ranking views</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renders player statistics and leaderboard data correctly</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_gamey_bot_server_rust">12.1.5. gamey (bot server — Rust)</h4>
 <div class="paragraph">
 <p>The gamey service is written in Rust and tested with the built-in cargo test framework. Tests are split into two files.</p>
 </div>
@@ -3393,6 +3444,22 @@ more easily measure or decide whether they are fulfilled.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>The build system and package manager for Rust. Used to compile, test, and run the gamey microservice.</em></p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Cucumber.js</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A Behaviour-Driven Development (BDD) framework for Node.js. Used in the YOVI E2E test suite to define test scenarios in plain English (Gherkin syntax) and execute them via Playwright.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Gatling</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An open-source load testing tool written in Scala. Used in YOVI to simulate concurrent users against the API and measure response times and throughput under sustained load.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Grafana</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An open-source metrics visualisation and dashboarding tool. Deployed alongside Prometheus in the YOVI production stack; exposes a real-time dashboard on port 9091 for monitoring service health and resource usage.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Playwright</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>A browser automation framework used by the YOVI E2E test suite to control a headless Chromium instance and interact with the full running application.</em></p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>CI/CD (Continuous Integration / Continuous Deployment)</strong></em></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>The automated pipeline implemented via GitHub Actions that runs tests and code quality checks on every push and deploys the application to the Azure VM on each release.</em></p></td>
 </tr>
@@ -3439,6 +3506,10 @@ more easily measure or decide whether they are fulfilled.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Rust</strong></em></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>A programming language focused on performance and memory safety. Used in YOVI to implement the gamey microservice (game engine and bots) due to its high computational efficiency.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>Prometheus</strong></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>An open-source monitoring and alerting toolkit. Deployed in the YOVI production stack to scrape metrics from running services every 5 seconds and store them as time-series data for Grafana to visualise.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em><strong>SonarCloud</strong></em></p></td>
